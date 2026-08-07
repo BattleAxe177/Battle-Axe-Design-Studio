@@ -1,4 +1,4 @@
-# Battle Axe Design Studio v0.4.0-alpha.3
+# Battle Axe Design Studio v0.4.0-alpha.4
 
 This release extends the permanent browser application with the first usable Playtest Center while preserving the scenario-independent Battle Axe architecture.
 

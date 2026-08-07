@@ -1,4 +1,5 @@
 let currentHighlighted=[];
+let currentRasterOverlay=null;
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -50,6 +51,13 @@ export async function loadInlineMap(host, url) {
 function clearGeometryHighlight() {
   currentHighlighted.forEach(el=>el.classList.remove('ba-map-selected','ba-map-flash'));
   currentHighlighted=[];
+  currentRasterOverlay?.remove(); currentRasterOverlay=null;
+}
+function highlightRasterRuns(svg,feature,{flash=true}={}){
+  if(!svg||!feature.rasterRuns?.length)return false;const vb=svg.viewBox?.baseVal;if(!vb?.width||!vb?.height)return false;
+  const g=document.createElementNS(SVG_NS,'g');g.classList.add('ba-raster-selected');if(flash)g.classList.add('ba-map-flash');
+  for(const [x,y,w,h] of feature.rasterRuns){const r=document.createElementNS(SVG_NS,'rect');r.setAttribute('x',vb.x+x/100*vb.width);r.setAttribute('y',vb.y+y/100*vb.height);r.setAttribute('width',Math.max(.5,w/100*vb.width));r.setAttribute('height',Math.max(.5,h/100*vb.height));g.appendChild(r);}
+  svg.appendChild(g);currentRasterOverlay=g;if(flash)setTimeout(()=>g.classList.remove('ba-map-flash'),1250);return true;
 }
 
 export function setOverlay(overlay, box, {flash = true} = {}) {
@@ -69,9 +77,9 @@ export function highlightFeature(svg, overlay, feature, {flash=true}={}) {
   }
   if(currentHighlighted.length){
     if(flash)setTimeout(()=>currentHighlighted.forEach(el=>el.classList.remove('ba-map-flash')),1250);
-  } else if(feature.box) setOverlay(overlay,feature.box,{flash});
-  // Synthetic openings get a small precise map marker even when related wall line is also highlighted.
-  if(!feature.elementIds?.length && feature.box) setOverlay(overlay,feature.box,{flash});
+  } else if(!highlightRasterRuns(svg,feature,{flash}) && feature.box) setOverlay(overlay,feature.box,{flash});
+  // Bounding boxes are now a last-resort diagnostic only. Raster-derived features flash their actual recognized pixels.
+  if(!feature.elementIds?.length && !feature.rasterRuns?.length && feature.box) setOverlay(overlay,feature.box,{flash});
 }
 
 export function clearOverlay(overlay) {

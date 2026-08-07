@@ -1,6 +1,15 @@
 # Changelog
 
-## 0.4.0-alpha.3 — Playtest Center and workflow consolidation
+## 0.4.0-alpha.4 — Geometry review & facing repair
+
+- Map Studio now flashes raster-derived features using the actual recognized pixel geometry instead of a bounding rectangle.
+- Vector-derived features continue to flash their exact SVG source geometry; boxes are now last-resort diagnostics only.
+- Raster tree-line/avenue guesses are no longer auto-promoted without stronger topology evidence; ambiguous candidates stay in Geometry Explorer.
+- Playtest units now carry facing as engine state, pivot toward movement/contact direction, emit pivot events, and render rotated in replay with a facing arrow.
+- Historical formation notes and Studio rationale/designer notes remain normalized from alpha.3.
+- Polygon deployment zones and the external-AI bridge remain available.
+
+## 0.4.0-alpha.4 — Playtest Center and workflow consolidation
 
 ### Map Studio
 - Preserved the successful appearance-assisted watercourse detector.

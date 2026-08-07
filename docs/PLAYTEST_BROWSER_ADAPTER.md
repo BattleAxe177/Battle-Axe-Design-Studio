@@ -1,4 +1,4 @@
-# Playtest Center Browser Adapter — v0.4.0-alpha.3
+# Playtest Center Browser Adapter — v0.4.0-alpha.4
 
 ## Governing baseline
 

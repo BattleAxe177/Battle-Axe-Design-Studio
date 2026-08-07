@@ -1,15 +1,15 @@
-import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.3';
-import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.3';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.3';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.3';
-import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.3';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.3';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.3';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.3';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.3';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.3';
+import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.4';
+import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.4';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.4';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.4';
+import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.4';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.4';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.4';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.4';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.4';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.4';
 
-const VERSION = '0.4.0-alpha.3';
+const VERSION = '0.4.0-alpha.4';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -79,7 +79,7 @@ function setupFiles() {
 }
 
 async function disableDevelopmentCaches() {
-  // v0.4.0-alpha.3 deliberately disables the PWA service worker while the runtime is stabilised.
+  // v0.4.0-alpha.4 deliberately disables the PWA service worker while the runtime is stabilised.
   // This prevents an older cached application shell from masking new GitHub deployments.
   try {
     if ('serviceWorker' in navigator) {
