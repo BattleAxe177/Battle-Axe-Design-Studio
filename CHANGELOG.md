@@ -1,9 +1,3 @@
-## 0.3.3.2 — Cache/deployment visibility fix
-- Bumped the PWA cache namespace from the legacy v0.3.2 cache.
-- Switched HTML/JS/CSS requests to network-first so new GitHub Pages deployments become visible promptly.
-- Added cache-busting version parameters to the application shell assets.
-- Preserved offline cache-first behavior for static map assets.
-
 # Changelog
 
 ## v0.3.3.1 — GitHub Actions verification fix
@@ -28,3 +22,11 @@
 - Streams/wet channels, woods, wall linework, tree-line geometry, and compact bridge symbols are inventoried directly from SVG features.
 - Added exact geometry highlighting for detected SVG paths/polygons.
 - Made the desktop battlefield map sticky while feature and inspector panels scroll independently.
+
+## 0.3.3.3 — Runtime repair
+- Added browser-visible startup error diagnostics.
+- Added explicit application/build version stamp.
+- Versioned the main module and battlefield map requests.
+- Temporarily disabled/unregistered service-worker caching so stale releases cannot mask GitHub deployments.
+- Added base-aware GitHub Pages asset resolution.
+- Added runtime smoke tests and browser smoke-test support.

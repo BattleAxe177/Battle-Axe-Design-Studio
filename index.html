@@ -7,17 +7,18 @@
   <meta name="description" content="Battle Axe Design Studio — integrated historical wargame map, scenario, playtest, analytics, and publishing workspace.">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./src/styles/app.css?v=0.3.3.2">
+  <link rel="stylesheet" href="./src/styles/app.css">
   <title>Battle Axe Design Studio</title>
 </head>
 <body>
   <noscript><div class="fatal">Battle Axe Design Studio requires JavaScript.</div></noscript>
   <header class="topbar">
     <button id="menuButton" class="icon-button" aria-label="Open navigation">☰</button>
-    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small>Geometry-First Recognition v0.3.3.2</small></div></div>
+    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small>Geometry-First Recognition <span id="runtimeVersion">v0.3.3.3</span></small></div></div>
     <div class="top-actions"><button id="saveButton" class="secondary">Save project</button><span id="saveStatus" class="status-pill">Starting…</span></div>
   </header>
   <div id="startupBanner" class="startup-banner" role="status">Starting Battle Axe Design Studio…</div>
+  <pre id="runtimeError" class="runtime-error" hidden></pre>
   <div class="app-shell">
     <aside id="sidebar" class="sidebar">
       <nav aria-label="Studio workflow">
@@ -90,6 +91,23 @@
     </div>
   </dialog>
 
-  <script type="module" src="./src/main.js?v=0.3.3.2"></script>
+  <script>
+    window.__BAX_BOOTSTRAP__ = true;
+    window.addEventListener('error', function (event) {
+      const box=document.getElementById('runtimeError');
+      if(box){box.hidden=false;box.textContent='Browser error before startup: '+(event.message||'Unknown error');}
+      const banner=document.getElementById('startupBanner');
+      if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.3.3.3 failed before application startup: '+(event.message||'Unknown error');}
+    });
+    setTimeout(function(){
+      if(!window.__BAX_MAIN_STARTED__){
+        const box=document.getElementById('runtimeError');
+        if(box){box.hidden=false;box.textContent='The main JavaScript module did not start. This usually indicates a module path or cached-script problem.';}
+        const banner=document.getElementById('startupBanner');
+        if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.3.3.3: main module did not start.';}
+      }
+    },3500);
+  </script>
+  <script type="module" src="./src/main.js?v=0.3.3.3"></script>
 </body>
 </html>
