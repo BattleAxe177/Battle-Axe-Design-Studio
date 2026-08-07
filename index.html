@@ -14,7 +14,7 @@
   <noscript><div class="fatal">Battle Axe Design Studio requires JavaScript.</div></noscript>
   <header class="topbar">
     <button id="menuButton" class="icon-button" aria-label="Open navigation">☰</button>
-    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small>Repository Foundation v0.3.2</small></div></div>
+    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small>Geometry-First Recognition v0.3.3</small></div></div>
     <div class="top-actions"><button id="saveButton" class="secondary">Save project</button><span id="saveStatus" class="status-pill">Starting…</span></div>
   </header>
   <div id="startupBanner" class="startup-banner" role="status">Starting Battle Axe Design Studio…</div>
@@ -63,7 +63,7 @@
         <div class="section-heading"><div><p class="eyebrow">Map Studio</p><h2>Battlefield Features</h2></div><button id="detectButton" class="secondary">Detect additional features</button></div>
         <div class="map-layout">
           <div class="feature-list panel"><div class="panel-heading"><h3>Review queue</h3><span id="featureCount" class="count-pill">0</span></div><div id="featureRows"></div><div class="divider"></div><p class="muted">Normal review shows only promoted battlefield features. Use Geometry Explorer only when you think something was missed.</p></div>
-          <div class="map-panel panel"><div class="map-toolbar"><strong>Pavia battlefield</strong><span id="mapStatus">Loading…</span></div><div id="mapFrame" class="map-frame"><img id="battlefieldMap" src="./projects/pavia/battlefield.svg" alt="Pavia battlefield"><div id="selectionOverlay" class="selection-overlay"></div></div><div class="map-foot"><span>Selected feature flashes bright red, then settles to translucent red.</span><button id="clearSelection" class="link-button">Clear highlight</button></div></div>
+          <div class="map-panel panel"><div class="map-toolbar"><strong>Pavia battlefield</strong><span id="mapStatus">Loading…</span></div><div id="mapFrame" class="map-frame"><div id="battlefieldMapHost" class="map-svg-host" aria-label="Pavia battlefield"></div><div id="selectionOverlay" class="selection-overlay hidden"></div></div><div class="map-foot"><span>Selected feature flashes bright red, then settles to translucent red.</span><button id="clearSelection" class="link-button">Clear highlight</button></div></div>
           <div class="inspector panel"><p class="eyebrow">Selected feature</p><h3 id="featureName">Select a feature</h3><p id="featureProposal" class="confidence">Choose a feature from the review queue.</p><label>Classification<select id="terrainClass"></select></label><fieldset><legend>Battle Axe effects</legend><div id="effectList" class="effect-list"></div></fieldset><div id="rulesBox" class="rules-box"><strong>Rules context</strong><p>No Battle Axe effects selected.</p></div><label>Reviewer note<textarea id="reviewerNote" rows="4" placeholder="Optional note"></textarea></label><div class="button-row"><button id="approveButton" class="primary">Approve</button><button id="reviseButton" class="secondary">Save revision</button><button id="rejectButton" class="danger">Reject</button></div></div>
         </div>
       </section>
@@ -82,7 +82,7 @@
       <div class="explorer-layout">
         <div class="candidate-list"><div id="candidateRows"></div></div>
         <div class="candidate-review">
-          <div class="geometry-preview"><img src="./projects/pavia/battlefield.svg" alt="Whole-map candidate preview"><div id="candidateOverlay" class="candidate-overlay"></div></div>
+          <div class="geometry-preview"><img src="./projects/pavia/battlefield.svg" alt="Whole-map candidate preview"><div id="candidateOverlay" class="candidate-overlay hidden"></div></div>
           <div id="candidateInfo" class="candidate-info"><h3>Select an additional candidate</h3><p>Whole-map context is the default preview. Imported candidates become normal Battlefield Features and can then be classified with the standard review tools.</p></div>
           <div class="button-row"><button id="ignoreCandidate" class="secondary" disabled>Ignore</button><button id="importCandidate" class="primary" disabled>Import to Battlefield</button></div>
         </div>

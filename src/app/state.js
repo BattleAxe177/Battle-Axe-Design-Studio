@@ -1,6 +1,6 @@
 import { paviaProject } from '../data/paviaProject.js';
 
-export const STORAGE_KEY = 'battle-axe-design-studio-v032';
+export const STORAGE_KEY = 'battle-axe-design-studio-v033';
 
 export function createInitialState() {
   return {

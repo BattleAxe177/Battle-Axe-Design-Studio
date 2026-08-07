@@ -1,4 +1,4 @@
-import { setOverlay, clearOverlay } from './mapView.js';
+import { highlightFeature, clearOverlay } from './mapView.js';
 
 export const RULES = {
   Difficult: 'Move Value is halved for units moving in Difficult terrain.',
@@ -21,7 +21,7 @@ function grouped(features) {
   return groups;
 }
 
-export function setupFeatureReview(state, persist) {
+export function setupFeatureReview(state, persist, svg) {
   const rows = document.querySelector('#featureRows');
   const count = document.querySelector('#featureCount');
   const overlay = document.querySelector('#selectionOverlay');
@@ -67,7 +67,7 @@ export function setupFeatureReview(state, persist) {
       for (const feature of items) {
         const button = document.createElement('button'); button.className = 'feature-row'; button.dataset.id = feature.id;
         const decision = state.decisions[feature.id];
-        button.innerHTML = `<span class="feature-symbol"></span><span><strong>${feature.name}</strong><small>${feature.proposal} · ${feature.confidence}%</small></span><b>${decision?.status === 'approved' ? '✓' : decision?.status === 'rejected' ? '×' : '›'}</b>`;
+        button.innerHTML = `<span class="feature-symbol"></span><span><strong>${feature.name}</strong><small>${feature.proposal} · detect ${feature.detectionConfidence ?? feature.confidence}% · interpret ${feature.interpretationConfidence ?? feature.confidence}%</small></span><b>${decision?.status === 'approved' ? '✓' : decision?.status === 'rejected' ? '×' : '›'}</b>`;
         button.addEventListener('click', () => select(feature.id)); section.appendChild(button);
       }
       rows.appendChild(section);
@@ -81,11 +81,11 @@ export function setupFeatureReview(state, persist) {
     document.querySelectorAll('.feature-row').forEach(row => row.classList.toggle('selected', row.dataset.id === id));
     const decision = state.decisions[id] || {};
     document.querySelector('#featureName').textContent = feature.name;
-    document.querySelector('#featureProposal').innerHTML = `<strong>${feature.proposal}</strong> · ${feature.confidence}% confidence<br><small>${feature.reason || ''}</small>`;
+    document.querySelector('#featureProposal').innerHTML = `<strong>${feature.proposal}</strong><br><span class="confidence-line">Detection ${feature.detectionConfidence ?? feature.confidence}% · Interpretation ${feature.interpretationConfidence ?? feature.confidence}%</span><br><small>${feature.reason || ''}</small>`;
     terrainClass.value = decision.cls || feature.cls || 'Unknown';
     document.querySelector('#reviewerNote').value = decision.note || '';
     renderEffects(decision.effects || feature.effects || []);
-    setOverlay(overlay, feature.box, {flash:true});
+    highlightFeature(svg, overlay, feature, {flash:true});
   }
 
   function saveDecision(status) {
