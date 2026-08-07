@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0c1626">
+  <meta name="description" content="Battle Axe Design Studio — integrated historical wargame map, scenario, playtest, analytics, and publishing workspace.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./src/styles/app.css">
+  <title>Battle Axe Design Studio</title>
+</head>
+<body>
+  <noscript><div class="fatal">Battle Axe Design Studio requires JavaScript.</div></noscript>
+  <header class="topbar">
+    <button id="menuButton" class="icon-button" aria-label="Open navigation">☰</button>
+    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small>Repository Foundation v0.3.2</small></div></div>
+    <div class="top-actions"><button id="saveButton" class="secondary">Save project</button><span id="saveStatus" class="status-pill">Starting…</span></div>
+  </header>
+  <div id="startupBanner" class="startup-banner" role="status">Starting Battle Axe Design Studio…</div>
+  <div class="app-shell">
+    <aside id="sidebar" class="sidebar">
+      <nav aria-label="Studio workflow">
+        <button class="nav-item active" data-view="home"><span>1</span>Project Home</button>
+        <button class="nav-item" data-view="intake"><span>2</span>Map Intake</button>
+        <button class="nav-item" data-view="features"><span>3</span>Battlefield Features</button>
+        <button class="nav-item" data-view="scenario"><span>4</span>Scenario Builder</button>
+        <button class="nav-item" data-view="deployment"><span>5</span>Deployment Editor</button>
+        <button class="nav-item" data-view="playtest"><span>6</span>Playtest Center</button>
+        <button class="nav-item" data-view="publish"><span>7</span>Scenario Publisher</button>
+      </nav>
+      <div class="sidebar-note"><strong>Current project</strong><br><span id="sidebarProject">Pavia 1525</span><br><small id="sidebarSpace">48 × 48 inches</small></div>
+    </aside>
+
+    <main class="workspace">
+      <section id="view-home" class="view active">
+        <div class="hero">
+          <div><p class="eyebrow">One project. One workflow.</p><h1>From imported battlefield map to tested and publishable historical scenario.</h1><p>This repository foundation establishes the permanent browser application that future Battle Axe modules will extend rather than replace.</p><div class="button-row"><button class="primary jump" data-view="intake">Open Pavia project</button><button class="secondary jump" data-view="features">Review battlefield</button></div></div>
+          <div class="hero-card"><h3>Startup diagnostics</h3><dl id="diagnostics"><div><dt>Application</dt><dd id="diagApp">Loading</dd></div><div><dt>Map</dt><dd id="diagMap">Loading</dd></div><div><dt>Features</dt><dd id="diagFeatures">Loading</dd></div><div><dt>Geometry Explorer</dt><dd id="diagExplorer">Loading</dd></div><div><dt>Storage</dt><dd id="diagStorage">Checking</dd></div></dl></div>
+        </div>
+        <div class="module-grid">
+          <article><h3>Map Studio</h3><p>Import authoring sources, define scenario play space, interpret terrain, and approve functional battlefield geometry.</p><button class="link-button jump" data-view="intake">Map workflow →</button></article>
+          <article><h3>Scenario Studio</h3><p>Build forces, objectives, victory conditions, external scenario rules, and historical traceability.</p><button class="link-button jump" data-view="scenario">Scenario builder →</button></article>
+          <article><h3>Battle Axe Engine</h3><p>Run deterministic simulations, replay battles, generate heat maps, and compare scenario balance.</p><button class="link-button jump" data-view="playtest">Playtest center →</button></article>
+          <article><h3>Publisher</h3><p>Assemble the finished scenario document and engine-ready package from the same project.</p><button class="link-button jump" data-view="publish">Publisher →</button></article>
+        </div>
+      </section>
+
+      <section id="view-intake" class="view">
+        <div class="section-heading"><div><p class="eyebrow">Map Studio</p><h2>Map Intake & Context</h2></div><span class="phase">Functional</span></div>
+        <div class="two-column">
+          <div class="panel"><h3>Scenario-defined play space</h3><div class="form-grid"><label>Width<input id="width" type="number" value="48" min="1" step="0.1"></label><label>Height<input id="height" type="number" value="48" min="1" step="0.1"></label><label>Units<select id="units"><option>inches</option><option>centimeters</option></select></label><label>Origin<select id="origin"><option>northwest</option><option>southwest</option></select></label></div><p class="help">Play-space dimensions are defined before compilation. Pavia uses 48 × 48 inches; other scenarios may use any declared rectangle.</p></div>
+          <div class="panel"><h3>Authoring sources</h3><label class="upload">PowerPoint (.pptx)<input id="pptx" type="file" accept=".pptx"><span>Select PPTX</span></label><label class="upload">Rendered reference (.pdf)<input id="pdf" type="file" accept=".pdf"><span>Select PDF</span></label><label class="upload">Vector map (.svg)<input id="svg" type="file" accept=".svg,image/svg+xml"><span>Select SVG</span></label><div id="fileSummary" class="file-summary">Bundled Pavia runtime map is loaded. Local source selections remain in your browser and are not uploaded anywhere.</div></div>
+        </div>
+        <div class="two-column context-row">
+          <label class="panel text-panel"><h3>Historical Battlefield Description</h3><textarea id="historicalContext" rows="12"></textarea><small>Interpretive guide only. It may influence confidence but cannot create or alter geometry.</small></label>
+          <label class="panel text-panel"><h3>Input Map Notes</h3><textarea id="mapNotes" rows="12"></textarea><small>Map-author conventions carry more interpretive weight, but still cannot modify the immutable source map.</small></label>
+        </div>
+        <div class="notice"><strong>Immutable source rule:</strong> PPTX, PDF, and SVG inputs are treated as read-only evidence. Gameplay geometry, buffers, crossings, openings, and classifications are derived non-destructively and require review.</div>
+      </section>
+
+      <section id="view-features" class="view">
+        <div class="section-heading"><div><p class="eyebrow">Map Studio</p><h2>Battlefield Features</h2></div><button id="detectButton" class="secondary">Detect additional features</button></div>
+        <div class="map-layout">
+          <div class="feature-list panel"><div class="panel-heading"><h3>Review queue</h3><span id="featureCount" class="count-pill">0</span></div><div id="featureRows"></div><div class="divider"></div><p class="muted">Normal review shows only promoted battlefield features. Use Geometry Explorer only when you think something was missed.</p></div>
+          <div class="map-panel panel"><div class="map-toolbar"><strong>Pavia battlefield</strong><span id="mapStatus">Loading…</span></div><div id="mapFrame" class="map-frame"><img id="battlefieldMap" src="./projects/pavia/battlefield.svg" alt="Pavia battlefield"><div id="selectionOverlay" class="selection-overlay"></div></div><div class="map-foot"><span>Selected feature flashes bright red, then settles to translucent red.</span><button id="clearSelection" class="link-button">Clear highlight</button></div></div>
+          <div class="inspector panel"><p class="eyebrow">Selected feature</p><h3 id="featureName">Select a feature</h3><p id="featureProposal" class="confidence">Choose a feature from the review queue.</p><label>Classification<select id="terrainClass"></select></label><fieldset><legend>Battle Axe effects</legend><div id="effectList" class="effect-list"></div></fieldset><div id="rulesBox" class="rules-box"><strong>Rules context</strong><p>No Battle Axe effects selected.</p></div><label>Reviewer note<textarea id="reviewerNote" rows="4" placeholder="Optional note"></textarea></label><div class="button-row"><button id="approveButton" class="primary">Approve</button><button id="reviseButton" class="secondary">Save revision</button><button id="rejectButton" class="danger">Reject</button></div></div>
+        </div>
+      </section>
+
+      <section id="view-scenario" class="view"><div class="section-heading"><div><p class="eyebrow">Scenario Studio</p><h2>Scenario Builder</h2></div><span class="phase">Foundation</span></div><div class="placeholder"><h3>Forces, objectives, scenario rules, and victory conditions</h3><p>This module is now part of the permanent application shell. Functional scenario editing is the next major module to plug into the shared project state.</p><div class="steps"><span>Force lists</span><span>Objectives</span><span>External rules</span><span>Victory conditions</span><span>Historical traceability</span></div></div></section>
+      <section id="view-deployment" class="view"><div class="section-heading"><div><p class="eyebrow">Scenario Studio</p><h2>Deployment Editor</h2></div><span class="phase">Foundation</span></div><div class="placeholder"><h3>Place tabletop formations directly on the compiled battlefield</h3><p>Units will use logical 50 mm square bases and commanders logical 25 mm circles, scaled to the scenario-defined play space.</p></div></section>
+      <section id="view-playtest" class="view"><div class="section-heading"><div><p class="eyebrow">Battle Axe Engine</p><h2>Playtest Center</h2></div><span class="phase">Foundation</span></div><div class="placeholder"><h3>Run, replay, compare, and analyze simulations</h3><p>The consolidated engine will connect here behind a stable Studio interface for deterministic runs, replays, heat maps, and batch analysis.</p></div></section>
+      <section id="view-publish" class="view"><div class="section-heading"><div><p class="eyebrow">Output</p><h2>Scenario Publisher</h2></div><span class="phase">Foundation</span></div><div class="placeholder"><h3>Publish from the authoritative project</h3><p>Finished scenario documents, maps, deployment sheets, playtest reports, and engine packages will all be exported from the same project state.</p></div></section>
+    </main>
+  </div>
+
+  <dialog id="geometryDialog">
+    <div class="dialog-card">
+      <div class="dialog-heading"><div><p class="eyebrow">QA tool</p><h2>Geometry Explorer</h2></div><button id="closeExplorer" class="icon-button" aria-label="Close">✕</button></div>
+      <p class="muted">The normal review remains uncluttered. Geometry Explorer exposes lower-confidence source geometry only when you ask for it.</p>
+      <div class="explorer-layout">
+        <div class="candidate-list"><div id="candidateRows"></div></div>
+        <div class="candidate-review">
+          <div class="geometry-preview"><img src="./projects/pavia/battlefield.svg" alt="Whole-map candidate preview"><div id="candidateOverlay" class="candidate-overlay"></div></div>
+          <div id="candidateInfo" class="candidate-info"><h3>Select an additional candidate</h3><p>Whole-map context is the default preview. Imported candidates become normal Battlefield Features and can then be classified with the standard review tools.</p></div>
+          <div class="button-row"><button id="ignoreCandidate" class="secondary" disabled>Ignore</button><button id="importCandidate" class="primary" disabled>Import to Battlefield</button></div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
