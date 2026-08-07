@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.3.1 — GitHub Actions verification fix
+- Fixed CI ordering so tests run first, the production `dist/` site is built second, and deployment artifact checks run after the build exists.
+- No battlefield detection or UI behavior changed from v0.3.3.
+
+
 ## 0.3.2 — Repository Foundation
 - Established permanent repository-ready application structure.
 - Split application into ES modules rather than a monolithic prototype file.
