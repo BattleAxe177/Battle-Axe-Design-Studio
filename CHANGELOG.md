@@ -30,3 +30,9 @@
 - Temporarily disabled/unregistered service-worker caching so stale releases cannot mask GitHub deployments.
 - Added base-aware GitHub Pages asset resolution.
 - Added runtime smoke tests and browser smoke-test support.
+
+## 0.3.3.4 — SVG loader repair
+- Parse imported battlefield SVG as XML (`image/svg+xml`) rather than inserting source text with `innerHTML`.
+- Correctly accepts namespace-prefixed SVG roots such as PowerPoint-derived `<ns0:svg>` via `localName` and namespace URI.
+- Imports the parsed SVG root into the live HTML document before geometry detection.
+- Adds explicit diagnostics for HTTP, empty-response, parser, root-element, and map-host failures.

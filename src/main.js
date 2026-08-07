@@ -5,7 +5,7 @@ import { setupGeometryExplorer } from './modules/geometryExplorer.js';
 import { loadInlineMap } from './modules/mapView.js';
 import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js';
 
-const VERSION = '0.3.3.3';
+const VERSION = '0.3.3.4';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -75,7 +75,7 @@ function setupFiles() {
 }
 
 async function disableDevelopmentCaches() {
-  // v0.3.3.3 deliberately disables the PWA service worker while the runtime is stabilised.
+  // v0.3.3.4 deliberately disables the PWA service worker while the runtime is stabilised.
   // This prevents an older cached application shell from masking new GitHub deployments.
   try {
     if ('serviceWorker' in navigator) {
