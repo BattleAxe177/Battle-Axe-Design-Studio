@@ -1,4 +1,4 @@
-import { paviaProject } from '../data/paviaProject.js';
+import { paviaProject } from '../data/paviaProject.js?v=0.3.3.5';
 
 export const STORAGE_KEY = 'battle-axe-design-studio-v033';
 

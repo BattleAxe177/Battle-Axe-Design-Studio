@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 test('runtime release exposes uncached versioned main module', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
-  assert.match(html, /main\.js\?v=0\.3\.3\.4/);
+  assert.match(html, /main\.js\?v=0\.3\.3\.5/);
   assert.match(html, /runtimeError/);
 });
 

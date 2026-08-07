@@ -4,7 +4,7 @@ Battle Axe Design Studio is the permanent browser application for the Battle Axe
 
 ## Current release
 
-**v0.3.3.4 — SVG Loader Repair**
+**v0.3.3.5 — Promotion Pipeline Repair**
 
 This is the first release intended to live permanently in the GitHub repository. Future releases should modify this source tree rather than replace it with unrelated prototypes.
 
@@ -41,10 +41,10 @@ npm ci
 npm run verify
 ```
 
-No third-party runtime dependencies are required in v0.3.3.4.
+No third-party runtime dependencies are required in v0.3.3.5.
 
 ## v0.3.3 focus
 Battlefield recognition now scans the imported SVG first, keeps the historical description as context only, derives gate/breach placement from source-map evidence, and keeps the battlefield map visible during desktop feature review.
 
-## v0.3.3.4 focus
+## v0.3.3.5 focus
 The map loader now parses PowerPoint-derived namespace-prefixed SVG files as true SVG XML and imports the SVG root into the live document before geometry detection.
