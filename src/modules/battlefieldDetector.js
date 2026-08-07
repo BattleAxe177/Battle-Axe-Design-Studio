@@ -11,6 +11,18 @@ const COLORS = {
 
 const norm = value => (value || '').trim().toUpperCase();
 const colorEq = (a,b) => norm(a) === norm(b);
+function parseColor(value){
+  if(!value||value==='none')return null; const v=value.trim();
+  const hex=v.match(/^#([0-9a-f]{6})$/i); if(hex){const n=parseInt(hex[1],16);return [(n>>16)&255,(n>>8)&255,n&255];}
+  const rgb=v.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);return rgb?[+rgb[1],+rgb[2],+rgb[3]]:null;
+}
+function colorDistance(a,b){const x=parseColor(a),y=parseColor(b);if(!x||!y)return Infinity;return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2]);}
+function styleColor(el,prop){
+  const direct=el.getAttribute(prop); if(direct&&direct!=='none')return direct;
+  try{return getComputedStyle(el)[prop]||'';}catch{return '';}
+}
+function isColor(el,prop,target,tolerance=12){const c=styleColor(el,prop);return colorEq(c,target)||colorDistance(c,target)<=tolerance;}
+
 
 function rectToBox(r){
   if(!r) return null;
@@ -135,8 +147,9 @@ function featureFromGroup(group, opts, bound) {
 
 function findText(svg, needle) {
   const target=needle.toLowerCase();
-  return [...svg.querySelectorAll('text')].find(t => (t.textContent||'').trim().toLowerCase()===target);
+  return [...svg.querySelectorAll('text')].find(t => (t.textContent||'').trim().toLowerCase().includes(target));
 }
+
 function textCenter(el){ return center(visualBox(el)); }
 
 function nearestWallDistance(walls,bbox){ return Math.min(...walls.map(w=>distanceBoxes(w.bbox,bbox)),Infinity); }
@@ -197,17 +210,28 @@ function syntheticOpening(svg,bound,walls,needle,name,id,kind='Gatehouse',interp
 export function detectBattlefieldFeatures(svg, {mapNotes=''}={}) {
   assignGeometryIds(svg);
   const bound=findBoundary(svg);
-  const byFill = color => collect(svg,bound,el=>colorEq(el.getAttribute('fill'),color));
-  const byStroke = color => collect(svg,bound,el=>colorEq(el.getAttribute('stroke'),color));
+  const byFill = color => collect(svg,bound,el=>isColor(el,'fill',color,18));
+  const byStroke = color => collect(svg,bound,el=>isColor(el,'stroke',color,18));
 
-  const waters=byFill(COLORS.water), woods=byFill(COLORS.wood), walls=byStroke(COLORS.wall), avenues=byStroke(COLORS.avenue), bridges=byFill(COLORS.bridge), structures=byFill(COLORS.structure), tracks=byFill(COLORS.track);
+  // Hydrology deliberately accepts both filled long/thin polygons and true line features.
+  // Water is scored from source-map color plus geometry, not from historical narrative.
+  const waterSeen=new Set();
+  const waters=collect(svg,bound,el=>{
+    const fillHit=isColor(el,'fill',COLORS.water,42), strokeHit=isColor(el,'stroke',COLORS.water,42);
+    if(!fillHit&&!strokeHit)return false;
+    const b=visualBox(el); if(!b)return false;
+    const aspect=Math.max(b.width/Math.max(b.height,1),b.height/Math.max(b.width,1));
+    const tag=el.localName;
+    return fillHit || ['line','polyline','path'].includes(tag) || aspect>=2;
+  }).filter(x=>{if(waterSeen.has(x.id))return false;waterSeen.add(x.id);return true;});
+  const woods=byFill(COLORS.wood), walls=byStroke(COLORS.wall), avenues=byStroke(COLORS.avenue), bridges=byFill(COLORS.bridge), structures=byFill(COLORS.structure), tracks=byFill(COLORS.track);
   const features=[], candidates=[];
   let classified=0;
 
   waters.forEach((item,i)=>{classified++; features.push(featureFromGroup([item],{
     id:`map-water-${i+1}`,name:`Detected water / wet channel ${i+1}`,category:'Hydrology',proposal:'Stream / wet channel',cls:'Stream',effects:['Difficult'],
     detectionConfidence:99,interpretationConfidence:88,
-    reason:'Detected directly from long cyan source-map geometry. Classification uses map color and geometry; historical battlefield text is not used for detection.'
+    reason:'Detected directly from cyan/blue source-map geometry. Long thin polygons and line-based watercourses are both supported; historical battlefield text is not used for detection.'
   },bound));});
 
   woods.forEach((item,i)=>{classified++; features.push(featureFromGroup([item],{

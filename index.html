@@ -14,7 +14,7 @@
   <noscript><div class="fatal">Battle Axe Design Studio requires JavaScript.</div></noscript>
   <header class="topbar">
     <button id="menuButton" class="icon-button" aria-label="Open navigation">☰</button>
-    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small>Promotion Pipeline Repair <span id="runtimeVersion">v0.3.3.5</span></small></div></div>
+    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small>Scenario Builder Alpha <span id="runtimeVersion">v0.4.0-alpha.1</span></small></div></div>
     <div class="top-actions"><button id="saveButton" class="secondary">Save project</button><span id="saveStatus" class="status-pill">Starting…</span></div>
   </header>
   <div id="startupBanner" class="startup-banner" role="status">Starting Battle Axe Design Studio…</div>
@@ -63,13 +63,35 @@
       <section id="view-features" class="view">
         <div class="section-heading"><div><p class="eyebrow">Map Studio</p><h2>Battlefield Features</h2></div><button id="detectButton" class="secondary">Detect additional features</button></div>
         <div class="map-layout">
-          <div class="feature-list panel"><div class="panel-heading"><h3>Review queue</h3><span id="featureCount" class="count-pill">0</span></div><div id="featureRows"></div><div class="divider"></div><p class="muted">Normal review shows only promoted battlefield features. Use Geometry Explorer only when you think something was missed.</p></div>
+          <div class="feature-list panel"><div class="panel-heading"><h3>Review queue</h3><span id="featureCount" class="count-pill">0</span></div><div id="featureBulkBar" class="bulk-bar" hidden><strong id="featureBulkInfo"></strong><div class="button-row"><button id="bulkApproveFeatures" class="primary compact">Approve selected</button><button id="bulkApplyFeatures" class="secondary compact">Apply current attributes</button><button id="bulkRejectFeatures" class="danger compact">Reject selected</button><button id="clearFeatureSelection" class="link-button">Clear</button></div></div><div id="featureRows"></div><div class="divider"></div><p class="muted">Normal review shows only promoted battlefield features. Use Geometry Explorer only when you think something was missed.</p></div>
           <div class="map-panel panel"><div class="map-toolbar"><strong>Pavia battlefield</strong><span id="mapStatus">Loading…</span></div><div id="mapFrame" class="map-frame"><div id="battlefieldMapHost" class="map-svg-host" aria-label="Pavia battlefield"></div><div id="selectionOverlay" class="selection-overlay hidden"></div></div><div class="map-foot"><span>Selected feature flashes bright red, then settles to translucent red.</span><button id="clearSelection" class="link-button">Clear highlight</button></div></div>
           <div class="inspector panel"><p class="eyebrow">Selected feature</p><h3 id="featureName">Select a feature</h3><p id="featureProposal" class="confidence">Choose a feature from the review queue.</p><label>Classification<select id="terrainClass"></select></label><fieldset><legend>Battle Axe effects</legend><div id="effectList" class="effect-list"></div></fieldset><div id="rulesBox" class="rules-box"><strong>Rules context</strong><p>No Battle Axe effects selected.</p></div><label>Reviewer note<textarea id="reviewerNote" rows="4" placeholder="Optional note"></textarea></label><div class="button-row"><button id="approveButton" class="primary">Approve</button><button id="reviseButton" class="secondary">Save revision</button><button id="rejectButton" class="danger">Reject</button></div></div>
         </div>
       </section>
 
-      <section id="view-scenario" class="view"><div class="section-heading"><div><p class="eyebrow">Scenario Studio</p><h2>Scenario Builder</h2></div><span class="phase">Foundation</span></div><div class="placeholder"><h3>Forces, objectives, scenario rules, and victory conditions</h3><p>This module is now part of the permanent application shell. Functional scenario editing is the next major module to plug into the shared project state.</p><div class="steps"><span>Force lists</span><span>Objectives</span><span>External rules</span><span>Victory conditions</span><span>Historical traceability</span></div></div></section>
+      <section id="view-scenario" class="view">
+        <div class="section-heading"><div><p class="eyebrow">Scenario Studio</p><h2>Scenario Builder</h2></div><span class="phase">Alpha workflow</span></div>
+        <div class="scenario-tabs" role="tablist"><button class="scenario-tab active" data-scenario-tab="sources">1 Source Intake</button><button class="scenario-tab" data-scenario-tab="review">2 Extraction Review</button><button class="scenario-tab" data-scenario-tab="suggestions">3 Suggestions</button><button class="scenario-tab" data-scenario-tab="forces">4 Force Builder</button><button class="scenario-tab" data-scenario-tab="summary">5 Scenario Summary</button></div>
+        <div id="scenario-sources" class="scenario-pane active">
+          <div class="scenario-grid two-up">
+            <div class="panel"><h3>Scenario sources</h3><p class="muted">Add whatever source material you have. Studio records the source first, then proposes a structured scenario. Source files are never modified.</p><label class="upload wide">Scenario documents<input id="scenarioFiles" type="file" multiple accept=".txt,.md,.json,.docx,.pdf,image/*"><span>Select files</span></label><div id="scenarioSourceList" class="source-list"></div><div class="button-row"><button id="loadPaviaDraft" class="secondary">Load Pavia draft example</button><button id="loadGuideExample" class="secondary">Load scanned-guide example</button></div></div>
+            <div class="panel"><h3>Paste or type source text</h3><textarea id="scenarioSourceText" rows="15" placeholder="Paste scenario notes, a transcription, an order of battle, or any text you want Studio to analyze…"></textarea><div class="button-row"><button id="analyzeScenario" class="primary">Analyze sources</button><button id="clearScenarioSources" class="secondary">Clear intake</button></div><p class="help">Alpha.1 extracts TXT/MD/JSON text directly in-browser. DOCX/PDF/image files are registered as evidence; scanned-page visual extraction will be connected to the future Studio analysis service.</p></div>
+          </div>
+        </div>
+        <div id="scenario-review" class="scenario-pane">
+          <div class="scenario-grid review-grid"><div class="panel"><div class="panel-heading"><h3>Import review</h3><span id="scenarioReviewStatus" class="count-pill">Not analyzed</span></div><div id="scenarioReviewSummary" class="review-summary"></div><div id="sourceObservations" class="observation-list"></div></div>
+          <div class="panel"><h3>Editable scenario parameters</h3><div class="form-grid"><label>Scenario title<input id="scenarioTitle"></label><label>Date<input id="scenarioDate"></label><label>Location<input id="scenarioLocation"></label><label>Game length (turns)<input id="scenarioGameLength" type="number" min="1"></label><label>Table / play space<input id="scenarioTableSize"></label><label>Status<input id="scenarioStatus"></label></div><label>Historical situation<textarea id="scenarioSituation" rows="5"></textarea></label><label>Deployment notes<textarea id="scenarioDeployment" rows="5"></textarea></label><label>Victory conditions<textarea id="scenarioVictory" rows="6"></textarea></label><button id="saveScenarioFields" class="primary">Save reviewed parameters</button></div></div>
+        </div>
+        <div id="scenario-suggestions" class="scenario-pane"><div class="panel"><div class="panel-heading"><div><h3>Studio Suggestion Tray</h3><p class="muted">Suggestions are proposed Battle Axe interpretations, never source facts. Add, edit, or ignore them individually.</p></div><span id="suggestionCount" class="count-pill">0</span></div><div id="suggestionTray" class="suggestion-tray"></div><details class="ignored-panel"><summary>Ignored suggestions (<span id="ignoredSuggestionCount">0</span>)</summary><div id="ignoredSuggestions"></div></details></div></div>
+        <div id="scenario-forces" class="scenario-pane">
+          <div class="force-workbench">
+            <div class="panel source-force-panel"><div class="panel-heading"><h3>Imported / historical forces</h3><span id="sourceForceCount" class="count-pill">0</span></div><p class="muted">These cards preserve what the source says. They are not Battle Axe units.</p><div id="sourceForceList" class="card-stack"></div></div>
+            <div class="panel roster-panel"><div class="panel-heading"><h3>Battle Axe force roster</h3><button id="addProposedForces" class="secondary compact">Add proposed translations</button></div><div class="roster-columns"><div class="roster-column" data-faction="French"><h4>French</h4><div id="rosterFrench" class="roster-dropzone" data-faction="French"></div></div><div class="roster-column" data-faction="Imperial"><h4>Imperial</h4><div id="rosterImperial" class="roster-dropzone" data-faction="Imperial"></div></div><div class="roster-column" data-faction="Garrison"><h4>Garrison / Other</h4><div id="rosterGarrison" class="roster-dropzone" data-faction="Garrison"></div></div></div></div>
+            <div class="panel library-panel"><h3>Battle Axe Unit Library</h3><input id="unitLibrarySearch" type="search" placeholder="Search units…"><p class="muted">Drag a profile into a roster. The working library is seeded from the current Italian Wars/Pavia baseline and will expand as the canonical supplement catalog is encoded.</p><div id="unitLibrary" class="unit-library"></div></div>
+          </div>
+        </div>
+        <div id="scenario-summary" class="scenario-pane"><div class="scenario-grid two-up"><div class="panel"><h3>Accepted scenario</h3><div id="scenarioSummaryCard"></div></div><div class="panel"><h3>Validation / unresolved</h3><div id="scenarioUnresolved"></div><div class="button-row"><button id="exportScenarioJson" class="primary">Export scenario JSON</button><button id="resetScenario" class="danger">Reset scenario</button></div></div></div></div>
+      </section>
       <section id="view-deployment" class="view"><div class="section-heading"><div><p class="eyebrow">Scenario Studio</p><h2>Deployment Editor</h2></div><span class="phase">Foundation</span></div><div class="placeholder"><h3>Place tabletop formations directly on the compiled battlefield</h3><p>Units will use logical 50 mm square bases and commanders logical 25 mm circles, scaled to the scenario-defined play space.</p></div></section>
       <section id="view-playtest" class="view"><div class="section-heading"><div><p class="eyebrow">Battle Axe Engine</p><h2>Playtest Center</h2></div><span class="phase">Foundation</span></div><div class="placeholder"><h3>Run, replay, compare, and analyze simulations</h3><p>The consolidated engine will connect here behind a stable Studio interface for deterministic runs, replays, heat maps, and batch analysis.</p></div></section>
       <section id="view-publish" class="view"><div class="section-heading"><div><p class="eyebrow">Output</p><h2>Scenario Publisher</h2></div><span class="phase">Foundation</span></div><div class="placeholder"><h3>Publish from the authoritative project</h3><p>Finished scenario documents, maps, deployment sheets, playtest reports, and engine packages will all be exported from the same project state.</p></div></section>
@@ -85,29 +107,31 @@
         <div class="candidate-review">
           <div class="geometry-preview"><img src="./projects/pavia/battlefield.svg" alt="Whole-map candidate preview"><div id="candidateOverlay" class="candidate-overlay hidden"></div></div>
           <div id="candidateInfo" class="candidate-info"><h3>Select an additional candidate</h3><p>Whole-map context is the default preview. Imported candidates become normal Battlefield Features and can then be classified with the standard review tools.</p></div>
-          <div class="button-row"><button id="ignoreCandidate" class="secondary" disabled>Ignore</button><button id="importCandidate" class="primary" disabled>Import to Battlefield</button></div>
+          <div id="candidateBulkBar" class="bulk-bar" hidden><strong id="candidateBulkInfo"></strong><div class="button-row"><button id="bulkImportCandidates" class="primary compact">Import selected</button><button id="bulkIgnoreCandidates" class="secondary compact">Ignore selected</button><button id="selectSimilarCandidates" class="secondary compact">Select similar</button><button id="clearCandidateSelection" class="link-button">Clear</button></div></div><div class="button-row"><button id="ignoreCandidate" class="secondary" disabled>Ignore</button><button id="importCandidate" class="primary" disabled>Import to Battlefield</button></div>
         </div>
       </div>
     </div>
   </dialog>
 
+
+  <dialog id="unitEditorDialog"><div class="dialog-card unit-editor"><div class="dialog-heading"><div><p class="eyebrow">Scenario unit instance</p><h2 id="unitEditorTitle">Edit unit</h2></div><button id="closeUnitEditor" class="icon-button" aria-label="Close">✕</button></div><div class="form-grid"><label>Scenario name<input id="unitName"></label><label>Battle Axe profile<select id="unitProfile"></select></label><label>Commander<input id="unitCommander"></label><label>Represents<input id="unitRepresents"></label></div><label>Scenario traits / special rules<textarea id="unitTraits" rows="4" placeholder="One per line"></textarea></label><label>Designer notes<textarea id="unitNotes" rows="4"></textarea></label><div class="button-row"><button id="saveUnitEditor" class="primary">Save unit</button><button id="deleteUnitEditor" class="danger">Remove from roster</button></div></div></dialog>
   <script>
     window.__BAX_BOOTSTRAP__ = true;
     window.addEventListener('error', function (event) {
       const box=document.getElementById('runtimeError');
       if(box){box.hidden=false;box.textContent='Browser error before startup: '+(event.message||'Unknown error');}
       const banner=document.getElementById('startupBanner');
-      if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.3.3.5 failed before application startup: '+(event.message||'Unknown error');}
+      if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.4.0-alpha.1 failed before application startup: '+(event.message||'Unknown error');}
     });
     setTimeout(function(){
       if(!window.__BAX_MAIN_STARTED__){
         const box=document.getElementById('runtimeError');
         if(box){box.hidden=false;box.textContent='The main JavaScript module did not start. This usually indicates a module path or cached-script problem.';}
         const banner=document.getElementById('startupBanner');
-        if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.3.3.5: main module did not start.';}
+        if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.4.0-alpha.1: main module did not start.';}
       }
     },3500);
   </script>
-  <script type="module" src="./src/main.js?v=0.3.3.5"></script>
+  <script type="module" src="./src/main.js?v=0.4.0-alpha.1"></script>
 </body>
 </html>

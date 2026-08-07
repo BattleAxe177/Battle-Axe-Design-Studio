@@ -4,47 +4,45 @@ Battle Axe Design Studio is the permanent browser application for the Battle Axe
 
 ## Current release
 
-**v0.3.3.5 — Promotion Pipeline Repair**
+**v0.4.0-alpha.1 — Map Review + Scenario Builder Alpha**
 
-This is the first release intended to live permanently in the GitHub repository. Future releases should modify this source tree rather than replace it with unrelated prototypes.
+This release extends the existing geometry-first map workflow and introduces the first functional Scenario Builder workbench.
 
-### Functional now
-- Responsive desktop/iPhone application shell
-- Scenario-defined play-space settings
-- Historical Battlefield Description and Input Map Notes
-- Bundled Pavia battlefield map
-- Runtime-generated battlefield-feature review queue
-- Bright-red flash + translucent selected-feature highlight
-- Cumulative Battle Axe rules context
-- Separate Geometry Explorer with whole-map candidate previews
-- Import candidate into normal review / ignore candidate
-- Browser-local project persistence
-- PWA manifest and service worker
-- Automated repository checks, tests, build, and GitHub Pages deployment
+### Map Studio
+- Runtime scanning of the immutable Pavia SVG rather than hard-coded feature boxes.
+- Hydrology detector accepts long/thin filled water polygons and line-based watercourses.
+- Sticky/frozen battlefield view on desktop while feature lists scroll.
+- Multi-select Battlefield Features with bulk approve, reject, and shared-attribute application.
+- Geometry Explorer multi-select, bulk import/ignore, and Select Similar.
+- Detection confidence is separate from interpretation confidence.
+- Source geometry is never modified.
 
-### Foundation modules visible but not yet connected
-- Scenario Builder
-- Deployment Editor
-- Battle Axe Engine / Playtest Center
-- Scenario Publisher
+### Scenario Builder alpha
+- Flexible multi-source intake: TXT/MD/JSON/CSV are extracted directly; DOCX/PDF/images are registered as immutable evidence for future visual/document analysis.
+- Bundled examples demonstrate both the structured Battle Axe Pavia draft and the visually structured scanned Wargamer's Guide scenario.
+- Extraction Review separates source observations from Studio interpretations and highlights unresolved fields.
+- Suggestion Tray proposes optional Battle Axe treatments such as fog, surprise, breach, and garrison sortie; each can be included, edited, ignored, or restored.
+- Force Builder separates imported/historical forces from Battle Axe roster units.
+- Drag/drop unit library and army rosters.
+- Scenario unit instances can be renamed and edited without changing canonical Battle Axe profiles.
+- Initial unit library encodes the commonly relevant later French/Imperial Italian Wars profiles, with M/C/A, traits, and points.
+- Scenario JSON export saves reviewed parameters, accepted suggestions, force rosters, provenance records, ignored suggestions, and unresolved items.
+
+### Not yet implemented
+- Automatic text/visual extraction from arbitrary PDF/DOCX/image uploads in the static browser app. These files are registered now; the later analysis service will supply multimodal extraction.
+- Deployment editing from imported deployment diagrams.
+- Engine/playtest integration in the website.
+- Final formatted scenario-document publishing.
 
 ## GitHub Pages deployment
 
-The repository contains `.github/workflows/pages.yml`. In GitHub: **Settings → Pages → Source: GitHub Actions**. Every push to `main` runs checks/tests/build and publishes `dist/` if successful.
+The repository contains `.github/workflows/pages.yml`. In GitHub: **Settings → Pages → Source: GitHub Actions**. Every push to `main` runs tests, builds `dist/`, verifies the deployment package, and publishes it when successful.
 
-## Local verification (optional)
-
-With Node 20+ installed:
+## Verify locally
 
 ```bash
 npm ci
 npm run verify
 ```
 
-No third-party runtime dependencies are required in v0.3.3.5.
-
-## v0.3.3 focus
-Battlefield recognition now scans the imported SVG first, keeps the historical description as context only, derives gate/breach placement from source-map evidence, and keeps the battlefield map visible during desktop feature review.
-
-## v0.3.3.5 focus
-The map loader now parses PowerPoint-derived namespace-prefixed SVG files as true SVG XML and imports the SVG root into the live document before geometry detection.
+No third-party runtime dependencies are required in this alpha.
