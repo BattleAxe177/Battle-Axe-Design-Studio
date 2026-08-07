@@ -1,3 +1,9 @@
+## 0.3.3.2 — Cache/deployment visibility fix
+- Bumped the PWA cache namespace from the legacy v0.3.2 cache.
+- Switched HTML/JS/CSS requests to network-first so new GitHub Pages deployments become visible promptly.
+- Added cache-busting version parameters to the application shell assets.
+- Preserved offline cache-first behavior for static map assets.
+
 # Changelog
 
 ## v0.3.3.1 — GitHub Actions verification fix
