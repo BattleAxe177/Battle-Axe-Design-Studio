@@ -1,4 +1,4 @@
-import { setOverlay, clearOverlay } from './mapView.js?v=0.4.0-alpha.1';
+import { setOverlay, clearOverlay } from './mapView.js?v=0.4.0-alpha.2';
 
 export function setupGeometryExplorer(state,persist,featureReview){
   const dialog=document.querySelector('#geometryDialog'),rows=document.querySelector('#candidateRows'),info=document.querySelector('#candidateInfo'),overlay=document.querySelector('#candidateOverlay');

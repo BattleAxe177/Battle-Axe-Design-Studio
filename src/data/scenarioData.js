@@ -1,20 +1,26 @@
 export const UNIT_LIBRARY = [
-  {profile:'Gendarmes', category:'Cavalry', icon:'♞', m:3,c:4,a:6,pts:3, traits:['Shock Cavalry'], armies:['Later French'], source:'Italian Wars Supplement — Later French Army List'},
-  {profile:'Knights', category:'Cavalry', icon:'♞', m:3,c:3,a:6,pts:2, traits:['Shock Cavalry'], armies:['Later Imperial'], source:'Italian Wars Supplement — Later Imperial Army List'},
-  {profile:'Heavy Cavalry', category:'Cavalry', icon:'♞', m:3,c:3,a:6,pts:2, traits:['Shock Cavalry'], armies:['Scenario alias'], source:'Scenario-friendly alias using the later Imperial/Spanish heavy-cavalry profile'},
-  {profile:'Reiters', category:'Cavalry', icon:'♞', m:3,c:3,a:5,pts:2, traits:['Pistols'], armies:['Later French','Later Imperial'], source:'Italian Wars Supplement'},
-  {profile:'Demi-Lancers', category:'Cavalry', icon:'♞', m:4,c:3,a:5,pts:2, traits:['Shock Cavalry'], armies:['Later French'], source:'Italian Wars Supplement — Later French Army List'},
-  {profile:'Light Cavalry', category:'Cavalry', icon:'➶', m:4,c:2,a:4,pts:1, traits:['Shock Cavalry'], armies:['Later Imperial'], source:'Italian Wars Supplement — Later Imperial Army List'},
-  {profile:'Stradiots', category:'Cavalry', icon:'➶', m:4,c:2,a:4,pts:1, traits:['Javelins'], armies:['Later French','Later Imperial'], source:'Italian Wars Supplement'},
-  {profile:'Swiss Pikemen', category:'Infantry', icon:'⚔', m:2,c:4,a:5,pts:2, traits:['Fury','Pikes'], armies:['Later French','Later Imperial'], source:'Italian Wars Supplement'},
-  {profile:'Landsknechts', category:'Infantry', icon:'⚔', m:2,c:4,a:5,pts:2, traits:['Elite','Pikes'], armies:['Later French','Later Imperial'], source:'Italian Wars Supplement'},
-  {profile:'Pikemen', category:'Infantry', icon:'⚔', m:2,c:4,a:5,pts:1, traits:['Pikes'], armies:['Later French','Later Imperial'], source:'Italian Wars Supplement'},
-  {profile:'Verlorne Hope', category:'Infantry', icon:'⚔', m:4,c:3,a:5,pts:1, traits:['Elite','Fury'], armies:['Later Imperial'], source:'Italian Wars Supplement — Later Imperial Army List'},
-  {profile:'Halberdiers', category:'Infantry', icon:'⚔', m:2,c:3,a:5,pts:1, traits:['Fury'], armies:['Later Imperial'], source:'Italian Wars Supplement — Later Imperial Army List'},
-  {profile:'Swordsmen', category:'Infantry', icon:'⚔', m:2,c:3,a:5,pts:1, traits:['Fury'], armies:['Later French'], source:'Italian Wars Supplement — Later French Army List'},
-  {profile:'Crossbowmen', category:'Infantry', icon:'⌁', m:2,c:1,a:4,pts:1, traits:['Shoot 2'], armies:['Later French','Later Imperial'], source:'Italian Wars Supplement'},
-  {profile:'Arquebusiers', category:'Infantry', icon:'⌁', m:2,c:1,a:4,pts:1, traits:['Arquebus'], armies:['Later French','Later Imperial'], source:'Italian Wars Supplement'},
-  {profile:'Cannon', category:'Artillery', icon:'●', m:1,c:1,a:6,pts:2, traits:['Artillery'], armies:['Later French','Later Imperial'], source:'Italian Wars Supplement'}
+  {profile:'Gendarmes',category:'Cavalry',icon:'♞',m:3,c:4,a:6,pts:3,traits:['Shock Cavalry'],armies:['Early French','Later French'],source:'Italian Wars Supplement'},
+  {profile:'Knights',category:'Cavalry',icon:'♞',m:3,c:3,a:6,pts:2,traits:['Shock Cavalry'],armies:['Early Imperial','Later Imperial'],source:'Italian Wars Supplement'},
+  {profile:'Heavy Cavalry',category:'Cavalry',icon:'♞',m:3,c:3,a:6,pts:2,traits:['Shock Cavalry'],armies:['Italian'],source:'Italian Wars Supplement — Italian Army List'},
+  {profile:'Reiters',category:'Cavalry',icon:'♞',m:3,c:3,a:5,pts:2,traits:['Pistols'],armies:['Later French','Later Imperial'],source:'Italian Wars Supplement'},
+  {profile:'Demi-Lancers',category:'Cavalry',icon:'♞',m:4,c:3,a:5,pts:2,traits:['Shock Cavalry'],armies:['Later French','Tudor'],source:'Italian Wars Supplement'},
+  {profile:'Light Cavalry',category:'Cavalry',icon:'➶',m:4,c:2,a:4,pts:1,traits:['Shock Cavalry'],armies:['Italian','Early Imperial','Later Imperial'],source:'Italian Wars Supplement'},
+  {profile:'Stradiots',category:'Cavalry',icon:'➶',m:4,c:2,a:4,pts:1,traits:['Javelins'],armies:['French','Italian','Imperial'],source:'Italian Wars Supplement'},
+  {profile:'Border Cavalry',category:'Cavalry',icon:'➶',m:4,c:2,a:4,pts:1,traits:['Javelins'],armies:['Tudor'],source:'Italian Wars Supplement — Tudor Forces'},
+  {profile:'Ginetes',category:'Cavalry',icon:'➶',m:4,c:2,a:4,pts:1,traits:['Javelins'],armies:['Spanish'],source:'Italian Wars Supplement — Spanish Army List'},
+  {profile:'Swiss Pikemen',category:'Infantry',icon:'⚔',m:2,c:4,a:5,pts:2,traits:['Fury','Pikes'],armies:['French','Italian','Imperial'],source:'Italian Wars Supplement'},
+  {profile:'Swiss Guard',category:'Infantry',icon:'⚔',m:2,c:4,a:5,pts:2,traits:['Elite','Fury'],armies:['Italian'],source:'Italian Wars Supplement — Italian Army List'},
+  {profile:'Landsknechts',category:'Infantry',icon:'⚔',m:2,c:4,a:5,pts:2,traits:['Elite','Pikes'],armies:['French','Italian','Imperial','Spanish','Tudor'],source:'Italian Wars Supplement'},
+  {profile:'Pikemen',category:'Infantry',icon:'⚔',m:2,c:4,a:5,pts:1,traits:['Pikes'],armies:['French','Italian','Imperial'],source:'Italian Wars Supplement'},
+  {profile:'Forlorn Hope',category:'Infantry',icon:'⚔',m:4,c:3,a:5,pts:1,traits:['Elite','Fury'],armies:['Later Imperial'],source:'Italian Wars Supplement — Later Imperial Army List'},
+  {profile:'Halberdiers',category:'Infantry',icon:'⚔',m:2,c:3,a:5,pts:1,traits:['Fury'],armies:['Imperial'],source:'Italian Wars Supplement'},
+  {profile:'Swordsmen',category:'Infantry',icon:'⚔',m:2,c:3,a:5,pts:1,traits:['Fury'],armies:['French','Spanish'],source:'Italian Wars Supplement'},
+  {profile:'Crossbowmen',category:'Infantry',icon:'⌁',m:2,c:1,a:4,pts:1,traits:['Shoot 2'],armies:['French','Italian','Imperial','Spanish'],source:'Italian Wars Supplement'},
+  {profile:'Archers',category:'Infantry',icon:'⌁',m:2,c:2,a:4,pts:1,traits:['Shoot 3'],armies:['Tudor'],source:'Italian Wars Supplement — Tudor Forces'},
+  {profile:'Arquebusiers',category:'Infantry',icon:'⌁',m:2,c:1,a:4,pts:1,traits:['Arquebus'],armies:['French','Italian','Imperial','Spanish'],source:'Italian Wars Supplement'},
+  {profile:'Spanish Tercio',category:'Infantry',icon:'⚔',m:2,c:4,a:5,pts:3,traits:['Tercio'],armies:['Spanish'],source:'Italian Wars Supplement — Spanish Army List'},
+  {profile:'Colunela Pike',category:'Infantry',icon:'⚔',m:2,c:4,a:5,pts:2,traits:['Elite','Pikes'],armies:['Spanish'],source:'Italian Wars Supplement — Spanish Army List'},
+  {profile:'Cannon',category:'Artillery',icon:'●',m:1,c:1,a:6,pts:2,traits:['Artillery'],armies:['French','Italian','Imperial','Spanish','Tudor'],source:'Italian Wars Supplement'}
 ];
 
 export const PAVIA_DRAFT_SAMPLE = `BATTLE AXE SCENARIO DRAFT
@@ -26,7 +32,12 @@ Game Length: 8 Battle Axe Turns
 Status: Playtest Baseline
 
 Historical Situation
-King Francis I had besieged Imperial-held Pavia. Before dawn on 24 February Imperial engineers breached the walls of Mirabello Park, triggering a confused battle among woods, gardens and open ground.
+By February 1525 King Francis I had besieged the Imperial-held city of Pavia for months. Antonio de Leyva's garrison continued to resist while an Imperial relief army under Charles de Lannoy, the Marquis of Pescara, and Georg von Frundsberg marched to break the siege.
+
+Before dawn on 24 February Imperial engineers breached the walls of Mirabello Park, triggering a confused battle among woods, gardens, and open ground that culminated in the capture of Francis I. This scenario represents the opening phase of the battle as the French react to the unexpected Imperial attack.
+
+Battlefield
+The battlefield compresses the historical ground to a 4' × 4' table while preserving the tactical relationships between Mirabello Park, its walls, Castello Mirabello, the Vernavola stream, the French camp, roads, woods and orchards.
 
 French Army
 King's Gendarmes — Gendarmes — Francis I's household cavalry
@@ -49,10 +60,14 @@ Imperial Artillery — Cannon — field artillery
 Leyva's Garrison — Pikemen — Pavia garrison, off-table at start
 
 Deployment
-French forces deploy within the French deployment area. Artillery begins deployed. Imperial forces deploy first within the Imperial deployment area. Leyva's garrison begins off-table inside Pavia.
+French forces deploy within the French deployment area. Swiss units may deploy anywhere along the main French line. Artillery begins deployed.
+
+Imperial forces deploy first within the Imperial deployment area. Leyva's garrison begins off-table inside Pavia and may enter later by special sortie rule.
 
 Scenario Rules
-Surprise: French formations more than 18 inches from every Imperial unit begin Unalerted and must pass a normal Battle Axe Command Test before activating. Imperial Initiative: the Imperial player has the first turn. Leyva's Sortie: the Imperial player decides when to commit the Pavia garrison.
+Surprise: French formations more than 18 inches from every Imperial unit begin Unalerted and must pass a normal Battle Axe Command Test before activating.
+Imperial Initiative: the Imperial player has the first turn.
+Leyva's Sortie: the Imperial player decides when to commit the Pavia garrison.
 
 Victory Conditions
 French Major Victory: break the Imperial relief force while denying Imperial control of Mirabello Park.
@@ -64,7 +79,9 @@ Draw: neither side achieves its operational objectives by the end of Turn 8.`;
 export const WARGAMERS_GUIDE_SAMPLE = `Battle of Pavia, 24 February 1525
 
 Historical Situation
-The French army under Francis I is besieging Pavia while an Imperial relief army approaches. The scenario narrative describes the Imperial attack beginning in early-morning mist after engineers broke into the Mirabello park. The French must react quickly while the Imperial army drives into the park. A later sortie by the Pavia garrison adds pressure to the French rear.
+The French army under King Francis I had been besieging Pavia, held by an Imperial garrison under Antonio de Leyva. An Imperial relieving army under Lannoy approached the city after months of siege operations.
+
+On 24 February the Imperial army made its move in the early morning mist and under cover of an artillery bombardment. Imperial troops marched northwards and broke down the walls to the Mirabello park. The French were forced to respond quickly to the attack. A sortie from the Pavia garrison later added to the pressure on the French rear.
 
 French Army
 Gendarmes — Gendarmes — Francis I
@@ -98,9 +115,11 @@ Early-morning mist and surprise are part of the published narrative. The Pavia g
 export function createBlankScenario(){
   return {
     metadata:{title:'',date:'',location:'',gameLength:'',status:'Draft',tableSize:''},
-    historicalSituation:'', deploymentNotes:'', victoryText:'',
-    sources:[], observations:[], suggestions:[], ignoredSuggestionIds:[], acceptedSuggestionIds:[],
-    sourceForces:[], rosters:{French:[],Imperial:[],Garrison:[]},
-    unresolved:[], lastAnalysis:null
+    historicalSituation:'',deploymentNotes:'',victoryText:'',
+    sources:[],observations:[],suggestions:[],ignoredSuggestionIds:[],acceptedSuggestionIds:[],
+    sourceForces:[],sourceCommands:[],
+    commands:{French:[],Imperial:[],Garrison:[]},
+    unresolved:[],lastAnalysis:null,
+    deployment:{placements:{},commanderPlacements:{},zones:[]}
   };
 }

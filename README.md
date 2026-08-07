@@ -1,48 +1,50 @@
 # Battle Axe Design Studio
 
-Battle Axe Design Studio is the permanent browser application for the Battle Axe scenario-development workflow: map intake and compilation, battlefield feature review, scenario authoring, deployment, engine playtesting, analytics, and publication.
+Battle Axe Design Studio is the permanent browser application for the Battle Axe scenario-development workflow.
 
 ## Current release
 
-**v0.4.0-alpha.1 — Map Review + Scenario Builder Alpha**
+**v0.4.0-alpha.2 — Map Geometry Repair + Command/Deployment Alpha**
 
-This release extends the existing geometry-first map workflow and introduces the first functional Scenario Builder workbench.
+This release keeps the v0.4.0-alpha.1 Scenario Builder and adds the next integrated workflow increment.
 
 ### Map Studio
-- Runtime scanning of the immutable Pavia SVG rather than hard-coded feature boxes.
-- Hydrology detector accepts long/thin filled water polygons and line-based watercourses.
-- Sticky/frozen battlefield view on desktop while feature lists scroll.
-- Multi-select Battlefield Features with bulk approve, reject, and shared-attribute application.
-- Geometry Explorer multi-select, bulk import/ignore, and Select Similar.
-- Detection confidence is separate from interpretation confidence.
-- Source geometry is never modified.
+- Uses SVG-local geometry coordinates (`getBBox` + CTM) instead of viewport coordinates for review extents.
+- Filters clipped/origin-only artifacts before they enter Geometry Explorer.
+- Separates cyan wet-ground polygons from stream channels.
+- Adds raster-assisted hydrology detection for streams that are visible in the imported map but embedded in the PowerPoint-rendered image layer rather than preserved as discrete SVG paths.
+- Retains multi-select and bulk approval/import workflows.
 
-### Scenario Builder alpha
-- Flexible multi-source intake: TXT/MD/JSON/CSV are extracted directly; DOCX/PDF/images are registered as immutable evidence for future visual/document analysis.
-- Bundled examples demonstrate both the structured Battle Axe Pavia draft and the visually structured scanned Wargamer's Guide scenario.
-- Extraction Review separates source observations from Studio interpretations and highlights unresolved fields.
-- Suggestion Tray proposes optional Battle Axe treatments such as fog, surprise, breach, and garrison sortie; each can be included, edited, ignored, or restored.
-- Force Builder separates imported/historical forces from Battle Axe roster units.
-- Drag/drop unit library and army rosters.
-- Scenario unit instances can be renamed and edited without changing canonical Battle Axe profiles.
-- Initial unit library encodes the commonly relevant later French/Imperial Italian Wars profiles, with M/C/A, traits, and points.
-- Scenario JSON export saves reviewed parameters, accepted suggestions, force rosters, provenance records, ignored suggestions, and unresolved items.
+### Scenario Builder
+- Multi-paragraph section extraction for Historical Situation, Deployment, and Victory Conditions.
+- Editable Scenario Rule dialog with separate rule name and large multi-line rule text.
+- Imported/source forces are grouped into historical commands with commanders and army commanders where the source/formation interpretation supports them.
+- Working Battle Axe forces are `Side → Command → Unit`, with drag/drop between commands.
+- Commands can be created, renamed, and assigned commanders.
+- Canonical Italian Wars library is independent of the imported scenario and now includes Archers and the corrected Forlorn Hope name.
 
-### Not yet implemented
-- Automatic text/visual extraction from arbitrary PDF/DOCX/image uploads in the static browser app. These files are registered now; the later analysis service will supply multimodal extraction.
-- Deployment editing from imported deployment diagrams.
-- Engine/playtest integration in the website.
-- Final formatted scenario-document publishing.
+### Deployment Editor alpha
+- Drag individual units, commanders, or complete commands onto the battlefield.
+- 50 mm logical square unit bases and 25 mm logical circular commander bases scale to the scenario-defined play space.
+- Reposition deployed objects by drag/drop.
+- Draw and assign rectangular deployment zones.
+- Basic warnings for undeployed units and unplaced commanders.
+- Deployment is stored in the same scenario project state used by the Scenario Builder.
 
-## GitHub Pages deployment
+## Important alpha limitations
+- PDF/DOCX/scanned-image scenario ingestion is still registered as source evidence rather than fully parsed in-browser.
+- Raster-assisted hydrology currently provides derived review extents, not final vector centerlines/polygons for engine movement. User approval remains required.
+- Deployment zones are rectangular in this first alpha.
+- Deployment warnings do not yet understand scenario-specific off-table/reinforcement states.
 
-The repository contains `.github/workflows/pages.yml`. In GitHub: **Settings → Pages → Source: GitHub Actions**. Every push to `main` runs tests, builds `dist/`, verifies the deployment package, and publishes it when successful.
-
-## Verify locally
+## Development
 
 ```bash
-npm ci
+npm test
+npm run build
+npm run check
+# or
 npm run verify
 ```
 
-No third-party runtime dependencies are required in this alpha.
+GitHub Pages is deployed through `.github/workflows/pages.yml`.

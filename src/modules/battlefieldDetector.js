@@ -1,315 +1,67 @@
-const COLORS = {
-  water: '#69D9E5',
-  wood: '#3B7D23',
-  wall: '#F2AA84',
-  avenue: '#196B24',
-  bridge: '#595959',
-  structure: '#747474',
-  track: '#726530',
-  boundary: '#042433'
-};
-
-const norm = value => (value || '').trim().toUpperCase();
-const colorEq = (a,b) => norm(a) === norm(b);
-function parseColor(value){
-  if(!value||value==='none')return null; const v=value.trim();
-  const hex=v.match(/^#([0-9a-f]{6})$/i); if(hex){const n=parseInt(hex[1],16);return [(n>>16)&255,(n>>8)&255,n&255];}
-  const rgb=v.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);return rgb?[+rgb[1],+rgb[2],+rgb[3]]:null;
-}
+const COLORS={water:'#69D9E5',wood:'#3B7D23',wall:'#F2AA84',avenue:'#196B24',bridge:'#595959',structure:'#747474',track:'#726530',boundary:'#042433'};
+const norm=v=>(v||'').trim().toUpperCase();
+function parseColor(v){if(!v||v==='none')return null;const h=v.trim().match(/^#([0-9a-f]{6})$/i);if(h){const n=parseInt(h[1],16);return[(n>>16)&255,(n>>8)&255,n&255];}const r=v.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);return r?[+r[1],+r[2],+r[3]]:null;}
 function colorDistance(a,b){const x=parseColor(a),y=parseColor(b);if(!x||!y)return Infinity;return Math.hypot(x[0]-y[0],x[1]-y[1],x[2]-y[2]);}
-function styleColor(el,prop){
-  const direct=el.getAttribute(prop); if(direct&&direct!=='none')return direct;
-  try{return getComputedStyle(el)[prop]||'';}catch{return '';}
+function styleColor(el,p){const direct=el.getAttribute(p);if(direct&&direct!=='none')return direct;try{return getComputedStyle(el)[p]||'';}catch{return'';}}
+function isColor(el,p,target,tol=12){const c=styleColor(el,p);return norm(c)===norm(target)||colorDistance(c,target)<=tol;}
+
+function transformPoint(m,x,y){return{x:m.a*x+m.c*y+m.e,y:m.b*x+m.d*y+m.f};}
+function geometryBox(el){
+  try{
+    if(el.ownerSVGElement===null&&el.viewBox?.baseVal){const v=el.viewBox.baseVal;return{x:v.x,y:v.y,width:v.width,height:v.height};}
+    const b=el.getBBox(),m=el.getCTM();if(!b||!m)return null;
+    const pts=[transformPoint(m,b.x,b.y),transformPoint(m,b.x+b.width,b.y),transformPoint(m,b.x,b.y+b.height),transformPoint(m,b.x+b.width,b.y+b.height)];
+    const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);return{x:Math.min(...xs),y:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
+  }catch{return null;}
 }
-function isColor(el,prop,target,tolerance=12){const c=styleColor(el,prop);return colorEq(c,target)||colorDistance(c,target)<=tolerance;}
+function overlap(a,b){return!!(a&&b&&a.x<=b.x+b.width&&a.x+a.width>=b.x&&a.y<=b.y+b.height&&a.y+a.height>=b.y);}
+function clipBox(b,bound){if(!b||!bound)return null;const x1=Math.max(b.x,bound.x),y1=Math.max(b.y,bound.y),x2=Math.min(b.x+b.width,bound.x+bound.width),y2=Math.min(b.y+b.height,bound.y+bound.height);if(x2<=x1||y2<=y1)return null;return{x:x1,y:y1,width:x2-x1,height:y2-y1};}
+function percentBox(b,bound,pad=.5){const c=clipBox(b,bound);if(!c||!bound.width||!bound.height)return null;let left=(c.x-bound.x)/bound.width*100,top=(c.y-bound.y)/bound.height*100,width=c.width/bound.width*100,height=c.height/bound.height*100;left=Math.max(0,left-pad);top=Math.max(0,top-pad);width=Math.min(100-left,width+pad*2);height=Math.min(100-top,height+pad*2);if(width<.35)width=Math.min(100-left,.35);if(height<.35)height=Math.min(100-top,.35);return[left,top,width,height];}
+function unionBox(items){const bs=items.map(x=>x.bbox).filter(Boolean);if(!bs.length)return null;const x=Math.min(...bs.map(b=>b.x)),y=Math.min(...bs.map(b=>b.y)),x2=Math.max(...bs.map(b=>b.x+b.width)),y2=Math.max(...bs.map(b=>b.y+b.height));return{x,y,width:x2-x,height:y2-y};}
+function distanceBoxes(a,b){if(!a||!b)return Infinity;const dx=Math.max(a.x-(b.x+b.width),b.x-(a.x+a.width),0),dy=Math.max(a.y-(b.y+b.height),b.y-(a.y+a.height),0);return Math.hypot(dx,dy);}
+function center(b){return b?{x:b.x+b.width/2,y:b.y+b.height/2}:null;}
+function pointDistanceToBox(p,b){if(!p||!b)return Infinity;const dx=Math.max(b.x-p.x,p.x-(b.x+b.width),0),dy=Math.max(b.y-p.y,p.y-(b.y+b.height),0);return Math.hypot(dx,dy);}
+function centerInside(b,bound){const c=center(b);return c&&c.x>=bound.x&&c.x<=bound.x+bound.width&&c.y>=bound.y&&c.y<=bound.y+bound.height;}
+function meaningfulInside(b,bound){const c=clipBox(b,bound);if(!c)return false;if(centerInside(b,bound))return true;const ratio=(c.width*c.height)/Math.max(1,b.width*b.height);return ratio>.45&&(c.width/bound.width>.015||c.height/bound.height>.015);}
+function cluster(items,tol=12){const pending=[...items],groups=[];while(pending.length){const g=[pending.shift()];let changed=true;while(changed){changed=false;const ub=unionBox(g);for(let i=pending.length-1;i>=0;i--)if(distanceBoxes(ub,pending[i].bbox)<=tol){g.push(pending.splice(i,1)[0]);changed=true;}}groups.push(g);}return groups;}
+function assignGeometryIds(svg){let n=0;for(const el of svg.querySelectorAll('path,rect,line,polyline,polygon,circle,ellipse,image,use,g'))if(!el.dataset.baGeometryId)el.dataset.baGeometryId=`ba-geom-${++n}`;}
+function findBoundary(svg){for(const rect of svg.querySelectorAll('rect'))if(norm(rect.getAttribute('stroke'))===norm(COLORS.boundary)){const b=geometryBox(rect);if(b?.width&&b?.height)return b;}const v=svg.viewBox?.baseVal;if(v?.width)return{x:v.x,y:v.y,width:v.width,height:v.height};return geometryBox(svg)||{x:0,y:0,width:1000,height:1000};}
+function collect(svg,bound,pred,selector='path,rect,line,polyline,polygon,circle,ellipse'){const out=[];for(const el of svg.querySelectorAll(selector)){if(!pred(el))continue;const bbox=geometryBox(el);if(!bbox||!overlap(bbox,bound)||!meaningfulInside(bbox,bound))continue;out.push({el,bbox,id:el.dataset.baGeometryId});}return out;}
+function featureFromGroup(group,opts,bound){const bbox=unionBox(group),box=percentBox(bbox,bound,.7);return{...opts,detectionConfidence:opts.detectionConfidence??99,interpretationConfidence:opts.interpretationConfidence??opts.confidence??80,confidence:opts.interpretationConfidence??opts.confidence??80,box,elementIds:group.map(x=>x.id).filter(Boolean)};}
+function findText(svg,needle){const t=needle.toLowerCase();return[...svg.querySelectorAll('text')].find(x=>(x.textContent||'').trim().toLowerCase().includes(t));}
+function nearestWallDistance(walls,b){return Math.min(...walls.map(w=>distanceBoxes(w.bbox,b)),Infinity);}
+function gateAnchor(svg,bound,walls,label){const text=findText(svg,label),p=center(geometryBox(text));if(!p)return null;const mapArea=bound.width*bound.height,c=[];for(const el of svg.querySelectorAll('rect,path,polygon')){if(isColor(el,'stroke',COLORS.wall,18))continue;const b=geometryBox(el);if(!b||!meaningfulInside(b,bound))continue;const area=b.width*b.height;if(area>mapArea*.012||area<2)continue;const labelD=pointDistanceToBox(p,b),wallD=nearestWallDistance(walls,b);if(labelD>bound.width*.16||wallD>bound.width*.04)continue;const aspect=Math.max(b.width/Math.max(1,b.height),b.height/Math.max(1,b.width));c.push({bbox:b,id:el.dataset.baGeometryId,score:labelD+wallD*3+Math.max(0,aspect-5)*8});}return c.sort((a,b)=>a.score-b.score)[0]||null;}
+function syntheticOpening(svg,bound,walls,needle,name,id,kind='Gatehouse',interp=88){const text=findText(svg,needle),tb=geometryBox(text),target=center(tb);if(!target)return null;const anchor=gateAnchor(svg,bound,walls,needle);const sz=bound.width*.02,bbox=anchor?.bbox||{x:target.x-sz/2,y:target.y-sz/2,width:sz,height:sz};return{id,name,category:'Crossings & Openings',proposal:kind==='Breach'?'Rubble breach / wall opening':'Fortified gatehouse / wall opening',cls:kind,effects:['Difficult'],detectionConfidence:anchor?95:76,interpretationConfidence:interp,confidence:interp,box:percentBox(bbox,bound,.5),elementIds:anchor?[anchor.id]:[],reason:anchor?`Source label “${name}” is linked to compact map geometry adjacent to a detected wall.`:`The map label “${name}” was found, but no gatehouse geometry could be resolved confidently; the marker stays at the label rather than being relocated.`};}
 
-
-function rectToBox(r){
-  if(!r) return null;
-  const width = Number(r.width) || 0, height = Number(r.height) || 0;
-  if(width < 0 || height < 0) return null;
-  return {x:Number(r.x ?? r.left) || 0, y:Number(r.y ?? r.top) || 0, width, height};
-}
-
-function visualBox(element) {
-  // getBoundingClientRect is deliberately preferred here. The imported PowerPoint SVG
-  // contains nested transforms and namespace-prefixed groups; browser-layout coordinates
-  // are the most reliable common coordinate system for review overlays.
-  try {
-    const r = element.getBoundingClientRect();
-    if (r && (r.width > 0 || r.height > 0)) return rectToBox(r);
-  } catch {}
-  try {
-    const b = element.getBBox();
-    return rectToBox(b);
-  } catch { return null; }
-}
-
-function overlap(a,b) {
-  return !!(a && b && a.x <= b.x+b.width && a.x+a.width >= b.x && a.y <= b.y+b.height && a.y+a.height >= b.y);
-}
-
-function clipBox(b, bound) {
-  if(!b || !bound) return null;
-  const x1=Math.max(b.x,bound.x), y1=Math.max(b.y,bound.y), x2=Math.min(b.x+b.width,bound.x+bound.width), y2=Math.min(b.y+b.height,bound.y+bound.height);
-  if (x2 < x1 || y2 < y1) return null;
-  return {x:x1,y:y1,width:Math.max(0,x2-x1),height:Math.max(0,y2-y1)};
-}
-
-function percentBox(b,bound,pad=0) {
-  const c=clipBox(b,bound); if(!c || !bound.width || !bound.height) return null;
-  let left=(c.x-bound.x)/bound.width*100, top=(c.y-bound.y)/bound.height*100;
-  let width=c.width/bound.width*100, height=c.height/bound.height*100;
-  left=Math.max(0,left-pad); top=Math.max(0,top-pad);
-  width=Math.min(100-left,width+pad*2); height=Math.min(100-top,height+pad*2);
-  // Give very thin linework a visible overlay footprint without changing source geometry.
-  if(width < 0.35) width = Math.min(100-left,0.35);
-  if(height < 0.35) height = Math.min(100-top,0.35);
-  return [left,top,width,height];
+async function rasterHydrology(svg,bound){
+  // Raster-assisted fallback for maps where the PowerPoint SVG preserves the visual base as an embedded image.
+  // This creates derived review geometry only; the imported map itself is never modified.
+  try{
+    const xml=new XMLSerializer().serializeToString(svg.cloneNode(true)),blob=new Blob([xml],{type:'image/svg+xml'}),url=URL.createObjectURL(blob),img=new Image();
+    await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url;});
+    const n=420,canvas=document.createElement('canvas');canvas.width=n;canvas.height=n;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,n,n);URL.revokeObjectURL(url);const data=ctx.getImageData(0,0,n,n).data,mask=new Uint8Array(n*n);
+    for(let i=0;i<n*n;i++){const r=data[i*4],g=data[i*4+1],b=data[i*4+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(b>=g-8&&b>r+22&&mx-mn>35&&r<150&&g<190&&b<225)mask[i]=1;}
+    const seen=new Uint8Array(n*n),components=[],dirs=[-1,1,-n,n,-n-1,-n+1,n-1,n+1];
+    for(let i=0;i<mask.length;i++){if(!mask[i]||seen[i])continue;const q=[i];seen[i]=1;let p=0,minx=n,miny=n,maxx=0,maxy=0,count=0;while(p<q.length){const k=q[p++],x=k%n,y=(k/n)|0;count++;minx=Math.min(minx,x);maxx=Math.max(maxx,x);miny=Math.min(miny,y);maxy=Math.max(maxy,y);for(const d of dirs){const j=k+d;if(j<0||j>=mask.length||seen[j]||!mask[j])continue;const jx=j%n;if(Math.abs(jx-x)>1)continue;seen[j]=1;q.push(j);}}const w=maxx-minx+1,h=maxy-miny+1,aspect=Math.max(w/Math.max(1,h),h/Math.max(1,w));if(count>=22&&(aspect>=2.2||Math.max(w,h)>=42))components.push({minx,miny,maxx,maxy,count,w,h,aspect});}
+    return components.sort((a,b)=>b.count-a.count).slice(0,8).map((c,i)=>({id:`raster-stream-${i+1}`,name:`Raster-assisted watercourse ${i+1}`,category:'Hydrology',proposal:'Stream / river centerline corridor',cls:'Stream',effects:['Difficult'],detectionConfidence:90,interpretationConfidence:80,confidence:80,box:[c.minx/n*100,c.miny/n*100,c.w/n*100,c.h/n*100],elementIds:[],reason:'Detected from blue meandering pixels in the rendered source map because this watercourse is not preserved as a discrete SVG vector object. This is derived review geometry only and does not alter the input map.'}));
+  }catch(e){console.warn('Raster hydrology fallback unavailable',e);return[];}
 }
 
-function unionBox(items) {
-  const boxes=items.map(x=>x.bbox).filter(Boolean); if(!boxes.length)return null;
-  const x=Math.min(...boxes.map(b=>b.x)), y=Math.min(...boxes.map(b=>b.y));
-  const x2=Math.max(...boxes.map(b=>b.x+b.width)), y2=Math.max(...boxes.map(b=>b.y+b.height));
-  return {x,y,width:x2-x,height:y2-y};
-}
-
-function distanceBoxes(a,b) {
-  if(!a || !b) return Infinity;
-  const dx=Math.max(a.x-(b.x+b.width), b.x-(a.x+a.width), 0);
-  const dy=Math.max(a.y-(b.y+b.height), b.y-(a.y+a.height), 0);
-  return Math.hypot(dx,dy);
-}
-
-function center(b){ return b ? {x:b.x+b.width/2,y:b.y+b.height/2} : null; }
-function pointDistanceToBox(p,b){
-  if(!p || !b) return Infinity;
-  const dx=Math.max(b.x-p.x, p.x-(b.x+b.width), 0);
-  const dy=Math.max(b.y-p.y, p.y-(b.y+b.height), 0);
-  return Math.hypot(dx,dy);
-}
-
-function cluster(items, tolerance=12) {
-  const pending=[...items], groups=[];
-  while(pending.length){
-    const group=[pending.shift()]; let changed=true;
-    while(changed){changed=false; const ub=unionBox(group);
-      for(let i=pending.length-1;i>=0;i--){if(distanceBoxes(ub,pending[i].bbox)<=tolerance){group.push(pending.splice(i,1)[0]);changed=true;}}
-    }
-    groups.push(group);
-  }
-  return groups;
-}
-
-function assignGeometryIds(svg) {
-  let n=0;
-  for(const el of svg.querySelectorAll('path,rect,line,polyline,polygon,circle,ellipse,image,use,g')){
-    if(!el.dataset.baGeometryId) el.dataset.baGeometryId=`ba-geom-${++n}`;
-  }
-}
-
-function findBoundary(svg) {
-  // Prefer the actual rendered black play-space border. Falling back to the SVG itself
-  // keeps detector coordinates in the same browser-layout coordinate system.
-  for(const rect of svg.querySelectorAll('rect')) {
-    if(colorEq(rect.getAttribute('stroke'),COLORS.boundary)) {
-      const b=visualBox(rect); if(b && b.width && b.height) return b;
-    }
-  }
-  const b=visualBox(svg);
-  if(b && b.width && b.height) return b;
-  return {x:0,y:0,width:1000,height:1000};
-}
-
-function collect(svg,bound,predicate, selector='path,rect,line,polyline,polygon,circle,ellipse') {
-  const out=[];
-  for(const el of svg.querySelectorAll(selector)){
-    if(!predicate(el)) continue;
-    const bbox=visualBox(el); if(!bbox||!overlap(bbox,bound)) continue;
-    out.push({el,bbox,id:el.dataset.baGeometryId});
-  }
-  return out;
-}
-
-function featureFromGroup(group, opts, bound) {
-  const bbox=unionBox(group);
-  const box=percentBox(bbox,bound,0.7);
-  return {
-    ...opts,
-    detectionConfidence: opts.detectionConfidence ?? 99,
-    interpretationConfidence: opts.interpretationConfidence ?? opts.confidence ?? 80,
-    confidence: opts.interpretationConfidence ?? opts.confidence ?? 80,
-    box,
-    elementIds:group.map(x=>x.id).filter(Boolean)
-  };
-}
-
-function findText(svg, needle) {
-  const target=needle.toLowerCase();
-  return [...svg.querySelectorAll('text')].find(t => (t.textContent||'').trim().toLowerCase().includes(target));
-}
-
-function textCenter(el){ return center(visualBox(el)); }
-
-function nearestWallDistance(walls,bbox){ return Math.min(...walls.map(w=>distanceBoxes(w.bbox,bbox)),Infinity); }
-
-function gateAnchor(svg,bound,walls,labelText){
-  const text=findText(svg,labelText); if(!text) return null;
-  const labelPoint=textCenter(text); if(!labelPoint) return null;
-  const maxLabelDistance=Math.max(90,bound.width*.16);
-  const maxWallDistance=Math.max(24,bound.width*.035);
-  const mapArea=bound.width*bound.height;
-  const candidates=[];
-  for(const el of svg.querySelectorAll('image,use,rect,path,g')){
-    if(el===text || el.getAttribute('stroke')===COLORS.wall) continue;
-    const bbox=visualBox(el); if(!bbox || !overlap(bbox,bound)) continue;
-    const area=Math.max(1,bbox.width*bbox.height);
-    if(area > mapArea*.012 || (bbox.width<2 && bbox.height<2)) continue;
-    const labelD=pointDistanceToBox(labelPoint,bbox);
-    if(labelD>maxLabelDistance) continue;
-    const wallD=nearestWallDistance(walls,bbox);
-    if(wallD>maxWallDistance) continue;
-    // Favor compact symbols close to the label and actually coincident with wall geometry.
-    const aspect=Math.max(bbox.width/Math.max(1,bbox.height),bbox.height/Math.max(1,bbox.width));
-    const score=labelD + wallD*3 + Math.max(0,aspect-5)*8 + Math.log(area+1)*.35;
-    candidates.push({el,bbox,id:el.dataset.baGeometryId,score,wallD,labelD});
-  }
-  candidates.sort((a,b)=>a.score-b.score);
-  return candidates[0] || null;
-}
-
-function nearestWallPointBox(bound,walls,labelText){
-  const text=findText(svg,labelText);
-  return null;
-}
-
-function syntheticOpening(svg,bound,walls,needle,name,id,kind='Gatehouse',interp=88){
-  const text=findText(svg,needle); if(!text)return null;
-  const target=textCenter(text); if(!target)return null;
-  const anchor=gateAnchor(svg,bound,walls,needle);
-  let bbox, elementIds=[];
-  if(anchor){
-    bbox=anchor.bbox; elementIds=[anchor.id];
-  } else {
-    // Conservative fallback: a small marker centered on the label itself. This is preferable
-    // to relocating a gate to an arbitrary wall segment when no map symbol can be resolved.
-    const s=Math.max(10,bound.width*.018);
-    bbox={x:target.x-s/2,y:target.y-s/2,width:s,height:s};
-  }
-  return {
-    id,name,category:'Crossings & Openings',proposal:kind==='Breach'?'Rubble breach / wall opening':'Fortified gatehouse / wall opening',cls:kind,effects:['Difficult'],
-    detectionConfidence:anchor?96:78,interpretationConfidence:interp,confidence:interp,
-    box:percentBox(bbox,bound,0.6), elementIds,
-    reason:anchor
-      ? `Map-first detection: the source label “${name}” is linked to a compact rendered object adjacent to detected wall geometry. Historical context was not used to place it.`
-      : `Map-first fallback: the source label “${name}” was detected, but no reliable gatehouse symbol could be linked automatically. The review marker remains at the map label rather than inventing a location.`
-  };
-}
-
-export function detectBattlefieldFeatures(svg, {mapNotes=''}={}) {
-  assignGeometryIds(svg);
-  const bound=findBoundary(svg);
-  const byFill = color => collect(svg,bound,el=>isColor(el,'fill',color,18));
-  const byStroke = color => collect(svg,bound,el=>isColor(el,'stroke',color,18));
-
-  // Hydrology deliberately accepts both filled long/thin polygons and true line features.
-  // Water is scored from source-map color plus geometry, not from historical narrative.
-  const waterSeen=new Set();
-  const waters=collect(svg,bound,el=>{
-    const fillHit=isColor(el,'fill',COLORS.water,42), strokeHit=isColor(el,'stroke',COLORS.water,42);
-    if(!fillHit&&!strokeHit)return false;
-    const b=visualBox(el); if(!b)return false;
-    const aspect=Math.max(b.width/Math.max(b.height,1),b.height/Math.max(b.width,1));
-    const tag=el.localName;
-    return fillHit || ['line','polyline','path'].includes(tag) || aspect>=2;
-  }).filter(x=>{if(waterSeen.has(x.id))return false;waterSeen.add(x.id);return true;});
-  const woods=byFill(COLORS.wood), walls=byStroke(COLORS.wall), avenues=byStroke(COLORS.avenue), bridges=byFill(COLORS.bridge), structures=byFill(COLORS.structure), tracks=byFill(COLORS.track);
-  const features=[], candidates=[];
-  let classified=0;
-
-  waters.forEach((item,i)=>{classified++; features.push(featureFromGroup([item],{
-    id:`map-water-${i+1}`,name:`Detected water / wet channel ${i+1}`,category:'Hydrology',proposal:'Stream / wet channel',cls:'Stream',effects:['Difficult'],
-    detectionConfidence:99,interpretationConfidence:88,
-    reason:'Detected directly from cyan/blue source-map geometry. Long thin polygons and line-based watercourses are both supported; historical battlefield text is not used for detection.'
-  },bound));});
-
-  woods.forEach((item,i)=>{classified++; features.push(featureFromGroup([item],{
-    id:`map-wood-${i+1}`,name:`Woodland block ${i+1}`,category:'Woods & Groves',proposal:'Woodland polygon',cls:'Dense Wood',effects:['Difficult','Obscuring'],
-    detectionConfidence:99,interpretationConfidence:84,
-    reason:'Detected directly from irregular green source-map polygon geometry.'
-  },bound));});
-
-  cluster(walls,18).forEach((group,i)=>{classified+=group.length; features.push(featureFromGroup(group,{
-    id:`map-wall-${i+1}`,name:`Park wall segment ${i+1}`,category:'Walls & Fortifications',proposal:'Masonry wall',cls:'Masonry Wall',effects:['Impassable','Tall'],
-    detectionConfidence:99,interpretationConfidence:94,
-    reason:'Detected directly from salmon source-map linework forming the park enclosure. Nearby openings are modeled separately.'
-  },bound));});
-
-  cluster(avenues,14).forEach((group,i)=>{classified+=group.length; features.push(featureFromGroup(group,{
-    id:`map-avenue-trees-${i+1}`,name:`Roadside tree line ${i+1}`,category:'Vegetation Lines',proposal:'Tree-lined avenue vegetation',cls:'Open Grove',effects:['Obscuring'],
-    detectionConfidence:99,interpretationConfidence:80,
-    reason:'Detected from paired green source-map linework; kept separate from woodland polygons.'
-  },bound));});
-
-  bridges.forEach((item,i)=>{classified++; features.push(featureFromGroup([item],{
-    id:`map-crossing-${i+1}`,name:`Possible bridge / crossing ${i+1}`,category:'Crossings & Openings',proposal:'Bridge or culvert crossing',cls:'Bridge',effects:[],
-    detectionConfidence:99,interpretationConfidence:72,
-    reason:'Compact dark-gray source geometry resembles bridge/crossing symbols used on this map. It is promoted for explicit review rather than silently accepted.'
-  },bound));});
-
-  const openings=[
-    syntheticOpening(svg,bound,walls,'Pescarina','Porta Pescarina','map-gate-pescarina','Gatehouse',91),
-    syntheticOpening(svg,bound,walls,'Repentita','Porta Repentita','map-gate-repentita','Gatehouse',88),
-    syntheticOpening(svg,bound,walls,'Riazzo','Porta Riazzo','map-gate-riazzo','Gatehouse',86),
-    syntheticOpening(svg,bound,walls,'Due Porte','Due Porte','map-gate-due-porte','Gatehouse',82),
-    syntheticOpening(svg,bound,walls,'Breach','Imperial breach','map-breach','Breach',92)
-  ].filter(Boolean);
-  classified+=openings.length; features.push(...openings);
-
-  // Mirabello: source label + nearest compact structure is map evidence, not historical-context placement.
-  const mirText=findText(svg,'Mirabello');
-  if(mirText && structures.length){
-    const target=textCenter(mirText);
-    const nearest=[...structures].sort((a,b)=>pointDistanceToBox(target,a.bbox)-pointDistanceToBox(target,b.bbox))[0];
-    classified++;
-    features.push(featureFromGroup([nearest],{id:'map-mirabello',name:'Castello Mirabello',category:'Structures',proposal:'Major structure / castle complex',cls:'Building',effects:['Impassable','Tall','Defensive'],detectionConfidence:98,interpretationConfidence:85,reason:'Source-map text label is linked to the nearest compact structure geometry. Placement comes from the imported map.'},bound));
-  }
-
-  const usedStructureIds=new Set(features.flatMap(f=>f.elementIds||[]));
-  structures.filter(x=>!usedStructureIds.has(x.id)).forEach((item,i)=>candidates.push(featureFromGroup([item],{
-    id:`candidate-structure-${i+1}`,name:`Additional compact structure ${i+1}`,kind:'building / gatehouse / landmark',proposal:'Unclassified compact structure',cls:'Unknown',effects:[],detectionConfidence:99,interpretationConfidence:46,confidence:46,
-    reason:'Clearly detected source geometry, but its gameplay role is ambiguous. Review in Geometry Explorer if it matters.'
-  },bound)));
-  tracks.forEach((item,i)=>candidates.push(featureFromGroup([item],{
-    id:`candidate-track-${i+1}`,name:`Possible route / boundary ${i+1}`,kind:'brown linear or patterned geometry',proposal:'Possible road, track, ditch, or decorative line',cls:'Unknown',effects:[],detectionConfidence:98,interpretationConfidence:48,confidence:48,
-    reason:'Detected directly from source geometry. It is not promoted because this visual convention can represent several map elements.'
-  },bound)));
-
-  const visualObjects=[];
-  for(const el of svg.querySelectorAll('image,use')){
-    const bbox=visualBox(el); if(!bbox||!overlap(bbox,bound))continue;
-    const c=clipBox(bbox,bound); if(!c)continue;
-    const area=c.width*c.height, mapArea=bound.width*bound.height;
-    const ratio=Math.max(c.width/Math.max(c.height,1),c.height/Math.max(c.width,1));
-    if(area<8 || area>mapArea*.035 || ratio>35)continue;
-    visualObjects.push({el,bbox:c,id:el.dataset.baGeometryId,area});
-  }
-  visualObjects.sort((a,b)=>b.area-a.area).slice(0,60).forEach((item,i)=>candidates.push(featureFromGroup([item],{
-    id:`candidate-rendered-${i+1}`,name:`Additional rendered map object ${i+1}`,kind:'rendered/grouped source object',proposal:'Unclassified rendered feature',cls:'Unknown',effects:[],detectionConfidence:96,interpretationConfidence:25,confidence:25,
-    reason:'Detected as a discrete rendered object in the imported SVG but intentionally withheld from normal review. Use Geometry Explorer only if this object is gameplay-relevant.'
-  },bound)));
-
-  const promoted=features.filter(f=>Array.isArray(f.box) && f.box.every(Number.isFinite));
-  const cleanedCandidates=candidates.filter(c=>Array.isArray(c.box) && c.box.every(Number.isFinite) && c.box[2]*c.box[3]>.01);
-  const raw=waters.length+woods.length+walls.length+avenues.length+bridges.length+structures.length+tracks.length;
-  return {
-    features:promoted,
-    candidates:cleanedCandidates,
-    boundary:bound,
-    stats:{
-      raw, classified, promoted:promoted.length, explorer:cleanedCandidates.length,
-      water:waters.length,wood:woods.length,wall:walls.length,avenue:avenues.length,bridge:bridges.length,structure:structures.length,track:tracks.length
-    }
-  };
+export async function detectBattlefieldFeatures(svg,{mapNotes=''}={}){
+  assignGeometryIds(svg);const bound=findBoundary(svg),byFill=(c,t=18)=>collect(svg,bound,e=>isColor(e,'fill',c,t)),byStroke=(c,t=18)=>collect(svg,bound,e=>isColor(e,'stroke',c,t));
+  const wet=byFill(COLORS.water,45),woods=byFill(COLORS.wood),walls=byStroke(COLORS.wall),avenues=byStroke(COLORS.avenue),bridges=byFill(COLORS.bridge),structures=byFill(COLORS.structure),tracks=byFill(COLORS.track);
+  const rasterStreams=await rasterHydrology(svg,bound),features=[],candidates=[];let classified=0;
+  wet.forEach((item,i)=>{classified++;features.push(featureFromGroup([item],{id:`map-wet-${i+1}`,name:`Wet-ground polygon ${i+1}`,category:'Hydrology',proposal:'Wet ground / marsh margin',cls:'Wet Ground',effects:['Difficult'],detectionConfidence:99,interpretationConfidence:82,reason:'Detected directly from cyan source-map polygon geometry. Classified separately from stream channels.'},bound));});
+  features.push(...rasterStreams);classified+=rasterStreams.length;
+  woods.forEach((item,i)=>{classified++;features.push(featureFromGroup([item],{id:`map-wood-${i+1}`,name:`Woodland block ${i+1}`,category:'Woods & Groves',proposal:'Woodland polygon',cls:'Dense Wood',effects:['Difficult','Obscuring'],detectionConfidence:99,interpretationConfidence:84,reason:'Detected directly from irregular green source-map polygon geometry.'},bound));});
+  cluster(walls,18).forEach((group,i)=>{classified+=group.length;features.push(featureFromGroup(group,{id:`map-wall-${i+1}`,name:`Park wall segment ${i+1}`,category:'Walls & Fortifications',proposal:'Masonry wall',cls:'Masonry Wall',effects:['Impassable','Tall'],detectionConfidence:99,interpretationConfidence:94,reason:'Detected directly from salmon source-map linework.'},bound));});
+  cluster(avenues,14).forEach((group,i)=>{classified+=group.length;features.push(featureFromGroup(group,{id:`map-avenue-trees-${i+1}`,name:`Roadside tree line ${i+1}`,category:'Vegetation Lines',proposal:'Tree-lined avenue vegetation',cls:'Open Grove',effects:['Obscuring'],detectionConfidence:99,interpretationConfidence:80,reason:'Detected from paired green source-map linework.'},bound));});
+  bridges.forEach((item,i)=>{classified++;features.push(featureFromGroup([item],{id:`map-crossing-${i+1}`,name:`Possible bridge / crossing ${i+1}`,category:'Crossings & Openings',proposal:'Bridge or culvert crossing',cls:'Bridge',effects:[],detectionConfidence:99,interpretationConfidence:72,reason:'Compact dark-gray source geometry resembles bridge/crossing symbols and is promoted for review.'},bound));});
+  const openings=[syntheticOpening(svg,bound,walls,'Pescarina','Porta Pescarina','map-gate-pescarina','Gatehouse',91),syntheticOpening(svg,bound,walls,'Repentita','Porta Repentita','map-gate-repentita','Gatehouse',88),syntheticOpening(svg,bound,walls,'Riazzo','Porta Riazzo','map-gate-riazzo','Gatehouse',86),syntheticOpening(svg,bound,walls,'Due Porte','Due Porte','map-gate-due-porte','Gatehouse',82),syntheticOpening(svg,bound,walls,'Breach','Imperial breach','map-breach','Breach',92)].filter(Boolean);classified+=openings.length;features.push(...openings);
+  const mir=findText(svg,'Mirabello');if(mir&&structures.length){const p=center(geometryBox(mir)),nearest=[...structures].sort((a,b)=>pointDistanceToBox(p,a.bbox)-pointDistanceToBox(p,b.bbox))[0];classified++;features.push(featureFromGroup([nearest],{id:'map-mirabello',name:'Castello Mirabello',category:'Structures',proposal:'Major structure / castle complex',cls:'Building',effects:['Impassable','Tall','Defensive'],detectionConfidence:98,interpretationConfidence:85,reason:'Map label linked to nearest compact structure geometry.'},bound));}
+  const used=new Set(features.flatMap(f=>f.elementIds||[]));structures.filter(x=>!used.has(x.id)).forEach((item,i)=>candidates.push(featureFromGroup([item],{id:`candidate-structure-${i+1}`,name:`Additional compact structure ${i+1}`,kind:'building / gatehouse / landmark',proposal:'Unclassified compact structure',cls:'Unknown',effects:[],detectionConfidence:99,interpretationConfidence:46,confidence:46,reason:'Clearly detected source geometry, but its gameplay role is ambiguous.'},bound)));
+  tracks.filter(x=>meaningfulInside(x.bbox,bound)).forEach((item,i)=>candidates.push(featureFromGroup([item],{id:`candidate-track-${i+1}`,name:`Possible route / boundary ${i+1}`,kind:'brown linear or patterned geometry',proposal:'Possible road, track, ditch, or decorative line',cls:'Unknown',effects:[],detectionConfidence:98,interpretationConfidence:48,confidence:48,reason:'Detected directly from source geometry; withheld because this convention can represent several map elements.'},bound)));
+  const validBox=x=>Array.isArray(x.box)&&x.box.length===4&&x.box.every(Number.isFinite)&&x.box[2]>.05&&x.box[3]>.05&&!((x.box[0]<.15&&x.box[1]<.15)&&(x.box[2]<2.5||x.box[3]<2.5));
+  const promoted=features.filter(validBox),cleanCandidates=candidates.filter(validBox),raw=wet.length+woods.length+walls.length+avenues.length+bridges.length+structures.length+tracks.length+rasterStreams.length;
+  return{features:promoted,candidates:cleanCandidates,boundary:bound,stats:{raw,classified,promoted:promoted.length,explorer:cleanCandidates.length,water:rasterStreams.length,wet:wet.length,wood:woods.length,wall:walls.length,avenue:avenues.length,bridge:bridges.length,structure:structures.length,track:tracks.length}};
 }

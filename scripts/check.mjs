@@ -1,8 +1,11 @@
 import { readFile, access } from 'node:fs/promises';
-const files=['dist/index.html','dist/src/main.js','dist/src/modules/battlefieldDetector.js','dist/projects/pavia/battlefield.svg','dist/.nojekyll'];
+const files=['dist/index.html','dist/src/main.js','dist/src/modules/battlefieldDetector.js','dist/src/modules/deploymentEditor.js','dist/projects/pavia/battlefield.svg','dist/.nojekyll'];
 for(const f of files) await access(new URL(`../${f}`,import.meta.url));
 const detector=await readFile(new URL('../dist/src/modules/battlefieldDetector.js',import.meta.url),'utf8');
-for(const token of ['#69D9E5','#F2AA84','syntheticOpening','image,use','historical battlefield text is not used for detection']) if(!detector.includes(token)) throw new Error(`Detector check failed: missing ${token}`);
+for(const token of ['#69D9E5','#F2AA84','syntheticOpening','rasterHydrology','meaningfulInside','getCTM']) if(!detector.includes(token)) throw new Error(`Detector check failed: missing ${token}`);
 const css=await readFile(new URL('../dist/src/styles/app.css',import.meta.url),'utf8');
 if(!css.includes('.map-panel{position:sticky')) throw new Error('Sticky map check failed');
+if(!css.includes('.deployment-layout')) throw new Error('Deployment layout check failed');
+const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+for(const token of ['ruleEditorDialog','deploymentMapFrame','data-add-command="French"']) if(!html.includes(token)) throw new Error(`UI check failed: missing ${token}`);
 console.log('Static deployment check passed.');

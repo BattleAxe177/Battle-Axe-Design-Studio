@@ -1,6 +1,6 @@
 {
   "name": "battle-axe-design-studio",
-  "version": "0.4.0-alpha.1",
+  "version": "0.4.0-alpha.2",
   "private": true,
   "description": "Integrated browser-based workspace for historical wargame map compilation, scenario design, deployment, playtesting, analytics, and publication.",
   "type": "module",

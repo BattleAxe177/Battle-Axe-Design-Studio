@@ -1,22 +1,20 @@
 # Battle Axe Design Studio Architecture
 
-The browser application is project-centric. The long-term modules share one project state and one battlefield feature database.
+## Core invariant
+The imported battlefield map is immutable. Studio creates reviewed, derived gameplay interpretations without altering source geometry.
 
-- **Map Studio:** immutable source intake, geometry extraction, interpretation, feature review, Geometry Explorer.
-- **Scenario Studio:** factions, forces, objectives, victory conditions, external scenario rules, historical traceability.
-- **Deployment Editor:** scenario-defined play space, 50 mm unit bases, 25 mm commanders, zones, entry points and facing.
-- **Battle Axe Engine:** deterministic adjudication, replay, AI, batch playtests.
-- **Analytics:** movement/combat/casualty/commander/congestion heat maps and balance statistics.
-- **Publisher:** scenario documents and engine-ready packages.
+## Scenario data layers
+1. **Source evidence** — what an imported document/map actually says or depicts.
+2. **Historical/source commands and formations** — structured reconstruction of command relationships.
+3. **Studio suggestions** — optional Battle Axe interpretations that must be accepted, edited, or ignored.
+4. **Working Battle Axe scenario** — designer-approved `Side → Command → Unit` hierarchy and scenario rules.
+5. **Deployment** — placements/zones that reference stable command and unit IDs.
 
-Source-map files remain immutable. Derived gameplay geometry and semantics are stored separately and require review.
+## Map recognition
+Vector features are normalized into the outer SVG coordinate system using each SVG element's local bounding box and current transformation matrix. Raster-assisted hydrology is a fallback only for features visibly present in the map image but unavailable as discrete vector elements. Raster-derived candidates are explicitly labeled and remain derived review geometry.
 
-## Scenario Builder alpha (v0.4.0-alpha.1)
+## Scenario Builder alpha.2
+The builder supports flexible source text, multi-paragraph section extraction, historical/source command grouping, rule suggestions, a canonical unit library, and command-aware working rosters. External sources remain authoritative evidence; Studio suggestions are design proposals.
 
-Scenario authoring follows the same non-destructive pattern as map compilation:
-
-`source evidence -> extracted observations -> optional Studio suggestions -> designer-approved scenario model`
-
-Source observations record what an imported document says. Studio suggestions are separately stored design proposals and never become scenario rules automatically. Historical/source force records remain distinct from Battle Axe roster unit instances. Roster units reference canonical library profiles but may carry scenario-specific names, commanders, represented formations, notes, and traits without modifying the canonical profile.
-
-The current static browser alpha directly extracts plain-text formats. PDF, DOCX, and image sources are registered as immutable evidence but require a later document-analysis service for reliable arbitrary/scanned-page extraction.
+## Deployment Editor alpha.2
+The deployment model stores percentages within the scenario-defined play space. Units reference scenario unit IDs; commanders reference command IDs. Rendering converts the canonical tabletop base sizes (50 mm unit squares and 25 mm commander circles) to percentages of the current play-space width/height.

@@ -1,12 +1,13 @@
-import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.1';
-import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.1';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.1';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.1';
-import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.1';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.1';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.1';
+import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.2';
+import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.2';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.2';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.2';
+import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.2';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.2';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.2';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.2';
 
-const VERSION = '0.4.0-alpha.1';
+const VERSION = '0.4.0-alpha.2';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -76,7 +77,7 @@ function setupFiles() {
 }
 
 async function disableDevelopmentCaches() {
-  // v0.4.0-alpha.1 deliberately disables the PWA service worker while the runtime is stabilised.
+  // v0.4.0-alpha.2 deliberately disables the PWA service worker while the runtime is stabilised.
   // This prevents an older cached application shell from masking new GitHub deployments.
   try {
     if ('serviceWorker' in navigator) {
@@ -125,13 +126,14 @@ async function startup() {
     const svg = await loadInlineMap($('#battlefieldMapHost'), mapUrl);
     setText('#diagMap', 'Scanning geometry');
 
-    const detected = detectBattlefieldFeatures(svg, {mapNotes: state.project.mapNotes});
+    const detected = await detectBattlefieldFeatures(svg, {mapNotes: state.project.mapNotes});
     state.project.features = detected.features;
     state.project.candidates = detected.candidates;
 
     const featureReview = setupFeatureReview(state, persist, svg);
     setupGeometryExplorer(state, persist, featureReview);
     setupScenarioBuilder(state, persist);
+    setupDeploymentEditor(state, persist);
     const candidateCount = state.project.candidates.filter(c => !state.importedCandidateIds.includes(c.id) && !state.ignoredCandidates[c.id]).length;
     finishDiagnostics(true, featureReview.currentFeatures().length, candidateCount, detected.stats);
     window.__BAX_STARTUP_COMPLETE__ = true;
@@ -142,6 +144,7 @@ async function startup() {
       const featureReview = setupFeatureReview(state, persist, null);
       setupGeometryExplorer(state, persist, featureReview);
       setupScenarioBuilder(state, persist);
+    setupDeploymentEditor(state, persist);
     } catch (secondary) {
       console.error('Fallback UI initialization failed:', secondary);
     }

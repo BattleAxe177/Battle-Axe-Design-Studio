@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const VERSION='0.4.0-alpha.1';
+const VERSION='0.4.0-alpha.2';
 
 test('runtime release exposes uncached versioned main module', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
@@ -22,6 +22,7 @@ test('main uses base-aware map URL and visible startup completion', async () => 
   assert.match(main, /new URL\(`/);
   assert.match(main, /__BAX_STARTUP_COMPLETE__/);
   assert.match(main, /setupScenarioBuilder/);
+  assert.match(main, /setupDeploymentEditor/);
 });
 
 test('SVG loader supports namespace-prefixed PowerPoint SVG roots', async () => {
