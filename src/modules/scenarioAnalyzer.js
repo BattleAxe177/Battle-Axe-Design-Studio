@@ -1,4 +1,4 @@
-import { UNIT_LIBRARY } from '../data/scenarioData.js?v=0.4.0-alpha.2';
+import { UNIT_LIBRARY } from '../data/scenarioData.js?v=0.4.0-alpha.3';
 
 const cleanInline=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
 const cleanBlock=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n[ \t]+/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
@@ -99,19 +99,50 @@ function commandHint(line,name,faction,commander){
   if(faction==='Garrison')return 'Pavia Garrison';
   return 'Unassigned Command';
 }
-function detectForces(text){
-  const out=[];let current='Unknown';
+function historicalNoteFor(raw,name,profile,faction,commander){
+  const parts=raw.split(/[—–]|\s-\s/).map(x=>cleanInline(x)).filter(Boolean);
+  const detail=parts.slice(2).join(' — ');
+  if(detail && detail.length<180){
+    if(commander && detail.toLowerCase()===commander.toLowerCase()) return `${name} is identified in the source under ${commander}.`;
+    return `${name}: ${detail}.`;
+  }
+  const roleHints=[];
+  if(commander)roleHints.push(`under ${commander}`);
+  if(profile==='Cannon')roleHints.push('artillery component');
+  else if(profile==='Gendarmes')roleHints.push('heavy household or noble cavalry');
+  else if(profile==='Swiss Pikemen')roleHints.push('Swiss pike formation');
+  else if(profile==='Landsknechts')roleHints.push('German Landsknecht infantry');
+  else if(profile==='Arquebusiers')roleHints.push('firearm-armed infantry');
+  else if(profile==='Crossbowmen')roleHints.push('crossbow-armed infantry');
+  else if(profile==='Heavy Cavalry')roleHints.push('heavy mounted formation');
+  else if(profile==='Light Cavalry'||profile==='Stradiots')roleHints.push('light cavalry formation');
+  else if(profile==='Pikemen')roleHints.push('pike infantry formation');
+  return roleHints.length?`${name} is a ${roleHints.join(' ')} identified in the imported source.`:`${name} is identified as a distinct ${faction} formation in the imported source.`;
+}
+function detectForcesBlock(text,startingFaction='Unknown'){
+  const out=[];let current=startingFaction;
   for(const raw of lines(text)){
     if(/^french(?: army)?$/i.test(raw)){current='French';continue;}
     if(/^imperial(?: army)?$/i.test(raw)||/^imperialist/i.test(raw)){current='Imperial';continue;}
     if(/^(?:pavia )?garrison$/i.test(raw)){current='Garrison';continue;}
+    // Long narrative paragraphs frequently contain words such as artillery or pike. They are evidence, not force-list rows.
+    if(raw.length>190)continue;
     const profile=profileFor(raw);if(!profile)continue;
-    const faction=factionFor(raw,current);if(faction==='Unknown'&&raw.length>120)continue;
+    const faction=factionFor(raw,current);if(faction==='Unknown')continue;
     const name=forceName(raw,profile),commander=commanderHint(raw,name,faction),command=commandHint(raw,name,faction,commander);
     const key=`${faction}|${name}|${profile}`;
-    if(!out.some(x=>x.key===key))out.push({key,id:`src-${idify(key)}`,faction,name,profile,sourceText:raw,confidence:/—|\s-\s/.test(raw)?94:74,commander,command});
+    if(!out.some(x=>x.key===key))out.push({key,id:`src-${idify(key)}`,faction,name,profile,sourceText:raw,confidence:/—|\s-\s/.test(raw)?94:74,commander,command,historicalNote:historicalNoteFor(raw,name,profile,faction,commander)});
   }
-  return out.slice(0,60);
+  return out;
+}
+function detectForces(text,sections={}){
+  // Prefer explicit army/forces sections. Fall back to the whole document only when the source has no recognizable force headings.
+  let out=[];
+  if(sections.french)out.push(...detectForcesBlock(sections.french,'French'));
+  if(sections.imperial)out.push(...detectForcesBlock(sections.imperial,'Imperial'));
+  if(sections.forces)out.push(...detectForcesBlock(sections.forces,'Unknown'));
+  if(!out.length)out=detectForcesBlock(text,'Unknown');
+  const seen=new Set();return out.filter(x=>{const k=x.key;if(seen.has(k))return false;seen.add(k);return true;}).slice(0,60);
 }
 function buildCommands(forces){
   const map=new Map();
@@ -138,7 +169,7 @@ export function analyzeScenarioText(text,{sourceName='Pasted text'}={}){
   const historicalSituation=sections.historical||'';
   const deploymentNotes=sections.deployment||'';
   const victoryText=sections.victory||'';
-  const forces=detectForces(text),sourceCommands=buildCommands(forces),suggestions=detectSuggestions(text),observations=[];
+  const forces=detectForces(text,sections),sourceCommands=buildCommands(forces),suggestions=detectSuggestions(text),observations=[];
   for(const [field,value] of Object.entries(metadata))if(value)observations.push({field,value,sourceName,confidence:field==='title'||field==='date'?95:82});
   if(historicalSituation)observations.push({field:'Historical situation',value:historicalSituation.slice(0,3000),sourceName,confidence:90});
   if(deploymentNotes)observations.push({field:'Deployment',value:deploymentNotes.slice(0,2500),sourceName,confidence:86});
@@ -148,6 +179,6 @@ export function analyzeScenarioText(text,{sourceName='Pasted text'}={}){
 
 export function proposedRosterUnits(sourceForces){
   const byFaction={French:[],Imperial:[],Garrison:[]};
-  for(const f of sourceForces){if(!byFaction[f.faction])continue;byFaction[f.faction].push({proposalId:`proposal-${f.id}`,sourceId:f.id,name:f.name,profile:f.profile,represents:f.sourceText,commander:f.commander||'',commandName:f.command||`${f.faction} Main Command`,traits:[...(UNIT_LIBRARY.find(u=>u.profile===f.profile)?.traits||[])],notes:'Studio-proposed translation from imported source. Review before accepting.',accepted:false});}
+  for(const f of sourceForces){if(!byFaction[f.faction])continue;byFaction[f.faction].push({proposalId:`proposal-${f.id}`,sourceId:f.id,name:f.name,profile:f.profile,represents:f.sourceText,commander:f.commander||'',commandName:f.command||`${f.faction} Main Command`,traits:[...(UNIT_LIBRARY.find(u=>u.profile===f.profile)?.traits||[])],notes:`Generated because the imported source identifies ${f.name} as a ${f.faction} formation. Intended to represent ${f.historicalNote||f.sourceText}. Studio selected the ${f.profile} Battle Axe profile from the canonical unit library because it best matches the troop type named in the source. Review this translation, especially where the historical command contains mixed troop types.`,accepted:false});}
   return byFaction;
 }

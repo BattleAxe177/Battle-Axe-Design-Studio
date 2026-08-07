@@ -1,7 +1,7 @@
-import { paviaProject } from '../data/paviaProject.js?v=0.4.0-alpha.2';
-import { createBlankScenario } from '../data/scenarioData.js?v=0.4.0-alpha.2';
+import { paviaProject } from '../data/paviaProject.js?v=0.4.0-alpha.3';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.4.0-alpha.3';
 
-export const STORAGE_KEY='battle-axe-design-studio-v040a2';
+export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 
 export function createInitialState(){const project=structuredClone(paviaProject);project.scenario=createBlankScenario();return{project,decisions:{},ignoredCandidates:{},importedCandidateIds:[],selectedFeatureId:null,selectedFeatureIds:[],selectedCandidateId:null,selectedCandidateIds:[]};}
 

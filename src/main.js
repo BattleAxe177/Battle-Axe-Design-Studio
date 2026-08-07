@@ -1,13 +1,15 @@
-import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.2';
-import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.2';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.2';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.2';
-import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.2';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.2';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.2';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.2';
+import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.3';
+import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.3';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.3';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.3';
+import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.3';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.3';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.3';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.3';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.3';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.3';
 
-const VERSION = '0.4.0-alpha.2';
+const VERSION = '0.4.0-alpha.3';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -77,7 +79,7 @@ function setupFiles() {
 }
 
 async function disableDevelopmentCaches() {
-  // v0.4.0-alpha.2 deliberately disables the PWA service worker while the runtime is stabilised.
+  // v0.4.0-alpha.3 deliberately disables the PWA service worker while the runtime is stabilised.
   // This prevents an older cached application shell from masking new GitHub deployments.
   try {
     if ('serviceWorker' in navigator) {
@@ -99,7 +101,7 @@ function finishDiagnostics(mapOkay, features, candidates, stats={}) {
   setText('#diagFeatures', `${features} promoted`);
   setText('#diagExplorer', `${candidates} candidates`);
   setText('#diagStorage', storageOkay ? 'Available' : 'Unavailable');
-  setText('#mapStatus', mapOkay ? `Geometry pipeline · ${stats.raw||0} raw · ${stats.classified||0} classified · ${stats.promoted||0} promoted · ${stats.explorer||0} explorer` : 'Map failed');
+  setText('#mapStatus', mapOkay ? `Pipeline · ${stats.promoted||0} promoted · water ${stats.water||0} · walls ${(stats.wall||0)+(stats.rasterWall||0)} · woods ${(stats.wood||0)+(stats.rasterWood||0)} · tree lines ${(stats.avenue||0)+(stats.rasterAvenue||0)} · explorer ${stats.explorer||0}` : 'Map failed');
   const banner = $('#startupBanner');
   if (banner) {
     banner.textContent = mapOkay
@@ -134,6 +136,8 @@ async function startup() {
     setupGeometryExplorer(state, persist, featureReview);
     setupScenarioBuilder(state, persist);
     setupDeploymentEditor(state, persist);
+    setupPlaytestCenter(state, persist);
+    setupAiBridge(state, persist);
     const candidateCount = state.project.candidates.filter(c => !state.importedCandidateIds.includes(c.id) && !state.ignoredCandidates[c.id]).length;
     finishDiagnostics(true, featureReview.currentFeatures().length, candidateCount, detected.stats);
     window.__BAX_STARTUP_COMPLETE__ = true;
@@ -145,6 +149,8 @@ async function startup() {
       setupGeometryExplorer(state, persist, featureReview);
       setupScenarioBuilder(state, persist);
     setupDeploymentEditor(state, persist);
+    setupPlaytestCenter(state, persist);
+    setupAiBridge(state, persist);
     } catch (secondary) {
       console.error('Fallback UI initialization failed:', secondary);
     }

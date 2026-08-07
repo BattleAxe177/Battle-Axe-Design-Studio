@@ -1,50 +1,28 @@
-# Battle Axe Design Studio
+# Battle Axe Design Studio v0.4.0-alpha.3
 
-Battle Axe Design Studio is the permanent browser application for the Battle Axe scenario-development workflow.
+This release extends the permanent browser application with the first usable Playtest Center while preserving the scenario-independent Battle Axe architecture.
 
-## Current release
+## Major additions
 
-**v0.4.0-alpha.2 — Map Geometry Repair + Command/Deployment Alpha**
+- Multi-class appearance-assisted battlefield detection: hydrology, walls, woods, tree lines, and lower-confidence roads supplement the SVG vector classifier.
+- Historical force cards are command-based and now carry concise historical/source notes rather than stray battle-narrative paragraphs.
+- Studio-generated Battle Axe units include a rationale explaining why the unit was created, what it is intended to represent, and why the profile was proposed.
+- External AI Bridge exports the current project as a structured Markdown prompt for use with ChatGPT, Claude, Gemini, or another external AI; pasted AI responses can be stored as scenario sources for later review.
+- Deployment zones are editable polygons. Rectangle and free-polygon creation are supported; selected zones can be moved and reshaped with vertex handles.
+- Playtest Center alpha: deterministic seeded single runs, batch balance runs, replay event stepping, event log, and movement/combat/casualty/commander/congestion heat-map overlays.
 
-This release keeps the v0.4.0-alpha.1 Scenario Builder and adds the next integrated workflow increment.
+## Browser engine status
 
-### Map Studio
-- Uses SVG-local geometry coordinates (`getBBox` + CTM) instead of viewport coordinates for review extents.
-- Filters clipped/origin-only artifacts before they enter Geometry Explorer.
-- Separates cyan wet-ground polygons from stream channels.
-- Adds raster-assisted hydrology detection for streams that are visible in the imported map but embedded in the PowerPoint-rendered image layer rather than preserved as discrete SVG paths.
-- Retains multi-select and bulk approval/import workflows.
+The Playtest Center is an incremental browser adapter derived from the Battle Axe Engine v0.4.0 Development Consolidation 1 architecture. It currently covers canonical M/C/A profiles, command tests, movement, shooting, artillery, melee/break tests, approved Difficult/Dangerous/Defensive terrain, surprise/readiness, and a configurable garrison activation turn.
 
-### Scenario Builder
-- Multi-paragraph section extraction for Historical Situation, Deployment, and Victory Conditions.
-- Editable Scenario Rule dialog with separate rule name and large multi-line rule text.
-- Imported/source forces are grouped into historical commands with commanders and army commanders where the source/formation interpretation supports them.
-- Working Battle Axe forces are `Side → Command → Unit`, with drag/drop between commands.
-- Commands can be created, renamed, and assigned commanders.
-- Canonical Italian Wars library is independent of the imported scenario and now includes Archers and the corrected Forlorn Hope name.
+The consolidated Python engine remains the adjudication reference while exact parity is expanded. Facing/contact arcs, counter-charge, commander escape/capture, full objective scoring, and arbitrary external scenario-rule modules are not yet fully ported to the browser adapter.
 
-### Deployment Editor alpha
-- Drag individual units, commanders, or complete commands onto the battlefield.
-- 50 mm logical square unit bases and 25 mm logical circular commander bases scale to the scenario-defined play space.
-- Reposition deployed objects by drag/drop.
-- Draw and assign rectangular deployment zones.
-- Basic warnings for undeployed units and unplaced commanders.
-- Deployment is stored in the same scenario project state used by the Scenario Builder.
+## Verification
 
-## Important alpha limitations
-- PDF/DOCX/scanned-image scenario ingestion is still registered as source evidence rather than fully parsed in-browser.
-- Raster-assisted hydrology currently provides derived review extents, not final vector centerlines/polygons for engine movement. User approval remains required.
-- Deployment zones are rectangular in this first alpha.
-- Deployment warnings do not yet understand scenario-specific off-table/reinforcement states.
-
-## Development
+Run:
 
 ```bash
-npm test
-npm run build
-npm run check
-# or
 npm run verify
 ```
 
-GitHub Pages is deployed through `.github/workflows/pages.yml`.
+The GitHub Pages workflow runs the same verification before deployment.

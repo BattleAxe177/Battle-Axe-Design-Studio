@@ -1,22 +1,33 @@
 # Changelog
 
-## 0.4.0-alpha.2
-- Replaced viewport-based map candidate extents with SVG CTM-normalized geometry coordinates.
-- Added Geometry Explorer sanity filtering for clipped/origin-only artifacts.
-- Added raster-assisted stream/watercourse recognition for map imagery not preserved as separate vectors.
-- Separated wet-ground polygon detection from stream-channel detection.
-- Added command hierarchy to imported/historical forces.
-- Added command hierarchy to working Battle Axe rosters with unit drag/drop between commands.
-- Added editable command names and commanders.
-- Added full-size Scenario Rule Editor for rule name and multi-line rule text.
-- Fixed truncated Historical Situation extraction by using heading-aware multi-paragraph sections.
-- Added Archers to the canonical Italian Wars library.
-- Corrected Verlorne Hope display name to Forlorn Hope.
-- Added first functional Deployment Editor: units, commanders, whole-command placement, movement, zones, and validation warnings.
-- Increased automated test coverage to 19 tests.
+## 0.4.0-alpha.3 — Playtest Center and workflow consolidation
 
-## 0.4.0-alpha.1
-- Added Scenario Builder Source Intake, Extraction Review, Suggestion Tray, Force Builder, unit editor, and JSON export.
-- Added structured distinction between source observations and optional Studio design suggestions.
-- Added Battle Axe unit library for relevant later French/Imperial Italian Wars profiles.
-- Added multi-selection and bulk review to Battlefield Features and Geometry Explorer.
+### Map Studio
+- Preserved the successful appearance-assisted watercourse detector.
+- Added appearance-assisted wall, woodland, tree-line/avenue, and lower-confidence road detection when equivalent clean vectors are absent.
+- Expanded map diagnostics to report class counts rather than only the total promotion pipeline.
+- Retained conservative Geometry Explorer behavior for lower-confidence objects.
+
+### Scenario Studio
+- Restricted force extraction to recognized force/army sections where possible, preventing narrative paragraphs containing words such as “artillery” from becoming spurious unit cards.
+- Added concise historical notes to imported formations while retaining the exact source row separately as evidence.
+- Studio-generated Battle Axe units now receive an editable rationale explaining why they were created, what they represent, and why the canonical profile was proposed.
+- Retained command hierarchy on both source/historical and Battle Axe rosters.
+- Added External AI Bridge: export/copy a structured project brief and save a returned external-AI response as a scenario source.
+
+### Deployment Editor
+- Replaced rectangle-only zone storage with editable polygon geometry.
+- Added rectangle-zone and free-polygon creation tools.
+- Added draggable zone vertices and whole-zone movement.
+- Added basic vertex insertion/removal controls.
+
+### Playtest Center
+- Added deterministic seeded single-game browser playtests.
+- Added 1–250 run batch balance analysis using sequential deterministic seeds.
+- Added replay snapshots, step controls, and a typed event log.
+- Added movement, combat, casualty, commander-influence, and congestion heat-map overlays.
+- Added readiness diagnostics for undeployed units, missing sides, and unapproved terrain.
+- Browser adapter is explicitly marked as an incremental port; the Python Development Consolidation 1 engine remains the reference implementation.
+
+### Rules data
+- Canonical Italian Wars library remains scenario-independent and includes Archers and Forlorn Hope.
