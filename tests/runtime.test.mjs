@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const VERSION='0.4.0-alpha.4';
+const VERSION='0.4.0-alpha.5';
 
 test('runtime release exposes uncached versioned main module', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');

@@ -53,6 +53,24 @@ function clearGeometryHighlight() {
   currentHighlighted=[];
   currentRasterOverlay?.remove(); currentRasterOverlay=null;
 }
+
+function highlightStructuredGeometry(svg,feature,{flash=true}={}){
+  const parts=feature?.geometry?.parts;
+  if(!svg||!Array.isArray(parts)||!parts.length)return false;
+  const vb=svg.viewBox?.baseVal;if(!vb?.width||!vb?.height)return false;
+  const g=document.createElementNS(SVG_NS,'g');g.classList.add('ba-structured-selected');if(flash)g.classList.add('ba-map-flash');
+  const toXY=p=>[vb.x+(Number(p[0])||0)/100*vb.width,vb.y+(Number(p[1])||0)/100*vb.height];
+  for(const part of parts){
+    const pts=(part.points||[]).map(toXY);if(pts.length<2)continue;
+    const el=document.createElementNS(SVG_NS,part.closed?'polygon':'polyline');
+    el.setAttribute('points',pts.map(p=>`${p[0]},${p[1]}`).join(' '));
+    el.setAttribute('vector-effect','non-scaling-stroke');
+    g.appendChild(el);
+  }
+  if(!g.childNodes.length)return false;
+  svg.appendChild(g);currentRasterOverlay=g;if(flash)setTimeout(()=>g.classList.remove('ba-map-flash'),1250);return true;
+}
+
 function highlightRasterRuns(svg,feature,{flash=true}={}){
   if(!svg||!feature.rasterRuns?.length)return false;const vb=svg.viewBox?.baseVal;if(!vb?.width||!vb?.height)return false;
   const g=document.createElementNS(SVG_NS,'g');g.classList.add('ba-raster-selected');if(flash)g.classList.add('ba-map-flash');
@@ -77,9 +95,9 @@ export function highlightFeature(svg, overlay, feature, {flash=true}={}) {
   }
   if(currentHighlighted.length){
     if(flash)setTimeout(()=>currentHighlighted.forEach(el=>el.classList.remove('ba-map-flash')),1250);
-  } else if(!highlightRasterRuns(svg,feature,{flash}) && feature.box) setOverlay(overlay,feature.box,{flash});
-  // Bounding boxes are now a last-resort diagnostic only. Raster-derived features flash their actual recognized pixels.
-  if(!feature.elementIds?.length && !feature.rasterRuns?.length && feature.box) setOverlay(overlay,feature.box,{flash});
+  } else if(!highlightStructuredGeometry(svg,feature,{flash}) && !highlightRasterRuns(svg,feature,{flash}) && feature.box) setOverlay(overlay,feature.box,{flash});
+  // Bounding boxes are a last-resort diagnostic only. Structured PPTX geometry and raster pixels flash their actual recognized shape.
+  if(!feature.elementIds?.length && !feature.geometry?.parts?.length && !feature.rasterRuns?.length && feature.box) setOverlay(overlay,feature.box,{flash});
 }
 
 export function clearOverlay(overlay) {

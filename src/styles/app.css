@@ -26,3 +26,10 @@
 
 .map-svg-host .ba-raster-selected{pointer-events:none}.map-svg-host .ba-raster-selected rect{fill:rgba(255,20,30,.38)!important;stroke:none!important}.map-svg-host .ba-raster-selected.ba-map-flash{animation:rasterFeatureFlash 1.2s ease-out 1}@keyframes rasterFeatureFlash{0%,18%,36%,54%{opacity:1;filter:drop-shadow(0 0 5px #ff0000)}9%,27%,45%{opacity:.25}100%{opacity:.82}}
 .replay-piece{transform-origin:center center}.replay-piece .facing-arrow{position:absolute;left:50%;top:-8px;transform:translateX(-50%);font-size:10px;line-height:1;color:#fff;text-shadow:0 1px 2px #000}.replay-piece .piece-label{display:block;transform:rotate(var(--counter-rotation,0deg));}
+
+/* v0.4.0-alpha.5 structured geometry review */
+.ba-structured-selected polygon{fill:rgba(255,30,30,.23);stroke:#ff2323;stroke-width:3;pointer-events:none}
+.ba-structured-selected polyline{fill:none;stroke:#ff2323;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.ba-structured-selected.ba-map-flash polygon{fill:rgba(255,0,0,.68);stroke:#fff;stroke-width:5}
+.ba-structured-selected.ba-map-flash polyline{stroke:#ff0000;stroke-width:9;filter:drop-shadow(0 0 4px #fff)}
+.compiler-source{font-size:.78rem;color:var(--muted);margin-top:.35rem}

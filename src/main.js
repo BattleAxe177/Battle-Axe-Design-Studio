@@ -1,15 +1,16 @@
-import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.4';
-import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.4';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.4';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.4';
-import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.4';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.4';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.4';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.4';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.4';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.4';
+import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.5';
+import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.5';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.5';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.5';
+import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.5';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.5';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.4.0-alpha.5';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.5';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.5';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.5';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.5';
 
-const VERSION = '0.4.0-alpha.4';
+const VERSION = '0.4.0-alpha.5';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -72,10 +73,19 @@ function populateProject() {
 }
 
 function setupFiles() {
-  ['pptx','pdf','svg'].forEach(id => $(`#${id}`)?.addEventListener('change', () => {
+  const refreshNames=()=>{
     const names = ['pptx','pdf','svg'].map(key => $(`#${key}`)?.files?.[0]?.name).filter(Boolean);
-    setText('#fileSummary', names.length ? `Selected locally: ${names.join(' · ')}` : 'No local source files selected.');
-  }));
+    setText('#fileSummary', names.length ? `Selected locally: ${names.join(' · ')}` : 'Bundled Pavia structured compiler package is loaded.');
+  };
+  ['pdf','svg'].forEach(id => $(`#${id}`)?.addEventListener('change', refreshNames));
+  $('#pptx')?.addEventListener('change', async e => {
+    refreshNames(); const file=e.target.files?.[0]; if(!file)return;
+    try{
+      setText('#fileSummary', `Inspecting ${file.name} locally…`);
+      const info=await inspectPptxAuthoring(file);
+      setText('#fileSummary', `${file.name}: structured PowerPoint metadata found — ${info.summary||'no recognized Battle Axe terrain groups yet'}. File remains local in your browser.`);
+    }catch(error){setText('#fileSummary', `${file.name}: PPTX inventory failed — ${error.message}`);}
+  });
 }
 
 async function disableDevelopmentCaches() {
@@ -101,11 +111,11 @@ function finishDiagnostics(mapOkay, features, candidates, stats={}) {
   setText('#diagFeatures', `${features} promoted`);
   setText('#diagExplorer', `${candidates} candidates`);
   setText('#diagStorage', storageOkay ? 'Available' : 'Unavailable');
-  setText('#mapStatus', mapOkay ? `Pipeline · ${stats.promoted||0} promoted · water ${stats.water||0} · walls ${(stats.wall||0)+(stats.rasterWall||0)} · woods ${(stats.wood||0)+(stats.rasterWood||0)} · tree lines ${(stats.avenue||0)+(stats.rasterAvenue||0)} · explorer ${stats.explorer||0}` : 'Map failed');
+  setText('#mapStatus', mapOkay ? (stats.structured ? `Structured PPTX compiler · ${stats.promoted||0} features · ${stats.summary||''} · explorer ${stats.explorer||0}` : `Fallback detector · ${stats.promoted||0} promoted · explorer ${stats.explorer||0}`) : 'Map failed');
   const banner = $('#startupBanner');
   if (banner) {
     banner.textContent = mapOkay
-      ? `v${VERSION}: geometry-first scan complete — ${features} battlefield features and ${candidates} Geometry Explorer candidates.`
+      ? `v${VERSION}: ${stats.structured?'structured PPTX compilation':'fallback scan'} complete — ${features} battlefield features and ${candidates} Geometry Explorer candidates.`
       : `v${VERSION}: Pavia map failed to load.`;
     if (mapOkay) setTimeout(() => banner.classList.add('hidden'), 4800);
   }
@@ -126,11 +136,22 @@ async function startup() {
 
     const mapUrl = new URL(`./projects/pavia/battlefield.svg?v=${VERSION}`, document.baseURI).href;
     const svg = await loadInlineMap($('#battlefieldMapHost'), mapUrl);
-    setText('#diagMap', 'Scanning geometry');
+    setText('#diagMap', 'Compiling PPTX terrain');
 
-    const detected = await detectBattlefieldFeatures(svg, {mapNotes: state.project.mapNotes});
-    state.project.features = detected.features;
-    state.project.candidates = detected.candidates;
+    let stats={};
+    try {
+      const manifestUrl=new URL(`./projects/pavia/pptx-terrain-manifest.json?v=${VERSION}`,document.baseURI).href;
+      const manifest=await loadStructuredTerrainManifest(manifestUrl);
+      state.project.features=manifest.features;
+      // Legacy visual/raster recognition is now Geometry Explorer-only. It can suggest missed objects but cannot silently replace PPTX-authored terrain.
+      const fallback=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes});
+      state.project.candidates=[...fallback.candidates,...fallback.features.filter(f=>!['Stream','Masonry Wall','Dense Wood','Open Grove','Road','Bridge','Gatehouse','Building','Wet Ground'].includes(f.cls)).map(f=>({...f,id:`explorer-${f.id}`,reason:`Additional visual candidate only. ${f.reason||''}`}))];
+      stats={...manifestStats(manifest),summary:classSummary(manifest),explorer:state.project.candidates.length};
+    } catch(structuredError) {
+      console.warn('Structured compiler fallback:',structuredError);
+      const detected=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes});
+      state.project.features=detected.features;state.project.candidates=detected.candidates;stats=detected.stats||{};
+    }
 
     const featureReview = setupFeatureReview(state, persist, svg);
     setupGeometryExplorer(state, persist, featureReview);
@@ -139,7 +160,7 @@ async function startup() {
     setupPlaytestCenter(state, persist);
     setupAiBridge(state, persist);
     const candidateCount = state.project.candidates.filter(c => !state.importedCandidateIds.includes(c.id) && !state.ignoredCandidates[c.id]).length;
-    finishDiagnostics(true, featureReview.currentFeatures().length, candidateCount, detected.stats);
+    finishDiagnostics(true, featureReview.currentFeatures().length, candidateCount, stats);
     window.__BAX_STARTUP_COMPLETE__ = true;
   } catch (error) {
     state.project.features = [];
