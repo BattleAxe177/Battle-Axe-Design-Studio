@@ -1,16 +1,16 @@
-import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.6';
-import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.6';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.6';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.6';
-import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.6';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.6';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.4.0-alpha.6';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.6';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.6';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.6';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.6';
+import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.7';
+import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.7';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.7';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.7';
+import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.7';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.7';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.4.0-alpha.7';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.7';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.7';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.7';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.7';
 
-const VERSION = '0.4.0-alpha.6';
+const VERSION = '0.4.0-alpha.7';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -126,6 +126,8 @@ async function startup() {
   try {
     setText('#diagApp', `Initializing · v${VERSION}`);
     setupNavigation();
+    const toastHost=document.createElement('div');toastHost.className='toast-host';document.body.appendChild(toastHost);
+    document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;b.classList.add('is-working');setTimeout(()=>b.classList.remove('is-working'),180);});
     populateProject();
     setupFiles();
     $('#saveButton')?.addEventListener('click', persist);

@@ -20,3 +20,12 @@
 - Added a persistent Scenario Builder checklist linking directly to sections needing attention.
 - Added visual separation between **Source says**, **Studio suggests**, and **Designer accepted** states.
 - Refined Scenario Builder into a less form-like workbench while preserving command-card drag/drop, rule editing, provenance, AI bridge, deployment, and playtest integration.
+
+## 0.4.0-alpha.7
+- Round-trip AI changeset review/apply workflow.
+- Separate AI designer request field and playtest summary export.
+- Camp/Baggage Train army assets.
+- Deployment status + tactical symbols.
+- Replay Play/Pause and speed controls.
+- Final-position unit collision enforcement.
+- Application-wide button interaction feedback.

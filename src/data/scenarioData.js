@@ -20,6 +20,8 @@ export const UNIT_LIBRARY = [
   {profile:'Arquebusiers',category:'Infantry',icon:'⌁',m:2,c:1,a:4,pts:1,traits:['Arquebus'],armies:['French','Italian','Imperial','Spanish'],source:'Italian Wars Supplement'},
   {profile:'Spanish Tercio',category:'Infantry',icon:'⚔',m:2,c:4,a:5,pts:3,traits:['Tercio'],armies:['Spanish'],source:'Italian Wars Supplement — Spanish Army List'},
   {profile:'Colunela Pike',category:'Infantry',icon:'⚔',m:2,c:4,a:5,pts:2,traits:['Elite','Pikes'],armies:['Spanish'],source:'Italian Wars Supplement — Spanish Army List'},
+  {profile:'Camp',category:'Army Asset',icon:'⌂',m:0,c:0,a:0,pts:0,traits:['Immobile','Army Asset','Camp'],armies:['French','Italian','Imperial','Spanish','Tudor'],source:'Italian Wars Supplement — Camp / Baggage rules',baseMm:40,asset:true},
+  {profile:'Baggage Train',category:'Army Asset',icon:'▣',m:0,c:0,a:0,pts:0,traits:['Immobile','Army Asset','Baggage Train'],armies:['French','Italian','Imperial','Spanish','Tudor'],source:'Italian Wars Supplement — Camp / Baggage rules',baseMm:40,asset:true},
   {profile:'Cannon',category:'Artillery',icon:'●',m:1,c:1,a:6,pts:2,traits:['Artillery'],armies:['French','Italian','Imperial','Spanish','Tudor'],source:'Italian Wars Supplement'}
 ];
 
