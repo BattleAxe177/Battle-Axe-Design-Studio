@@ -1,4 +1,4 @@
-import { runPlaytest, runBatch, buildRuntimeFromStudio, toPctSnapshot } from './playtestEngine.js?v=0.4.0-alpha.5';
+import { runPlaytest, runBatch, buildRuntimeFromStudio, toPctSnapshot } from './playtestEngine.js?v=0.4.0-alpha.6';
 const $=s=>document.querySelector(s);
 const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 

@@ -1,4 +1,4 @@
-import { highlightFeature, clearOverlay } from './mapView.js?v=0.4.0-alpha.5';
+import { highlightFeature, clearOverlay } from './mapView.js?v=0.4.0-alpha.6';
 
 export const RULES = {
   Difficult: 'Move Value is halved for units moving in Difficult terrain.',
@@ -22,7 +22,7 @@ export function setupFeatureReview(state,persist,svg){
 
   const currentFeatures=()=>{
     const imported=state.project.candidates.filter(c=>state.importedCandidateIds.includes(c.id)).map(c=>({...c,category:'Imported from Geometry Explorer',proposal:c.kind,cls:c.cls||'Unknown',effects:c.effects||[],reason:`Imported candidate. ${c.reason}`}));
-    return [...state.project.features,...imported];
+    return [...state.project.features,...(state.project.manualFeatures||[]),...imported];
   };
   const selectedIds=()=>state.selectedFeatureIds||[];
   const selectedFeatures=()=>currentFeatures().filter(f=>selectedIds().includes(f.id));
@@ -74,7 +74,20 @@ export function setupFeatureReview(state,persist,svg){
   function bulkStatus(status){for(const f of selectedFeatures()){const e=effective(f);state.decisions[f.id]={status,cls:e.cls,effects:e.effects,note:e.note};}persist();renderRows();}
   function bulkApply(){const cls=terrainClass.value,effects=[...effectList.querySelectorAll('input:checked')].map(x=>x.value),note=document.querySelector('#reviewerNote').value;for(const f of selectedFeatures())state.decisions[f.id]={status:'revised',cls,effects,note};persist();renderRows();}
 
-  document.querySelector('#approveButton').addEventListener('click',()=>saveOne('approved'));document.querySelector('#reviseButton').addEventListener('click',()=>saveOne('revised'));document.querySelector('#rejectButton').addEventListener('click',()=>saveOne('rejected'));document.querySelector('#clearSelection').addEventListener('click',()=>clearOverlay(overlay));
+
+  // Manual missing-feature authoring: a deterministic escape hatch when structured source extraction misses geometry.
+  let manualDraw=null;
+  const mapHost=document.querySelector('#battlefieldMapHost');
+  const finishManual=document.querySelector('#finishManualFeature'), cancelManual=document.querySelector('#cancelManualFeature'), mapHint=document.querySelector('#mapFootHint');
+  function mapPoint(evt){const r=svg.getBoundingClientRect(),vb=svg.viewBox.baseVal;const px=(evt.clientX-r.left)/r.width,py=(evt.clientY-r.top)/r.height;return [Math.max(0,Math.min(100,px*100)),Math.max(0,Math.min(100,py*100))];}
+  function drawManualPreview(){svg.querySelector('#ba-manual-preview')?.remove();if(!manualDraw?.points?.length)return;const vb=svg.viewBox.baseVal,g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='ba-manual-preview';g.classList.add('ba-manual-preview');const pts=manualDraw.points.map(([x,y])=>[vb.x+x/100*vb.width,vb.y+y/100*vb.height]);let el;if(manualDraw.type==='point'){el=document.createElementNS('http://www.w3.org/2000/svg','circle');el.setAttribute('cx',pts[0][0]);el.setAttribute('cy',pts[0][1]);el.setAttribute('r',Math.max(vb.width,vb.height)*.009);}else{el=document.createElementNS('http://www.w3.org/2000/svg',manualDraw.type==='polygon'?'polygon':'polyline');el.setAttribute('points',pts.map(p=>p.join(',')).join(' '));}g.appendChild(el);svg.appendChild(g);}
+  function stopManual(){manualDraw=null;svg.querySelector('#ba-manual-preview')?.remove();finishManual.hidden=true;cancelManual.hidden=true;mapHost.classList.remove('manual-drawing');mapHint.textContent='Selected feature flashes its actual geometry. Use Add missing feature when the compiler misses source geometry entirely.';}
+  function beginManual(){const raw=(prompt('Geometry type for the missing feature: polygon, line, or point','polygon')||'').trim().toLowerCase();if(!['polygon','line','point'].includes(raw))return;manualDraw={type:raw,points:[]};finishManual.hidden=raw==='point';cancelManual.hidden=false;mapHost.classList.add('manual-drawing');mapHint.textContent=raw==='point'?'Click the missing feature location.':'Click vertices around/along the missing feature, then choose Finish drawing.';clearOverlay(overlay);}
+  function completeManual(){if(!manualDraw)return;const min=manualDraw.type==='polygon'?3:manualDraw.type==='line'?2:1;if(manualDraw.points.length<min){alert(`Add at least ${min} point${min>1?'s':''}.`);return;}const name=(prompt('Feature name:',`Manual feature ${(state.project.manualFeatures||[]).length+1}`)||'').trim();if(!name)return;const id=`manual-${Date.now().toString(36)}`;const f={id,name,category:'Manually added features',proposal:'Manual source geometry',cls:'Unknown',effects:[],reason:'Manually drawn by the designer because the structured compiler did not detect this battlefield feature.',detectionConfidence:100,interpretationConfidence:100,provenance:'Manual Studio geometry',geometry:{type:manualDraw.type,parts:[{closed:manualDraw.type==='polygon',points:manualDraw.points}]}};state.project.manualFeatures=state.project.manualFeatures||[];state.project.manualFeatures.push(f);persist();stopManual();renderRows(false);select(id);}
+  mapHost?.addEventListener('click',evt=>{if(!manualDraw)return;evt.preventDefault();evt.stopPropagation();manualDraw.points.push(mapPoint(evt));drawManualPreview();if(manualDraw.type==='point')completeManual();});
+  document.querySelector('#addMissingFeature')?.addEventListener('click',beginManual);finishManual?.addEventListener('click',completeManual);cancelManual?.addEventListener('click',stopManual);
+
+    document.querySelector('#approveButton').addEventListener('click',()=>saveOne('approved'));document.querySelector('#reviseButton').addEventListener('click',()=>saveOne('revised'));document.querySelector('#rejectButton').addEventListener('click',()=>saveOne('rejected'));document.querySelector('#clearSelection').addEventListener('click',()=>clearOverlay(overlay));
   document.querySelector('#bulkApproveFeatures').addEventListener('click',()=>bulkStatus('approved'));document.querySelector('#bulkRejectFeatures').addEventListener('click',()=>bulkStatus('rejected'));document.querySelector('#bulkApplyFeatures').addEventListener('click',bulkApply);document.querySelector('#clearFeatureSelection').addEventListener('click',()=>{state.selectedFeatureIds=[];renderRows(false);});
   renderRows(); const first=currentFeatures()[0];if(first)select(first.id);
   return {renderRows,select,currentFeatures,selectedFeatures};

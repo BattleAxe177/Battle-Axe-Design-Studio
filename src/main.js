@@ -1,16 +1,16 @@
-import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.5';
-import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.5';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.5';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.5';
-import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.5';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.5';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.4.0-alpha.5';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.5';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.5';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.5';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.5';
+import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.6';
+import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.6';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.6';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.6';
+import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.6';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.6';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.4.0-alpha.6';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.6';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.6';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.6';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.6';
 
-const VERSION = '0.4.0-alpha.5';
+const VERSION = '0.4.0-alpha.6';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 

@@ -1,4 +1,4 @@
-# Battle Axe Design Studio v0.4.0-alpha.5
+# Battle Axe Design Studio v0.4.0-alpha.6
 
 This release is a corrective architecture milestone focused on battlefield compilation and commander adjudication.
 

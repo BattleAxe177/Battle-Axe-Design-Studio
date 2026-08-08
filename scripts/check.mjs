@@ -6,7 +6,7 @@ for(const token of ['#69D9E5','#F2AA84','syntheticOpening','rasterClassifiers','
 const css=await readFile(new URL('../dist/src/styles/app.css',import.meta.url),'utf8');
 for(const token of ['.map-panel{position:sticky','.deployment-layout','.deployment-zone-poly','.playtest-main','.ai-bridge']) if(!css.includes(token)) throw new Error(`CSS check failed: missing ${token}`);
 const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
-for(const token of ['ruleEditorDialog','deploymentMapFrame','addPolygonZone','playReplayFrame','runBatchPlaytest','aiBridgeDialog','data-add-command="French"']) if(!html.includes(token)) throw new Error(`UI check failed: missing ${token}`);
+for(const token of ['ruleEditorDialog','deploymentMapFrame','addPolygonZone','playReplayFrame','runBatchPlaytest','aiBridgeDialog','data-add-command="French"','addMissingFeature','scenarioChecklist']) if(!html.includes(token)) throw new Error(`UI check failed: missing ${token}`);
 const engine=await readFile(new URL('../dist/src/modules/playtestEngine.js',import.meta.url),'utf8');
 for(const token of ['runPlaytest','runBatch','commandTest','Artillery','surprise','garrisonTurn']) if(!engine.includes(token)) throw new Error(`Playtest adapter check failed: missing ${token}`);
 console.log('Static deployment check passed.');
