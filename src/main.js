@@ -1,4 +1,4 @@
-import { loadState, saveState } from './app/state.js?v=0.5.0-ui-preview';
+import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.1.3';
 import { setupNavigation } from './modules/navigation.js?v=0.5.0-ui-preview';
 import { setupFeatureReview } from './modules/featureReview.js?v=0.5.0-ui-preview';
 import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.0-ui-preview';
@@ -11,10 +11,11 @@ import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.0-ui-prev
 import { setupAiBridge } from './modules/aiBridge.js?v=0.5.0-ui-preview';
 import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.0-ui-preview';
 
-const VERSION = '0.5.0-ui-preview';
+const VERSION = '0.5.1.3';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
+const hadSavedProject=(()=>{try{return !!window.localStorage.getItem(STORAGE_KEY);}catch{return false;}})();
 const {state, storageOkay} = loadState();
 const $ = selector => document.querySelector(selector);
 
@@ -126,11 +127,54 @@ function finishDiagnostics(mapOkay, features, candidates, stats={}) {
   }
 }
 
+
+function downloadCurrentProject(){
+  // Save the editable scenario plus the map/terrain decisions that define the current Studio project.
+  const payload={
+    format:'battle-axe-studio-project',
+    version:VERSION,
+    exportedAt:new Date().toISOString(),
+    project:state.project,
+    decisions:state.decisions,
+    ignoredCandidates:state.ignoredCandidates,
+    importedCandidateIds:state.importedCandidateIds,
+    selectedFeatureIds:state.selectedFeatureIds
+  };
+  const title=state.project?.scenario?.metadata?.title||state.project?.name||'battle-axe-scenario';
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`${String(title).replace(/[^a-z0-9]+/gi,'_')}_Studio_Project.json`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+
+function setupNewScenario(){
+  const modal=$('#newScenarioModal');
+  const open=()=>{if(modal)modal.hidden=false;};
+  const close=()=>{if(modal)modal.hidden=true;};
+  $('#newScenarioBtn')?.addEventListener('click',open);
+  $('#closeNewScenarioModal')?.addEventListener('click',close);
+  $('#cancelNewScenario')?.addEventListener('click',close);
+  modal?.addEventListener('click',e=>{if(e.target===modal)close();});
+  $('#exportBeforeNewScenario')?.addEventListener('click',()=>{
+    downloadCurrentProject();
+    setText('#saveStatus','Project exported');
+  });
+  $('#confirmNewScenario')?.addEventListener('click',()=>{
+    // Remove all persisted scenario-specific state. createInitialState supplies the clean
+    // rules-aware project shell; reload ensures every editor drops in-memory map/playtest state.
+    try{window.localStorage.removeItem(STORAGE_KEY);}catch(error){console.warn('Could not clear local project storage',error);}
+    window.location.reload();
+  });
+}
+
 async function startup() {
   window.__BAX_STARTUP_ENTERED__ = true;
   try {
     setText('#diagApp', `Initializing · v${VERSION}`);
     setupNavigation();
+    setupNewScenario();
     const toastHost=document.createElement('div');toastHost.className='toast-host';document.body.appendChild(toastHost);
     document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;b.classList.add('is-working');setTimeout(()=>b.classList.remove('is-working'),180);});
     populateProject();
@@ -140,6 +184,21 @@ async function startup() {
 
     await disableDevelopmentCaches();
     setText('#diagMap', 'Fetching SVG');
+
+    if(!hadSavedProject){
+      const featureReview=setupFeatureReview(state,persist,null);
+      setupGeometryExplorer(state,persist,featureReview);
+      setupScenarioBuilder(state,persist);
+      setupDeploymentEditor(state,persist);
+      setupPlaytestCenter(state,persist);
+      setupAiBridge(state,persist);
+      setupScenarioPublisher(state);
+      setText('#diagMap','Awaiting map upload');
+      setText('#mapStatus','No map loaded');
+      finishDiagnostics(true,0,0,{});
+      window.__BAX_STARTUP_COMPLETE__=true;
+      return;
+    }
 
     const mapUrl = new URL(`./projects/pavia/battlefield.svg?v=${VERSION}`, document.baseURI).href;
     const svg = await loadInlineMap($('#battlefieldMapHost'), mapUrl);

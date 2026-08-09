@@ -1,3 +1,12 @@
+# Battle Axe Design Studio v0.5.1.3 — New Scenario / Clean Start
+
+- Added a persistent **New Scenario** control to the Studio header.
+- New Scenario clears map/terrain state, source/extraction state, forces, commanders, rules, deployment, playtests, AI-review state, and publisher project state.
+- Installed Battle Axe Core/supplement architecture is preserved; a clean project currently defaults to the Italian Wars supplement.
+- Added **Export / Save Current Scenario First**, which downloads a complete editable Studio project JSON before reset.
+- Reset no longer silently reloads the bundled Pavia battlefield; Studio returns to a genuinely blank map/source workspace.
+- Reset reloads the application after clearing persisted scenario state so no stale in-memory playtest or editor data survives.
+
 # Battle Axe Design Studio v0.5.1.2 — Replay Label Orientation Hotfix
 
 - Counter bodies and facing arrows continue to rotate with actual facing.

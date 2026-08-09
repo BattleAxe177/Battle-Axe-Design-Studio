@@ -16,7 +16,8 @@
     <button id="menuButton" class="icon-button" aria-label="Open navigation">☰</button>
     <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small><span id="sidebarProjectTop">Pavia 1525</span> · <span id="runtimeVersion">v0.5.0-ui-preview</span></small></div></div>
     <div class="top-actions"><button id="saveButton" class="secondary">Save project</button><span id="saveStatus" class="status-pill">Starting…</span></div>
-  </header>
+  <button id="newScenarioBtn" class="new-scenario-btn" type="button" title="Start a completely new scenario">New Scenario</button>
+</header>
   <div id="startupBanner" class="startup-banner" role="status">Starting Battle Axe Design Studio…</div>
   <pre id="runtimeError" class="runtime-error" hidden></pre>
   <div class="app-shell">
@@ -158,5 +159,28 @@
   <script type="module" src="./src/main.js?v=0.5.0-ui-preview"></script>
 
   <dialog id="aiBridgeDialog"><div class="dialog-card ai-bridge"><div class="dialog-heading"><div><p class="eyebrow">External AI workflow</p><h2>AI Review Bridge</h2></div><button id="closeAiBridge" class="icon-button" aria-label="Close">✕</button></div><p class="muted">Send a structured project brief to an external AI, then paste its Battle Axe changeset back for explicit Accept / Reject review. Nothing is applied automatically.</p><label>What would you like the AI to review or improve?<textarea id="aiDesignerRequest" rows="5" placeholder="Example: Review balance and propose a French camp without changing the Swiss force."></textarea></label><label>Generated AI brief (read only)<textarea id="aiBriefText" rows="18" readonly></textarea></label><div class="button-row"><button id="refreshAiBrief" class="secondary">Refresh brief</button><button id="copyAiBrief" class="primary">Copy AI brief</button><button id="downloadAiBrief" class="secondary">Download Markdown</button></div><div class="divider"></div><h3>Return from AI</h3><label>Paste external AI response<textarea id="aiResponseText" rows="10" placeholder="Paste the complete response, including the BATTLE AXE CHANGESET markers…"></textarea></label><div class="button-row"><button id="parseAiResponse" class="primary">Parse proposed changes</button><button id="saveAiResponse" class="secondary">Import as source/advice only</button></div><div id="aiChangeReview"></div><p id="aiBridgeStatus" class="help">Ready</p></div></dialog>
+
+<div id="newScenarioModal" class="modal-backdrop" hidden>
+  <section class="modal-card new-scenario-modal" role="dialog" aria-modal="true" aria-labelledby="newScenarioTitle">
+    <button id="closeNewScenarioModal" class="modal-close" type="button" aria-label="Close">×</button>
+    <p class="eyebrow">PROJECT</p>
+    <h2 id="newScenarioTitle">Start a new scenario?</h2>
+    <p>This clears the current scenario workspace and returns Studio to a clean project. Your Battle Axe rules and installed supplements are not removed.</p>
+    <div class="new-scenario-clear-list">
+      <strong>The new project will clear:</strong>
+      <span>battlefield map and approved/detected features</span>
+      <span>scenario source imports and extraction review</span>
+      <span>forces, commanders, scenario rules and deployment</span>
+      <span>playtest runs, AI Review material and publisher output</span>
+    </div>
+    <p class="warning-copy"><strong>This cannot be undone unless you export the current scenario first.</strong></p>
+    <div class="modal-actions">
+      <button id="exportBeforeNewScenario" class="secondary" type="button">Export / Save Current Scenario First</button>
+      <button id="confirmNewScenario" class="danger" type="button">Start New Scenario</button>
+      <button id="cancelNewScenario" type="button">Cancel</button>
+    </div>
+  </section>
+</div>
+
 </body>
 </html>
