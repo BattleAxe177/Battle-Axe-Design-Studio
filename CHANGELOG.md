@@ -1,3 +1,10 @@
+# Battle Axe Design Studio v0.5.1.2 — Replay Label Orientation Hotfix
+
+- Counter bodies and facing arrows continue to rotate with actual facing.
+- Unit-name labels now explicitly counter-rotate and remain screen-upright at every facing angle.
+- Corrected a CSS cascade issue that had overridden the earlier label counter-rotation.
+- Preserves v0.5.1.1 playtest responsiveness and all rules-conformance changes.
+
 # Battle Axe Design Studio v0.5.1.1 — Playtest Responsiveness Hotfix
 
 - Moved deterministic and batch playtests into a Web Worker so simulation geometry cannot freeze the Studio UI.

@@ -3,10 +3,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const read=p=>readFile(new URL(`../${p}`,import.meta.url),'utf8');
 
-test('playtest counter rotates while its label counter-rotates for readability',async()=>{
+test('playtest counter rotates while its label remains screen-upright',async()=>{
   const js=await read('src/modules/playtestCenter.js');
-  assert.match(js,/rotate\(\$\{-facing\}deg\)/);
-  assert.match(js,/rotate\(\$\{Number\(u\.facing\|\|0\)\}deg\)/);
+  const css=await read('src/styles/app.css');
+  assert.match(js,/rotate\(\$\{facing\}deg\)/);
+  assert.match(js,/--label-counter-rotation/);
+  assert.match(css,/rotate\(var\(--label-counter-rotation,0deg\)\)!important/);
 });
 
 test('deployment labels are continuously visible rather than selection-only',async()=>{

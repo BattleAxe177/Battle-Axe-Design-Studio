@@ -101,3 +101,21 @@ body{padding-bottom:30px}
 .scenario-ruleset-bar{display:grid;grid-template-columns:1fr minmax(260px,360px);gap:18px;align-items:end;margin-bottom:12px}.scenario-ruleset-bar h3{margin:2px 0 4px}.scenario-ruleset-bar label small{display:block;color:var(--muted);margin-top:5px}.scenario-ruleset-bar select{width:100%}@media(max-width:800px){.scenario-ruleset-bar{grid-template-columns:1fr}}
 
 .replay-piece .piece-label{position:absolute;left:50%;top:50%;width:max-content;max-width:145%;white-space:normal;line-height:.95;text-align:center;color:#fff;text-shadow:0 1px 2px #000,0 0 2px #000;pointer-events:none;z-index:2;transform-origin:center center}.replay-piece .facing-arrow{z-index:1}
+
+/* v0.5.1.2 — replay labels remain screen-upright regardless of unit facing */
+.replay-piece .piece-label{
+  display:block!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:max-content!important;
+  max-width:145%!important;
+  transform:translate(-50%,-50%) rotate(var(--label-counter-rotation,0deg))!important;
+  transform-origin:center center!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  text-align:center!important;
+  pointer-events:none!important;
+  z-index:2!important;
+}
