@@ -1,0 +1,3 @@
+# Battle Axe Rules Architecture — Phase 2.5
+
+Studio now resolves **Battle Axe Core → selected Period Supplement → Scenario Overrides**. Italian Wars is the first installed supplement, not the identity of the core engine. The selected supplement owns its unit profiles, source-profile translation, period capabilities, and force-validation additions. Scenario JSON persists the selected ruleset. Force Builder, source analysis, AI Review, and Playtest runtime now consume the same effective ruleset. Future supplements can be added as separate modules under `src/rules/supplements/` and registered in `ruleset.js`.

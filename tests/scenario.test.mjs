@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { UNIT_LIBRARY, PAVIA_DRAFT_SAMPLE, WARGAMERS_GUIDE_SAMPLE, createBlankScenario } from '../src/data/scenarioData.js';
+import { PAVIA_DRAFT_SAMPLE, WARGAMERS_GUIDE_SAMPLE, createBlankScenario } from '../src/data/scenarioData.js';
+import { getEffectiveRuleset } from '../src/rules/ruleset.js';
 import { analyzeScenarioText, proposedRosterUnits } from '../src/modules/scenarioAnalyzer.js';
 import { readFile } from 'node:fs/promises';
 
@@ -22,7 +23,7 @@ test('scanned-guide example generates optional fog and sortie suggestions',()=>{
 });
 
 test('canonical Italian Wars library includes Archers and corrected Forlorn Hope',()=>{
-  const archers=UNIT_LIBRARY.find(x=>x.profile==='Archers'),hope=UNIT_LIBRARY.find(x=>x.profile==='Forlorn Hope');
+  const UNIT_LIBRARY=getEffectiveRuleset(createBlankScenario()).unitLibrary;const archers=UNIT_LIBRARY.find(x=>x.profile==='Archers'),hope=UNIT_LIBRARY.find(x=>x.profile==='Forlorn Hope');
   assert.ok(archers);assert.deepEqual([archers.m,archers.c,archers.a,archers.pts],[2,2,4,1]);assert.ok(hope);assert.equal(UNIT_LIBRARY.some(x=>x.profile==='Verlorne Hope'),false);
 });
 
@@ -31,7 +32,7 @@ test('Battle Axe unit library seeds command-aware roster proposals',()=>{
 });
 
 test('blank scenario distinguishes source commands, working commands and deployment',()=>{
-  const s=createBlankScenario();assert.deepEqual(s.sourceCommands,[]);assert.deepEqual(s.commands,{French:[],Imperial:[],Garrison:[]});assert.deepEqual(s.deployment,{placements:{},commanderPlacements:{},zones:[]});
+  const s=createBlankScenario();assert.deepEqual(s.sourceCommands,[]);assert.deepEqual(s.commands,{French:[],Imperial:[],Garrison:[]});assert.deepEqual(s.deployment,{placements:{},commanderPlacements:{},zones:[]});assert.equal(s.ruleset.supplement,'italian-wars');
 });
 
 test('Scenario Builder and Deployment UI expose command hierarchy and rule editor',async()=>{

@@ -22,3 +22,32 @@ test('command tests log command bonus provenance when available',()=>{
   const ev=r.events.find(e=>e.type==='command_test'&&e.payload?.bonus===1);
   assert.ok(ev);assert.ok(ev.payload.bonusFrom);assert.equal(ev.payload.bonusKind,'command');
 });
+
+test('non-shooting cavalry cannot destroy an enemy at range without a charge contact event',()=>{
+  const s=fakeState();
+  s.project.scenario.commands.French[0].units=[{id:'f1',name:'Gendarmes',profile:'Gendarmes',traits:['Shock Cavalry']}];
+  s.project.scenario.commands.Imperial[0].units=[{id:'i1',name:'Spanish Arquebusiers',profile:'Arquebusiers',traits:['Arquebus']}];
+  s.project.scenario.deployment.placements.f1={x:20,y:50,faction:'French',commandId:'cf',facing:90};
+  s.project.scenario.deployment.placements.i1={x:80,y:50,faction:'Imperial',commandId:'ci',facing:270};
+  const r=runPlaytest(s,{seed:9,turns:1,measurementScale:2});
+  const rangedByGendarmes=r.events.filter(e=>e.actor==='f1'&&(e.type==='attack'||e.type==='artillery')&&e.payload?.shooting);
+  assert.equal(rangedByGendarmes.length,0);
+  const meleeByGendarmes=r.events.filter(e=>e.actor==='f1'&&e.type==='attack'&&!e.payload?.shooting);
+  for(const ev of meleeByGendarmes) assert.equal(ev.payload.contactVerified,true);
+});
+
+test('every close-combat attack is preceded by verified contact',()=>{
+  const s=fakeState();
+  s.project.scenario.deployment.placements.f1={x:45,y:50,faction:'French',commandId:'cf',facing:90};
+  s.project.scenario.deployment.placements.i1={x:55,y:50,faction:'Imperial',commandId:'ci',facing:270};
+  const r=runPlaytest(s,{seed:3,turns:2,measurementScale:2});
+  for(const ev of r.events.filter(e=>e.type==='attack'&&!e.payload?.shooting)) assert.equal(ev.payload.contactVerified,true);
+});
+
+test('Baggage Train is worth 2 VP when destroyed and surviving army assets score 1 VP',()=>{
+  const s=fakeState();
+  s.project.scenario.commands.French[0].units.push({id:'bag',name:'Baggage',profile:'Baggage Train',traits:['Army Asset','Immobile']});
+  s.project.scenario.deployment.placements.bag={x:5,y:5,faction:'French',commandId:'cf'};
+  const r=runPlaytest(s,{seed:2,turns:1,measurementScale:2});
+  assert.ok(r.victoryPoints.French>=1,'surviving friendly baggage should contribute 1 VP');
+});

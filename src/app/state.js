@@ -6,7 +6,7 @@ export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 export function createInitialState(){const project=structuredClone(paviaProject);project.scenario=createBlankScenario();project.manualFeatures=[];return{project,decisions:{},ignoredCandidates:{},importedCandidateIds:[],selectedFeatureId:null,selectedFeatureIds:[],selectedCandidateId:null,selectedCandidateIds:[]};}
 
 function migrateScenario(saved){
-  const blank=createBlankScenario(),s={...blank,...(saved||{})};
+  const blank=createBlankScenario(),s={...blank,...(saved||{})};s.ruleset={...blank.ruleset,...(saved?.ruleset||{})};
   s.commands={French:[],Imperial:[],Garrison:[],...(saved?.commands||{})};
   s.deployment={...blank.deployment,...(saved?.deployment||{}),placements:{...(saved?.deployment?.placements||{})},commanderPlacements:{...(saved?.deployment?.commanderPlacements||{})},zones:[...(saved?.deployment?.zones||[])]};
   // alpha.1 compatibility: move flat rosters into one default command per side.

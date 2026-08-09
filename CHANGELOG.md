@@ -1,3 +1,58 @@
+# Battle Axe Design Studio v0.5.1 — Rules-Conformant Playtest & UI Polish
+
+- Integrated Rules Conformance Audit Phases 1–3 and the Phase 2.5 Core/Supplement/Scenario rules architecture into the main site release.
+- Playtest labels now remain screen-upright while counters and facing arrows rotate with actual unit facing.
+- Increased visual separation among command colors within each side while preserving French/Imperial/Garrison color families.
+- Deployment Editor unit labels are again continuously visible on simple color-coded counters.
+- Scenario Publisher deployment-map unit labels now visually match Deployment Editor counters more closely while preserving true base footprint.
+- Retained scenario-rule overrides above supplement validation, including multiple-Camp exceptions.
+- Retained charge-to-contact and free conformity, legal action generation, commander rules, directional Defensive terrain, period supplement separation, and the audited Italian Wars traits.
+
+# Battle Axe Design Studio v0.5.0.2-conformance.3 - Rules Conformance Audit Phase 3
+
+- Implemented Core Commander charge, escape, capture/death, and Commander/General VP rules.
+- Moved commander movement to the Core sequence between unit activations and close combat.
+- Added directional Defensive-terrain handling for walls and ramparts.
+- Applied Dangerous tests to actual traversed paths and added Difficult-terrain charge-range handling.
+- Confirmed the Core rules do not contain a generic retreat/recoil result; the engine does not invent one.
+- Corrected Italian Wars Shock Cavalry Counter Charge to straight-forward D3 movement.
+- Corrected Italian Wars Javelin Skirmish to once per turn while preserving normal second-Action eligibility.
+- Split legal-action generation from tactical AI selection/execution.
+- Added Phase 3 commander, terrain, and action-legality regression tests.
+- See `docs/RULES_CONFORMANCE_AUDIT_PHASE3.md`.
+
+# Battle Axe Design Studio v0.5.0.2-conformance.2 — Phase 2.5 Rules Architecture
+
+- Split Core from period supplements.
+- Added supplement selector architecture with Italian Wars as the first installed module.
+- Added Core → Supplement → Scenario Override precedence.
+- Force Builder, source analysis, AI Review, and Playtest now consume the selected ruleset.
+
+# Battle Axe Design Studio v0.5.0.2-conformance.2
+
+- Rules Conformance Audit Phase 2: movement, charge conformity, close-combat sequencing, LOS, Italian Wars traits and period rules.
+- Charge now contacts then freely conforms flush to the defender base edge; conformity may exceed the Move allowance after legal initial contact.
+- Added oriented rectangular base geometry, 90° Move wheel, 45° Charge wheel, 1-inch enemy exclusion, base-to-base ranges and front-edge LOS.
+- Added Swiss restriction, Pike-and-Shot transit, Javelins, corrected Pikes, Pistols pre-charge fire, Shock Cavalry counter-charge, Tercio expansion and Artillery contact destruction.
+- Removed unsupported Big Battles second-Move shortcut.
+- See docs/RULES_CONFORMANCE_AUDIT_PHASE2.md.
+
+# Battle Axe Design Studio v0.5.0.2-conformance.1
+
+- Began formal Battle Axe Rules Conformance Audit.
+- Replaced distance-triggered instant melee with legal Charge-to-contact geometry.
+- Deferred close combat to a close-combat phase and enforced contact before melee attacks.
+- Added LOS blocking by intervening units and Obscuring terrain.
+- Added Italian Wars Big Battles second-Move rule.
+- Corrected Camp/Baggage Train Defensive contact and VP rules.
+- Added combat-legality regression tests.
+- See `docs/RULES_CONFORMANCE_AUDIT_PHASE1.md`.
+
+# Battle Axe Design Studio v0.5.0.1
+
+- Fixed Force Builder scenario override parsing so natural-language rules such as “French may deploy two Camps”, “two French Camps”, and “French Two-Camp Exception” raise the French Camp limit to two immediately in Force Builder.
+- Canonical one-Camp validation remains the default when no accepted override exists.
+
 # Changelog
 
 ## 0.5.0-ui-preview — UI stabilization milestone
