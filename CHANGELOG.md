@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0-alpha.8
+- Added current-scenario playtest reset and stale-result protection.
+- Audited Defensive terrain: Armour 6 is logged and defenders in Defensive terrain attack first in close combat.
+- Added human-readable turn-grouped Battle / Key Events / Debug logs.
+- Added responsive fit-to-screen replay battlefield and persistent playback controls.
+- Standardized deployment/replay counters on NATO-style frames with visible unit labels and direct click-drag deployment movement.
+- Added manual scenario-rule authoring with playtest status and override metadata.
+- Strengthened AI Review Bridge with a self-describing Studio protocol and tolerant CHANGE-block conversion.
+- Added first functional compact Scenario Publisher with preview, validation, print-to-PDF, and downloadable HTML.
+
 ## 0.4.0-alpha.6 — Structured Map Compiler & Command Audit
 
 - Replaces raster-first normal terrain promotion with a structured PPTX-authored terrain manifest for Pavia.
@@ -21,7 +31,7 @@
 - Added visual separation between **Source says**, **Studio suggests**, and **Designer accepted** states.
 - Refined Scenario Builder into a less form-like workbench while preserving command-card drag/drop, rule editing, provenance, AI bridge, deployment, and playtest integration.
 
-## 0.4.0-alpha.7
+## 0.4.0-alpha.8
 - Round-trip AI changeset review/apply workflow.
 - Separate AI designer request field and playtest summary export.
 - Camp/Baggage Train army assets.

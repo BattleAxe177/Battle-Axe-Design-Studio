@@ -1,16 +1,17 @@
-import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.7';
-import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.7';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.7';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.7';
-import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.7';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.7';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.4.0-alpha.7';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.7';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.7';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.7';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.7';
+import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.8';
+import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.8';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.8';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.8';
+import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.8';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.8';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.4.0-alpha.8';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.8';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.8';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.8';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.8';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.4.0-alpha.8';
 
-const VERSION = '0.4.0-alpha.7';
+const VERSION = '0.4.0-alpha.8';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -161,6 +162,7 @@ async function startup() {
     setupDeploymentEditor(state, persist);
     setupPlaytestCenter(state, persist);
     setupAiBridge(state, persist);
+    setupScenarioPublisher(state);
     const candidateCount = state.project.candidates.filter(c => !state.importedCandidateIds.includes(c.id) && !state.ignoredCandidates[c.id]).length;
     finishDiagnostics(true, featureReview.currentFeatures().length, candidateCount, stats);
     window.__BAX_STARTUP_COMPLETE__ = true;
@@ -174,6 +176,7 @@ async function startup() {
     setupDeploymentEditor(state, persist);
     setupPlaytestCenter(state, persist);
     setupAiBridge(state, persist);
+    setupScenarioPublisher(state);
     } catch (secondary) {
       console.error('Fallback UI initialization failed:', secondary);
     }
