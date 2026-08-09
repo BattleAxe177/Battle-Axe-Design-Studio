@@ -1,3 +1,11 @@
+# Battle Axe Design Studio v0.5.1.1 — Playtest Responsiveness Hotfix
+
+- Moved deterministic and batch playtests into a Web Worker so simulation geometry cannot freeze the Studio UI.
+- Added a hard simulation event guard with turn/side/actor diagnostics.
+- Removed duplicate legal-action enumeration during activations.
+- Preserved the Phase 1–3 conformance engine and Core → Supplement → Scenario Override architecture.
+- Playtest failures now halt safely and display diagnostic context instead of causing an unresponsive page.
+
 # Battle Axe Design Studio v0.5.1 — Rules-Conformant Playtest & UI Polish
 
 - Integrated Rules Conformance Audit Phases 1–3 and the Phase 2.5 Core/Supplement/Scenario rules architecture into the main site release.
