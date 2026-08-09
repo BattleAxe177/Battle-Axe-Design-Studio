@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0-alpha.8
+## 0.4.0-alpha.9
 - Added current-scenario playtest reset and stale-result protection.
 - Audited Defensive terrain: Armour 6 is logged and defenders in Defensive terrain attack first in close combat.
 - Added human-readable turn-grouped Battle / Key Events / Debug logs.
@@ -31,7 +31,7 @@
 - Added visual separation between **Source says**, **Studio suggests**, and **Designer accepted** states.
 - Refined Scenario Builder into a less form-like workbench while preserving command-card drag/drop, rule editing, provenance, AI bridge, deployment, and playtest integration.
 
-## 0.4.0-alpha.8
+## 0.4.0-alpha.9
 - Round-trip AI changeset review/apply workflow.
 - Separate AI designer request field and playtest summary export.
 - Camp/Baggage Train army assets.
@@ -39,3 +39,10 @@
 - Replay Play/Pause and speed controls.
 - Final-position unit collision enforcement.
 - Application-wide button interaction feedback.
+
+## 0.4.0-alpha.9
+- Reverted map counters to simple color-coded labeled units with command shades.
+- Restored alpha.6 deployment drag/drop behavior.
+- Unified replay map/image/overlay transform.
+- Hardened Camp/Baggage immobility and Army Asset destruction/VP handling.
+- Cleaned Publisher force lists, duplicate text, and deployment-map output.

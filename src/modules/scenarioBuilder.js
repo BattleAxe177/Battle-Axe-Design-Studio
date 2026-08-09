@@ -1,5 +1,5 @@
-import { UNIT_LIBRARY, PAVIA_DRAFT_SAMPLE, WARGAMERS_GUIDE_SAMPLE, createBlankScenario } from '../data/scenarioData.js?v=0.4.0-alpha.8';
-import { analyzeScenarioText, proposedRosterUnits } from './scenarioAnalyzer.js?v=0.4.0-alpha.8';
+import { UNIT_LIBRARY, PAVIA_DRAFT_SAMPLE, WARGAMERS_GUIDE_SAMPLE, createBlankScenario } from '../data/scenarioData.js?v=0.4.0-alpha.9';
+import { analyzeScenarioText, proposedRosterUnits } from './scenarioAnalyzer.js?v=0.4.0-alpha.9';
 
 const $=s=>document.querySelector(s);
 const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

@@ -1,4 +1,4 @@
-# Update to v0.4.0-alpha.8
+# Update to v0.4.0-alpha.9
 
 This release adds Playtest Integrity & Scenario Publisher.
 
