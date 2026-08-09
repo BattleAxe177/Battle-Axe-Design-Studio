@@ -1,4 +1,4 @@
-import { UNIT_LIBRARY } from '../data/scenarioData.js?v=0.4.0-alpha.9';
+import { UNIT_LIBRARY } from '../data/scenarioData.js?v=0.5.0-ui-preview';
 
 const cleanInline=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
 const cleanBlock=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n[ \t]+/g,'\n').replace(/\n{3,}/g,'\n\n').trim();

@@ -1,5 +1,5 @@
-import { paviaProject } from '../data/paviaProject.js?v=0.4.0-alpha.9';
-import { createBlankScenario } from '../data/scenarioData.js?v=0.4.0-alpha.9';
+import { paviaProject } from '../data/paviaProject.js?v=0.5.0-ui-preview';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.5.0-ui-preview';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 

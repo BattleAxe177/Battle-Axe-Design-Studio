@@ -1,4 +1,4 @@
-# Update to v0.4.0-alpha.9 — Round-Trip AI & Playtest UX
+# Update to v0.5.0-ui-preview — Round-Trip AI & Playtest UX
 
 - Adds Camp and Baggage Train to the canonical Italian Wars library as 40 mm immobile Army Assets; normal roster UI prevents taking both for one side.
 - Deployment roster now shows deployed/undeployed status and command-level deployed counts.

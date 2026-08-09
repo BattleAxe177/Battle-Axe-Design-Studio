@@ -1,4 +1,4 @@
-# Battle Axe Design Studio v0.4.0-alpha.9
+# Battle Axe Design Studio v0.5.0-ui-preview
 
 ## Counter / deployment rollback
 - Removed experimental NATO-style glyphs from Deployment and Playtest.

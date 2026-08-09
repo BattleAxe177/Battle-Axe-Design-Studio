@@ -2,7 +2,7 @@ export function setupNavigation() {
   const sidebar = document.querySelector('#sidebar');
   const showView = (name) => {
     document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === `view-${name}`));
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === name));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === name || (name === 'intake' && b.dataset.view === 'features')));
     sidebar.classList.remove('open');
     history.replaceState(null, '', `#${name}`);
     window.scrollTo({top: 0, behavior: 'smooth'});

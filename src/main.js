@@ -1,17 +1,17 @@
-import { loadState, saveState } from './app/state.js?v=0.4.0-alpha.8';
-import { setupNavigation } from './modules/navigation.js?v=0.4.0-alpha.8';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.4.0-alpha.8';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.4.0-alpha.8';
-import { loadInlineMap } from './modules/mapView.js?v=0.4.0-alpha.8';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.4.0-alpha.8';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.4.0-alpha.8';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.4.0-alpha.8';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.4.0-alpha.8';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.4.0-alpha.8';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.4.0-alpha.8';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.4.0-alpha.8';
+import { loadState, saveState } from './app/state.js?v=0.5.0-ui-preview';
+import { setupNavigation } from './modules/navigation.js?v=0.5.0-ui-preview';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.5.0-ui-preview';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.0-ui-preview';
+import { loadInlineMap } from './modules/mapView.js?v=0.5.0-ui-preview';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.0-ui-preview';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.0-ui-preview';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.0-ui-preview';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.0-ui-preview';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.0-ui-preview';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.5.0-ui-preview';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.0-ui-preview';
 
-const VERSION = '0.4.0-alpha.8';
+const VERSION = '0.5.0-ui-preview';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -53,10 +53,12 @@ function persist() {
     state.project.mapNotes = $('#mapNotes').value;
     saveState(state);
     setText('#saveStatus', 'Saved');
+    setText('#statusSave', 'Saved locally');
     setTimeout(() => setText('#saveStatus', 'Ready'), 1200);
   } catch (error) {
     console.error(error);
     setText('#saveStatus', 'Save failed');
+    setText('#statusSave', 'Save failed');
   }
 }
 
@@ -69,6 +71,8 @@ function populateProject() {
   $('#historicalContext').value = p.historicalContext;
   $('#mapNotes').value = p.mapNotes;
   setText('#sidebarProject', p.name);
+  setText('#sidebarProjectTop', p.name);
+  setText('#statusProject', p.name);
   setText('#sidebarSpace', `${p.playSpace.width} × ${p.playSpace.height} ${p.playSpace.units}`);
   setText('#runtimeVersion', `v${VERSION}`);
 }
