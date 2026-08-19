@@ -1,3 +1,13 @@
+# Battle Axe Design Studio v0.5.2.2 — Battlefield Generation & Source Intelligence v2
+
+- Added explicit Generate Battlefield for new projects using the selected SVG/vector map.
+- Consolidated Map & Terrain and Feature Review into one normal battlefield workspace.
+- Added Historical Extraction Register with provenance/confidence.
+- Historical formations are evidence first; Battle Axe translations are separate Studio proposals.
+- Removed troop-keyword command invention; uncertain command structures remain unresolved.
+- Expanded generic handling for objectives, scenario character, battlefield character, and special-rule/event candidates.
+- Regression tests use abstract examples rather than Pavia/Cerignola-specific expected outputs.
+
 # Battle Axe Design Studio v0.5.2.1 — Scale, Navigation & UI Polish
 
 - Corrected visual footprint scaling: base size is now rendered relative to the current battlefield dimensions in Deployment and Playtest.

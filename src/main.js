@@ -11,7 +11,7 @@ import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.0-ui-prev
 import { setupAiBridge } from './modules/aiBridge.js?v=0.5.0-ui-preview';
 import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.0-ui-preview';
 
-const VERSION = '0.5.2.1';
+const VERSION = '0.5.2.2';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -80,18 +80,32 @@ function populateProject() {
 
 function setupFiles() {
   const refreshNames=()=>{
-    const names = ['pptx','pdf','svg'].map(key => $(`#${key}`)?.files?.[0]?.name).filter(Boolean);
-    setText('#fileSummary', names.length ? `Selected locally: ${names.join(' · ')}` : 'No map source selected.');
+    const names=['pptx','pdf','svg'].map(key=>$(`#${key}`)?.files?.[0]?.name).filter(Boolean);
+    setText('#fileSummary',names.length?`Selected locally: ${names.join(' · ')}`:'No map source selected.');
+    const ready=!!$('#svg')?.files?.[0];
+    $('#generateBattlefield').disabled=!ready;
+    setText('#battlefieldBuildStatus',ready?'Ready to generate from the selected vector map. PPTX/PDF remain supporting evidence.':names.length?'Sources selected. Add a browser-readable SVG to render the battlefield.':'Select map source files to begin.');
   };
-  ['pdf','svg'].forEach(id => $(`#${id}`)?.addEventListener('change', refreshNames));
-  $('#pptx')?.addEventListener('change', async e => {
-    refreshNames(); const file=e.target.files?.[0]; if(!file)return;
-    try{
-      setText('#fileSummary', `Inspecting ${file.name} locally…`);
-      const info=await inspectPptxAuthoring(file);
-      setText('#fileSummary', `${file.name}: structured PowerPoint metadata found — ${info.summary||'no recognized Battle Axe terrain groups yet'}. File remains local in your browser.`);
-    }catch(error){setText('#fileSummary', `${file.name}: PPTX inventory failed — ${error.message}`);}
+  ['pdf','svg'].forEach(id=>$(`#${id}`)?.addEventListener('change',refreshNames));
+  $('#pptx')?.addEventListener('change',async e=>{
+    refreshNames();const file=e.target.files?.[0];if(!file)return;
+    try{const info=await inspectPptxAuthoring(file);setText('#fileSummary',`${file.name}: structured PowerPoint metadata found — ${info.summary||'no recognized terrain groups yet'}. Select the matching SVG to render the battlefield.`);}
+    catch(error){setText('#fileSummary',`${file.name}: PPTX inventory failed — ${error.message}`);}
   });
+  $('#generateBattlefield')?.addEventListener('click',async()=>{
+    const file=$('#svg')?.files?.[0];if(!file)return;
+    try{
+      const svgText=await file.text();if(!/<svg[\s>]/i.test(svgText))throw new Error('Selected vector file is not valid SVG.');
+      const host=$('#battlefieldMapHost');host.innerHTML=svgText;const svg=host.querySelector('svg');if(!svg)throw new Error('SVG could not be rendered.');
+      state.project.mapSource={kind:'local-svg',name:file.name,svgText,authoring:{pptx:$('#pptx')?.files?.[0]?.name||null,pdf:$('#pdf')?.files?.[0]?.name||null}};
+      state.project.features=[];state.project.candidates=[];state.project.manualFeatures=[];state.decisions={};
+      state.project.playSpace={width:Number($('#width').value||48),height:Number($('#height').value||48),units:$('#units').value,origin:$('#origin').value};
+      state.project.historicalContext=$('#historicalContext').value;state.project.mapNotes=$('#mapNotes').value;persist();
+      setText('#battlefieldBuildStatus','Battlefield generated. Review terrain on Map & Terrain; use Geometry Tools for missed features.');setText('#mapStatus',`${file.name} · generated`);
+      window.dispatchEvent(new CustomEvent('bax:battlefield-generated',{detail:{svg}}));document.querySelector('[data-battlefield-view="map"]')?.click();
+    }catch(error){setText('#battlefieldBuildStatus',`Could not generate battlefield: ${error.message}`);}
+  });
+  refreshNames();
 }
 
 async function disableDevelopmentCaches() {

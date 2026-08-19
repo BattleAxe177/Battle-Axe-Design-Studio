@@ -147,3 +147,6 @@ body{padding-bottom:30px}
 body{letter-spacing:.01em}.panel{box-shadow:0 6px 18px rgba(0,0,0,.12)}
 button,select,input,textarea{transition:border-color .15s ease,background .15s ease,transform .08s ease}
 button:active{transform:translateY(1px)}
+
+.build-battlefield-card{margin-top:12px;padding:12px;border:1px solid rgba(230,178,70,.28);border-radius:9px;background:rgba(230,178,70,.05)}.build-battlefield-card #battlefieldBuildStatus{margin:5px 0 10px}
+.extraction-row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:10px 0;border-bottom:1px solid rgba(145,174,205,.16)}.extraction-row p{grid-column:1/-1;margin:2px 0;color:var(--muted)}.extraction-row small{display:block;color:var(--muted)}.provenance-tag{display:inline-block;margin-right:6px;padding:2px 6px;border-radius:999px;border:1px solid rgba(145,174,205,.25);font-size:.72rem}

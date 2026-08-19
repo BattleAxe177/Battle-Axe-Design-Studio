@@ -12,14 +12,16 @@ const HEADING_ALIASES={
   french:['french army','france'],
   imperial:['imperial army','imperialist'],
   deployment:['deployment','deploy forces'],
-  rules:['scenario rules','special rules','scenario notes'],
+  rules:['scenario rules','special rules','scenario notes','historical events / special-rule candidates','historical events','special-rule candidates'],
   victory:['victory conditions','victory'],
   designer:['designer notes','designer\'s notes'],
-  sources:['sources','source notes','appendix']
+  sources:['sources','source notes','appendix'],
+  objectives:['scenario objectives','objectives','aims'],
+  character:['scenario character','scenario design','scenario concept']
 };
 
 function headingKey(line){
-  const normalized=line.toLowerCase().replace(/[:.]+$/,'').trim();
+  const normalized=line.toLowerCase().replace(/^#{1,6}\s*/,'').replace(/\*\*/g,'').replace(/[:.]+$/,'').trim();
   for(const [key,aliases] of Object.entries(HEADING_ALIASES)) if(aliases.some(a=>normalized===a)) return key;
   return null;
 }
@@ -47,131 +49,40 @@ function detectMetadata(text){
 }
 
 function factionFor(text,current='Unknown'){
-  if(/french|alençon|black band|swiss/i.test(text))return 'French';
-  if(/\bgarrison\b|\bdefenders\b/i.test(text))return 'Garrison';
-  if(/imperial|spanish|neapolitan|stradiot|lands?sknecht/i.test(text))return 'Imperial';
-  return current;
+  const m=text.match(/\b(French|Spanish|Imperial|English|Scottish|Venetian|Milanese|Papal|Swiss|Ottoman|Burgundian|Garrison)\b/i);
+  return m?m[1][0].toUpperCase()+m[1].slice(1).toLowerCase():current;
 }
-function forceName(line,profile){
-  const before=line.split(/[—–]|\s-\s/)[0].trim();
-  if(before.length>2&&before.length<90)return before.replace(/^[-•*\d.)\s]+/,'');
-  return profile;
+function strengthFrom(text){const m=text.match(/\b(?:approximately|about|roughly|c\.?|circa)?\s*(\d{1,3}(?:,\d{3})+|\d{3,5})\b/i);return m?m[1]:'';}
+function explicitCommander(line){const m=line.match(/^(?:\*\*)?Commander(?:\*\*)?\s*:\s*(.+)$/i);return m?cleanInline(m[1]).replace(/\*\*/g,'').trim():'';}
+function evidenceName(line,profile){const x=cleanInline(line).replace(/^[-*•\d.)\s]+/,'').replace(/\*\*/g,'');const first=x.split(/[.;]/)[0];return first.length<=110?first:profile;}
+function detectHistoricalFormations(text,sections={},ruleset=getEffectiveRuleset(null)){
+  const out=[];for(const [section,block] of Object.entries(sections)){if(!block)continue;let current=section==='french'?'French':section==='imperial'?'Imperial':'Unknown';
+    for(const raw of lines(block)){if(explicitCommander(raw)||raw.length>240)continue;const profile=profileForText(raw,ruleset);if(!profile)continue;
+      const listLike=/^[-*•]|\d+[.)]\s/.test(raw),faction=factionFor(raw,current),name=evidenceName(raw,profile),key=`${section}|${faction}|${name}|${profile}`;
+      if(!out.some(x=>x.key===key))out.push({key,id:`src-${idify(key)}`,faction,name,profileHint:profile,strength:strengthFrom(raw),sourceText:raw,section,confidence:listLike?92:(raw.length<125?76:58),provenance:'SOURCE',translationStatus:'unresolved'});
+    }}
+  return out.slice(0,80);
 }
-function commanderHint(line,name,faction){
-  const lower=`${line} ${name}`.toLowerCase();
-  if(/king'?s gendarmes/.test(lower))return 'Army Commander';
-  if(/alençon/.test(lower))return "Charles IV d'Alençon";
-  if(/black band/.test(lower))return 'Robert de la Marck';
-  if(/artillery/.test(lower)&&faction==='French')return 'Pedrino Navarro';
-  if(/swiss/.test(lower))return 'Swiss captains';
-  if(/spanish arquebus/.test(lower))return 'Arquebusier Commander';
-  if(/frundsberg/.test(lower))return 'Georg von Frundsberg';
-  if(/bourbon/.test(lower))return 'Charles de Bourbon';
-  if(/lannoy|men-at-arms/.test(lower)&&faction==='Imperial')return 'Charles de Lannoy';
-  if(/\bgarrison\b/.test(lower))return 'Garrison Commander';
-  return '';
+function detectCommandEvidence(sections={}){
+  const out=[];for(const [section,block] of Object.entries(sections)){const faction=section==='french'?'French':section==='imperial'?'Imperial':'Unknown';for(const raw of lines(block||'')){const commander=explicitCommander(raw);if(commander)out.push({id:`cmd-evidence-${idify(faction+'-'+commander)}`,faction,commander,name:'Command organization unresolved',formations:[],provenance:'SOURCE',confidence:96,sourceText:raw});}}return out;
 }
-function commandHint(line,name,faction,commander){
-  const lower=`${line} ${name}`.toLowerCase();
-  if(faction==='French'){
-    if(/swiss/.test(lower))return 'Swiss Command';
-    if(/alençon/.test(lower))return "Alençon's Command";
-    if(/black band|landsknecht/.test(lower))return 'Black Band Command';
-    if(/artillery/.test(lower))return 'French Artillery Command';
-    if(/gendar/.test(lower))return 'Royal Command';
-    return 'French Main Command';
-  }
-  if(faction==='Imperial'){
-    if(/arquebus/.test(lower))return 'Arquebusier Command';
-    if(/frundsberg/.test(lower))return "Frundsberg's Command";
-    if(/bourbon/.test(lower))return "Bourbon's Command";
-    if(/lannoy|men-at-arms|cavalry/.test(lower))return "Lannoy's Cavalry Command";
-    if(/artillery/.test(lower))return 'Imperial Artillery Command';
-    return 'Imperial Main Command';
-  }
-  if(faction==='Garrison')return 'Garrison';
-  return 'Unassigned Command';
+function makeSuggestion(type,title,proposal,evidence,confidence=70){return {id:`sug-${idify(type+'-'+title)}`,type,title,proposal,evidence,confidence,status:'pending',provenance:'STUDIO PROPOSAL'};}
+function detectSuggestions(text,sections={}){
+  let paras=[];for(const k of ['rules','designer'])if(sections[k])paras.push(...sections[k].split(/\n+/));
+  if(!paras.length)paras=text.split(/\n+/).filter(x=>/rule|candidate|special|event|objective|prepared|delayed|arrival|counterattack|explosion|death|visibility|screen/i.test(x));
+  const s=[];for(const raw of paras.map(cleanInline).filter(Boolean)){const p=raw.replace(/\*\*/g,''),colon=p.indexOf(':'),title=cleanInline(colon>0?p.slice(0,colon):p).replace(/^[-*•]+/,'').slice(0,80),body=cleanInline(colon>0?p.slice(colon+1):p);if(title.length<3)continue;if(/candidate|consider|may|could|should|optional|rule|event|position|attack|screen|artillery|counterattack|explosion|death|prepared/i.test(p))s.push(makeSuggestion('Scenario Rule Candidate',title,body||`Consider whether ${title} requires a scenario-specific mechanism.`,`Source presents this as a possible scenario mechanism/event: ${p}`,88));}
+  if(/\bfog\b|\bmist\b|\bvisibility\b/i.test(text))s.push(makeSuggestion('Scenario Rule Candidate','Opening visibility','Consider whether opening visibility should be restricted and then improve as conditions change.','Source mentions fog, mist, or visibility conditions.',72));
+  if(/\bsortie\b|\bgarrison\b.{0,80}\b(?:enter|attack|commit|emerge)\b/i.test(text))s.push(makeSuggestion('Scenario Rule Candidate','Garrison sortie','Consider a scenario condition governing when the garrison may enter or become active.','Source mentions a garrison sortie or later garrison commitment.',78));
+  const seen=new Set();return s.filter(x=>{const k=x.title.toLowerCase();if(seen.has(k))return false;seen.add(k);return true;}).slice(0,24);
 }
-function historicalNoteFor(raw,name,profile,faction,commander){
-  const parts=raw.split(/[—–]|\s-\s/).map(x=>cleanInline(x)).filter(Boolean);
-  const detail=parts.slice(2).join(' — ');
-  if(detail && detail.length<180){
-    if(commander && detail.toLowerCase()===commander.toLowerCase()) return `${name} is identified in the source under ${commander}.`;
-    return `${name}: ${detail}.`;
-  }
-  const roleHints=[];
-  if(commander)roleHints.push(`under ${commander}`);
-  if(profile==='Cannon')roleHints.push('artillery component');
-  else if(profile==='Gendarmes')roleHints.push('heavy household or noble cavalry');
-  else if(profile==='Swiss Pikemen')roleHints.push('Swiss pike formation');
-  else if(profile==='Landsknechts')roleHints.push('German Landsknecht infantry');
-  else if(profile==='Arquebusiers')roleHints.push('firearm-armed infantry');
-  else if(profile==='Crossbowmen')roleHints.push('crossbow-armed infantry');
-  else if(profile==='Heavy Cavalry')roleHints.push('heavy mounted formation');
-  else if(profile==='Light Cavalry'||profile==='Stradiots')roleHints.push('light cavalry formation');
-  else if(profile==='Pikemen')roleHints.push('pike infantry formation');
-  return roleHints.length?`${name} is a ${roleHints.join(' ')} identified in the imported source.`:`${name} is identified as a distinct ${faction} formation in the imported source.`;
-}
-function detectForcesBlock(text,startingFaction='Unknown',ruleset=getEffectiveRuleset(null)){
-  const out=[];let current=startingFaction;
-  for(const raw of lines(text)){
-    if(/^french(?: army)?$/i.test(raw)){current='French';continue;}
-    if(/^imperial(?: army)?$/i.test(raw)||/^imperialist/i.test(raw)){current='Imperial';continue;}
-    if(/^garrison$/i.test(raw)){current='Garrison';continue;}
-    // Long narrative paragraphs frequently contain words such as artillery or pike. They are evidence, not force-list rows.
-    if(raw.length>190)continue;
-    const profile=profileForText(raw,ruleset);if(!profile)continue;
-    const faction=factionFor(raw,current);if(faction==='Unknown')continue;
-    const name=forceName(raw,profile),commander=commanderHint(raw,name,faction),command=commandHint(raw,name,faction,commander);
-    const key=`${faction}|${name}|${profile}`;
-    if(!out.some(x=>x.key===key))out.push({key,id:`src-${idify(key)}`,faction,name,profile,sourceText:raw,confidence:/—|\s-\s/.test(raw)?94:74,commander,command,historicalNote:historicalNoteFor(raw,name,profile,faction,commander)});
-  }
-  return out;
-}
-function detectForces(text,sections={},ruleset=getEffectiveRuleset(null)){
-  // Prefer explicit army/forces sections. Fall back to the whole document only when the source has no recognizable force headings.
-  let out=[];
-  if(sections.french)out.push(...detectForcesBlock(sections.french,'French',ruleset));
-  if(sections.imperial)out.push(...detectForcesBlock(sections.imperial,'Imperial',ruleset));
-  if(sections.forces)out.push(...detectForcesBlock(sections.forces,'Unknown',ruleset));
-  if(!out.length)out=detectForcesBlock(text,'Unknown',ruleset);
-  const seen=new Set();return out.filter(x=>{const k=x.key;if(seen.has(k))return false;seen.add(k);return true;}).slice(0,60);
-}
-function buildCommands(forces){
-  const map=new Map();
-  for(const f of forces){
-    const key=`${f.faction}|${f.command}`;
-    if(!map.has(key))map.set(key,{id:`src-command-${idify(key)}`,faction:f.faction,name:f.command,commander:f.commander||'',armyCommander:'',formations:[]});
-    const c=map.get(key);if(!c.commander&&f.commander)c.commander=f.commander;c.formations.push(f.id);
-  }
-  return [...map.values()];
-}
-function makeSuggestion(type,title,proposal,evidence,confidence=70){return {id:`sug-${idify(type+'-'+title)}`,type,title,proposal,evidence,confidence,status:'pending'};}
-function detectSuggestions(text){
-  const s=[];
-  if(/fog|mist/i.test(text))s.push(makeSuggestion('Scenario Rule','Early-morning visibility','Consider a temporary visibility rule for the opening turn(s). Example starting point: limit visibility during Turn 1, then remove the restriction.','Source mentions fog or mist. This is a Studio design suggestion, not source fact.',58));
-  if(/surpris|unexpected|unalerted|respond quickly/i.test(text))s.push(makeSuggestion('Scenario Rule','Surprise / readiness','All French units more than 18" from an enemy unit must take a Command Test before performing their first Action.','Source emphasizes surprise, reaction delay, or unprepared formations.',82));
-  if(/breach/i.test(text))s.push(makeSuggestion('Terrain / Scenario Rule','Wall breach','Treat the mapped breach as a passable wall opening, with Difficult movement through rubble unless the designer chooses otherwise.','Source mentions a breach; placement still comes from approved map geometry.',78));
-  if(/sortie|garrison.*enter|commit.*garrison/i.test(text))s.push(makeSuggestion('Scenario Rule','Garrison sortie','Represent the garrison as off-table or inactive until a scenario-defined commitment condition or player decision.','Source mentions a sortie or later commitment of the garrison.',84));
-  if(/first turn|initiative/i.test(text))s.push(makeSuggestion('Scenario Parameter','First initiative','Set the named side as first player only if the source wording explicitly establishes initiative rather than merely deployment order.','Source contains first-turn or initiative language.',86));
-  return s;
-}
-
 export function analyzeScenarioText(text,{sourceName='Pasted text',ruleset=getEffectiveRuleset(null)}={}){
-  text=cleanBlock(text);const sections=splitSections(text);const metadata=detectMetadata(text);
-  const historicalSituation=sections.historical||'';
-  const deploymentNotes=sections.deployment||'';
-  const victoryText=sections.victory||'';
-  const forces=detectForces(text,sections,ruleset),sourceCommands=buildCommands(forces),suggestions=detectSuggestions(text),observations=[];
-  for(const [field,value] of Object.entries(metadata))if(value)observations.push({field,value,sourceName,confidence:field==='title'||field==='date'?95:82});
-  if(historicalSituation)observations.push({field:'Historical situation',value:historicalSituation.slice(0,3000),sourceName,confidence:90});
-  if(deploymentNotes)observations.push({field:'Deployment',value:deploymentNotes.slice(0,2500),sourceName,confidence:86});
-  if(victoryText)observations.push({field:'Victory conditions',value:victoryText.slice(0,2500),sourceName,confidence:86});
-  return {metadata,historicalSituation,deploymentNotes,victoryText,forces,sourceCommands,suggestions,observations,unresolved:[...(!metadata.gameLength?['Game length not found']:[]),...(!victoryText?['Victory conditions not found']:[]),...(forces.length?[]:['No force list confidently extracted'])]};
+  text=cleanBlock(text);const sections=splitSections(text),metadata=detectMetadata(text),historicalSituation=sections.historical||sections.preamble||'',deploymentNotes=sections.deployment||'',victoryText=sections.victory||sections.objectives||'';
+  const forces=detectHistoricalFormations(text,sections,ruleset),sourceCommands=detectCommandEvidence(sections),suggestions=detectSuggestions(text,sections),observations=[];
+  for(const [field,value] of Object.entries(metadata))if(value)observations.push({field,value,sourceName,confidence:field==='title'||field==='date'?95:82,provenance:'SOURCE'});
+  for(const [field,value,confidence] of [['Historical situation',historicalSituation,90],['Battlefield character',sections.battlefield||'',88],['Scenario character',sections.character||sections.designer||'',82],['Deployment',deploymentNotes,86],['Victory conditions',victoryText,86]])if(value)observations.push({field,value:value.slice(0,3500),sourceName,confidence,provenance:'SOURCE'});
+  const unresolved=[];if(!metadata.gameLength)unresolved.push('Game length not found');if(!victoryText)unresolved.push('Victory conditions/objectives not found');if(!forces.length)unresolved.push('No historical formations confidently extracted');if(!sourceCommands.length&&forces.length)unresolved.push('Subordinate command organization is unresolved; Studio will not invent command assignments from troop-type keywords.');
+  return {metadata,historicalSituation,deploymentNotes,victoryText,forces,sourceCommands,suggestions,observations,unresolved};
 }
-
 export function proposedRosterUnits(sourceForces,ruleset=getEffectiveRuleset(null)){
-  const byFaction={French:[],Imperial:[],Garrison:[]};
-  for(const f of sourceForces){if(!byFaction[f.faction])continue;byFaction[f.faction].push({proposalId:`proposal-${f.id}`,sourceId:f.id,name:f.name,profile:f.profile,represents:f.sourceText,commander:f.commander||'',commandName:f.command||`${f.faction} Main Command`,traits:[...(ruleset.unitLibrary.find(u=>u.profile===f.profile)?.traits||[])],notes:`Generated because the imported source identifies ${f.name} as a ${f.faction} formation. Intended to represent ${f.historicalNote||f.sourceText}. Studio selected the ${f.profile} Battle Axe profile from the canonical unit library because it best matches the troop type named in the source. Review this translation, especially where the historical command contains mixed troop types.`,accepted:false});}
-  return byFaction;
+  const byFaction={};for(const f of sourceForces){if(!byFaction[f.faction])byFaction[f.faction]=[];const profile=f.profileHint;byFaction[f.faction].push({proposalId:`proposal-${f.id}`,sourceId:f.id,name:profile,profile,represents:f.name,commander:'',commandName:`${f.faction} — command unresolved`,traits:[...(ruleset.unitLibrary.find(u=>u.profile===profile)?.traits||[])],notes:`STUDIO PROPOSAL from historical evidence: ${f.sourceText}${f.strength?` Strength recorded: ${f.strength}.`:''} The source does not by itself determine how many Battle Axe units this formation should become. Review unit count, profile, and command allocation before acceptance.`,accepted:false,provenance:'STUDIO PROPOSAL',confidence:Math.max(45,f.confidence-12)});}return byFaction;
 }

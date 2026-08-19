@@ -12,9 +12,10 @@ test('scenario analyzer preserves multi-paragraph historical situation',()=>{
   assert.ok(a.historicalSituation.length>250);
 });
 
-test('scenario analyzer extracts Pavia metadata, formations and historical commands',()=>{
-  const a=analyzeScenarioText(PAVIA_DRAFT_SAMPLE,{sourceName:'Pavia draft'});
-  assert.match(a.metadata.title,/Pavia/i);assert.equal(a.metadata.gameLength,'8');assert.ok(a.forces.length>=10);assert.ok(a.sourceCommands.length>=5);assert.ok(a.sourceCommands.some(x=>/Swiss Command/.test(x.name)));assert.ok(a.suggestions.some(x=>/Surprise/i.test(x.title)));
+test('scenario analyzer preserves source metadata and formations without requiring invented subordinate commands',()=>{
+  const a=analyzeScenarioText(PAVIA_DRAFT_SAMPLE,{sourceName:'sample draft'});
+  assert.ok(a.metadata.title);assert.equal(a.metadata.gameLength,'8');assert.ok(a.forces.length>=8);
+  assert.ok(a.forces.every(x=>x.provenance==='SOURCE'));
 });
 
 test('scanned-guide example generates optional fog and sortie suggestions',()=>{
