@@ -1,17 +1,17 @@
-import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.1.3';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.2.1';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.5.0-ui-preview';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.0-ui-preview';
-import { loadInlineMap } from './modules/mapView.js?v=0.5.0-ui-preview';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.0-ui-preview';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.0-ui-preview';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.0-ui-preview';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.0-ui-preview';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.0-ui-preview';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.5.0-ui-preview';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.0-ui-preview';
+import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.2.3';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.2.3';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.5.2.3';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.2.3';
+import { loadInlineMap } from './modules/mapView.js?v=0.5.2.3';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.2.3';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.2.3';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.2.3';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.2.3';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.2.3';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.5.2.3';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.2.3';
 
-const VERSION = '0.5.2.2';
+const VERSION = '0.5.2.3';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -168,7 +168,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.5.2.1');
+      const mod=await import('./samples/paviaSample.js?v=0.5.2.3');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}

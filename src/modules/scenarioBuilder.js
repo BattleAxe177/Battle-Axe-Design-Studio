@@ -1,6 +1,6 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.5.2.1';
-import { getEffectiveRuleset, listSupplements, ensureScenarioRuleset, effectiveArmyAssetPolicy } from '../rules/ruleset.js?v=0.5.0.2-phase25';
-import { analyzeScenarioText, proposedRosterUnits } from './scenarioAnalyzer.js?v=0.5.2.2';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.5.2.3';
+import { getEffectiveRuleset, listSupplements, ensureScenarioRuleset, effectiveArmyAssetPolicy } from '../rules/ruleset.js?v=0.5.2.3';
+import { analyzeScenarioText, proposedRosterUnits } from './scenarioAnalyzer.js?v=0.5.2.3';
 
 const $=s=>document.querySelector(s);
 const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

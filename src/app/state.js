@@ -1,4 +1,4 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.5.0-ui-preview';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.5.2.3';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 

@@ -1,4 +1,4 @@
-import { runPlaytest, runBatch } from './playtestEngine.js?v=0.5.1.1';
+import { runPlaytest, runBatch } from './playtestEngine.js?v=0.5.2.3';
 self.onmessage=(event)=>{
   const {id,kind,state,settings}=event.data||{};
   try{

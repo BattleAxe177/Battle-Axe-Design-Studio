@@ -1,4 +1,4 @@
-import { getEffectiveRuleset, profileForText } from '../rules/ruleset.js?v=0.5.0.2-phase25';
+import { getEffectiveRuleset, profileForText } from '../rules/ruleset.js?v=0.5.2.3';
 
 const cleanInline=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
 const cleanBlock=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n[ \t]+/g,'\n').replace(/\n{3,}/g,'\n\n').trim();

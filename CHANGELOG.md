@@ -1,3 +1,11 @@
+# Battle Axe Design Studio v0.5.2.3 — Module Startup / Cache Hotfix
+
+- Fixed the release entry point still requesting `main.js?v=0.5.0-ui-preview`.
+- Updated all browser module cache-busters to `0.5.2.3` so GitHub Pages/browser caches cannot mix old and new JavaScript modules.
+- Updated the startup watchdog to report the current release.
+- Added regression tests that reject stale module query versions in future releases.
+- Preserves the v0.5.2.2 Generate Battlefield and Source Intelligence v2 changes.
+
 # Battle Axe Design Studio v0.5.2.2 — Battlefield Generation & Source Intelligence v2
 
 - Added explicit Generate Battlefield for new projects using the selected SVG/vector map.

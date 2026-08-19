@@ -1,5 +1,5 @@
-import { paviaProject } from '../data/paviaProject.js?v=0.5.2.1';
-import { createBlankScenario, PAVIA_DRAFT_SAMPLE } from '../data/scenarioData.js?v=0.5.2.1';
+import { paviaProject } from '../data/paviaProject.js?v=0.5.2.3';
+import { createBlankScenario, PAVIA_DRAFT_SAMPLE } from '../data/scenarioData.js?v=0.5.2.3';
 
 export function createPaviaSampleProject(){
   const project=structuredClone(paviaProject);
