@@ -1,3 +1,17 @@
+# Battle Axe Design Studio v0.5.2 — Scenario Configuration & Validation
+
+- Added independent tabletop geometry and rules-measurement controls.
+- Added Original Scale preset: 25 mm square units, 15 mm round commanders, 1× rules measurements.
+- Added Double Scale preset: 50 mm square units, 25 mm round commanders, 2× rules measurements.
+- Presets can be uncoupled/customized, including 50 mm units with rules-as-written 1× distances.
+- Playtest collision/contact geometry uses selected base sizes; movement/range/command distances use the independent measurement multiplier.
+- Scale configuration is included in the playtest fingerprint, configuration summary and External AI brief.
+- Added Scenario Check for common setup problems.
+- Added Rules / Engine Interpretation inspector for accepted scenario rules.
+- Added Open Project for restoring editable Studio project JSON exports.
+- Added a plain-English How to Use Studio guide covering the full workflow.
+- Preserves v0.5.1.1 responsiveness and v0.5.1.2 label-orientation fixes.
+
 # Battle Axe Design Studio v0.5.1.3 — New Scenario / Clean Start
 
 - Added a persistent **New Scenario** control to the Studio header.

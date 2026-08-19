@@ -11,7 +11,7 @@ import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.0-ui-prev
 import { setupAiBridge } from './modules/aiBridge.js?v=0.5.0-ui-preview';
 import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.0-ui-preview';
 
-const VERSION = '0.5.1.3';
+const VERSION = '0.5.2';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -149,6 +149,13 @@ function downloadCurrentProject(){
   setTimeout(()=>URL.revokeObjectURL(a.href),5000);
 }
 
+
+function setupHelpAndProjectImport(){
+  const help=$('#helpDialog');$('#openHelpBtn')?.addEventListener('click',()=>help?.showModal());$('#closeHelpBtn')?.addEventListener('click',()=>help?.close());
+  $('#openProjectBtn')?.addEventListener('click',()=>$('#openProjectFile')?.click());
+  $('#openProjectFile')?.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{const data=JSON.parse(await file.text());if(data.format!=='battle-axe-studio-project'||!data.project)throw new Error('Not a Battle Axe Studio project export');const restored={...createInitialState(),...data,project:data.project};saveState(restored);window.location.reload();}catch(error){alert(`Could not open project: ${error.message}`);}finally{e.target.value='';}});
+}
+
 function setupNewScenario(){
   const modal=$('#newScenarioModal');
   const open=()=>{if(modal)modal.hidden=false;};
@@ -175,6 +182,7 @@ async function startup() {
     setText('#diagApp', `Initializing · v${VERSION}`);
     setupNavigation();
     setupNewScenario();
+    setupHelpAndProjectImport();
     const toastHost=document.createElement('div');toastHost.className='toast-host';document.body.appendChild(toastHost);
     document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;b.classList.add('is-working');setTimeout(()=>b.classList.remove('is-working'),180);});
     populateProject();

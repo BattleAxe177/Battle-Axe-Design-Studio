@@ -91,6 +91,7 @@ export function createBlankScenario(){
   return {
     ruleset:{core:'battle-axe-core',supplement:'italian-wars',supplementVersion:'1'},
     metadata:{title:'',date:'',location:'',gameLength:'',status:'Draft',tableSize:''},
+    tabletop:{preset:'double',unitBaseMm:50,commanderBaseMm:25,measurementMultiplier:2},
     historicalSituation:'',deploymentNotes:'',victoryText:'',
     sources:[],observations:[],suggestions:[],ignoredSuggestionIds:[],acceptedSuggestionIds:[],
     sourceForces:[],sourceCommands:[],
