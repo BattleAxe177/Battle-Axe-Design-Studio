@@ -1,3 +1,14 @@
+# Battle Axe Design Studio v0.5.2.1 — Scale, Navigation & UI Polish
+
+- Corrected visual footprint scaling: base size is now rendered relative to the current battlefield dimensions in Deployment and Playtest.
+- A 50 mm base on a 24″ table therefore appears twice as large relative to the map as the same base on a 48″ table.
+- Measurement multiplier remains independent and affects rules distances only.
+- Added persistent Battlefield local navigation and explicit Back to Battlefield controls in Sources & Context / Geometry tools.
+- Added first UI polish pass: cleaner persistent navigation, more restrained developer information, Advanced / Diagnostics treatment, and improved interaction states.
+- Added explicit **Load Pavia Test Scenario** regression fixture.
+- Added Pavia isolation audit and tests so generic Studio modules do not rely on Pavia-specific names or coordinates.
+- New Scenario continues to open a genuinely blank project.
+
 # Battle Axe Design Studio v0.5.2 — Scenario Configuration & Validation
 
 - Added independent tabletop geometry and rules-measurement controls.

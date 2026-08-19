@@ -3,7 +3,10 @@ const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 const uid=p=>`${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`;
 
 export function setupDeploymentEditor(state,persist){
-  const scenario=()=>state.project.scenario;const scaleNote=()=>{const x=scenario().tabletop||{unitBaseMm:50,commanderBaseMm:25,measurementMultiplier:2},el=document.querySelector('#deploymentScaleNote');if(el)el.textContent=`${x.unitBaseMm} mm square units · ${x.commanderBaseMm} mm round commanders · ${x.measurementMultiplier}× rules measurements`;};
+  const scenario=()=>state.project.scenario;
+const mmToIn=mm=>Number(mm||0)/25.4;
+const pctFromMm=(mm,axis='x')=>{const ps=state.project.playSpace||{},span=Number(axis==='y'?ps.height:ps.width)||1;return (mmToIn(mm)/span)*100;};
+const scaleNote=()=>{const x=scenario().tabletop||{unitBaseMm:50,commanderBaseMm:25,measurementMultiplier:2},el=document.querySelector('#deploymentScaleNote');if(el)el.textContent=`${x.unitBaseMm} mm square units · ${x.commanderBaseMm} mm round commanders · ${x.measurementMultiplier}× rules measurements`;};
   const tree=$('#deploymentTree'),frame=$('#deploymentMapFrame'),pieces=$('#deploymentPieces'),zonesHost=$('#deploymentZones');
   let selected=null,zoneMode=null,zoneStart=null,preview=null,polyPoints=[],dragZone=null,dragVertex=null,dragPiece=null;
 

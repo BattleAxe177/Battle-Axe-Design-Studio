@@ -1,9 +1,23 @@
-import { paviaProject } from '../data/paviaProject.js?v=0.5.0-ui-preview';
 import { createBlankScenario } from '../data/scenarioData.js?v=0.5.0-ui-preview';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 
-export function createInitialState(){const project=structuredClone(paviaProject);project.name='Untitled Scenario';project.historicalContext='';project.mapNotes='';project.features=[];project.candidates=[];project.manualFeatures=[];project.scenario=createBlankScenario();return{project,decisions:{},ignoredCandidates:{},importedCandidateIds:[],selectedFeatureId:null,selectedFeatureIds:[],selectedCandidateId:null,selectedCandidateIds:[]};}
+export function createInitialState(){
+  const project={
+    id:'untitled',
+    name:'Untitled Scenario',
+    version:'studio-project',
+    playSpace:{width:48,height:48,units:'inches',origin:'northwest'},
+    historicalContext:'',
+    mapNotes:'',
+    features:[],
+    candidates:[],
+    manualFeatures:[],
+    mapSource:null,
+    scenario:createBlankScenario()
+  };
+  return{project,decisions:{},ignoredCandidates:{},importedCandidateIds:[],selectedFeatureId:null,selectedFeatureIds:[],selectedCandidateId:null,selectedCandidateIds:[]};
+}
 
 function migrateScenario(saved){
   const blank=createBlankScenario(),s={...blank,...(saved||{})};s.ruleset={...blank.ruleset,...(saved?.ruleset||{})};

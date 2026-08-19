@@ -137,3 +137,13 @@ body{padding-bottom:30px}
 .rule-inspect{padding:10px 0;border-bottom:1px solid rgba(145,174,205,.18)}.rule-inspect>span{float:right;font-size:.78rem;text-transform:uppercase}.rule-inspect p{margin:.35rem 0}
 .validation-item{padding:8px 10px;margin:6px 0;border-left:3px solid #b38b38;background:rgba(255,255,255,.03)}.validation-item.error{border-left-color:#bd4b4b}.validation-item.ok{border-left-color:#5a9b72}
 .help-guide{width:min(900px,94vw);max-height:88vh;overflow:auto}.help-sections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.help-sections section{padding:14px;border:1px solid rgba(145,174,205,.18);border-radius:9px}.help-sections h3{margin-top:0}@media(max-width:760px){.help-sections{grid-template-columns:1fr}}
+
+/* v0.5.2.1 navigation and presentation polish */
+.workspace-subnav{position:sticky;top:0;z-index:35;display:flex;gap:8px;align-items:center;padding:8px 12px;margin:0 0 10px;background:rgba(8,18,31,.94);backdrop-filter:blur(8px);border-bottom:1px solid rgba(145,174,205,.18)}
+.workspace-subnav button{background:transparent;border:1px solid rgba(145,174,205,.22);color:var(--muted);padding:7px 10px}
+.workspace-subnav button.active,.workspace-subnav button:hover{color:#fff;border-color:rgba(230,178,70,.5);background:rgba(230,178,70,.08)}
+.back-to-battlefield{margin-left:auto}
+.advanced-diagnostics{margin-top:10px}.advanced-diagnostics>summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+body{letter-spacing:.01em}.panel{box-shadow:0 6px 18px rgba(0,0,0,.12)}
+button,select,input,textarea{transition:border-color .15s ease,background .15s ease,transform .08s ease}
+button:active{transform:translateY(1px)}

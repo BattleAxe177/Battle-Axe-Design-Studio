@@ -9,7 +9,7 @@ const HEADING_ALIASES={
   historical:['historical situation','historical overview','overview','background'],
   battlefield:['battlefield','terrain','the battlefield'],
   forces:['forces engaged','battle axe forces','forces'],
-  french:['french army','france - king francis i'],
+  french:['french army','france'],
   imperial:['imperial army','imperialist'],
   deployment:['deployment','deploy forces'],
   rules:['scenario rules','special rules','scenario notes'],
@@ -47,9 +47,9 @@ function detectMetadata(text){
 }
 
 function factionFor(text,current='Unknown'){
-  if(/french|francis|alençon|black band|swiss/i.test(text))return 'French';
-  if(/leyva|garrison|defenders of pavia/i.test(text))return 'Garrison';
-  if(/imperial|pescara|frundsberg|bourbon|lannoy|spanish|neapolitan|stradiot/i.test(text))return 'Imperial';
+  if(/french|alençon|black band|swiss/i.test(text))return 'French';
+  if(/\bgarrison\b|\bdefenders\b/i.test(text))return 'Garrison';
+  if(/imperial|spanish|neapolitan|stradiot|lands?sknecht/i.test(text))return 'Imperial';
   return current;
 }
 function forceName(line,profile){
@@ -59,16 +59,16 @@ function forceName(line,profile){
 }
 function commanderHint(line,name,faction){
   const lower=`${line} ${name}`.toLowerCase();
-  if(/francis/.test(lower)||/king'?s gendarmes/.test(lower))return 'Francis I';
+  if(/king'?s gendarmes/.test(lower))return 'Army Commander';
   if(/alençon/.test(lower))return "Charles IV d'Alençon";
   if(/black band/.test(lower))return 'Robert de la Marck';
   if(/artillery/.test(lower)&&faction==='French')return 'Pedrino Navarro';
   if(/swiss/.test(lower))return 'Swiss captains';
-  if(/pescara|spanish arquebus/.test(lower))return 'Marquis of Pescara';
+  if(/spanish arquebus/.test(lower))return 'Arquebusier Commander';
   if(/frundsberg/.test(lower))return 'Georg von Frundsberg';
   if(/bourbon/.test(lower))return 'Charles de Bourbon';
   if(/lannoy|men-at-arms/.test(lower)&&faction==='Imperial')return 'Charles de Lannoy';
-  if(/leyva|defenders of pavia|garrison/.test(lower))return 'Antonio de Leyva';
+  if(/\bgarrison\b/.test(lower))return 'Garrison Commander';
   return '';
 }
 function commandHint(line,name,faction,commander){
@@ -78,18 +78,18 @@ function commandHint(line,name,faction,commander){
     if(/alençon/.test(lower))return "Alençon's Command";
     if(/black band|landsknecht/.test(lower))return 'Black Band Command';
     if(/artillery/.test(lower))return 'French Artillery Command';
-    if(/gendar|francis/.test(lower))return 'Royal Command';
+    if(/gendar/.test(lower))return 'Royal Command';
     return 'French Main Command';
   }
   if(faction==='Imperial'){
-    if(/pescara|arquebus/.test(lower))return "Pescara's Vanguard";
+    if(/arquebus/.test(lower))return 'Arquebusier Command';
     if(/frundsberg/.test(lower))return "Frundsberg's Command";
     if(/bourbon/.test(lower))return "Bourbon's Command";
     if(/lannoy|men-at-arms|cavalry/.test(lower))return "Lannoy's Cavalry Command";
     if(/artillery/.test(lower))return 'Imperial Artillery Command';
     return 'Imperial Main Command';
   }
-  if(faction==='Garrison')return 'Pavia Garrison';
+  if(faction==='Garrison')return 'Garrison';
   return 'Unassigned Command';
 }
 function historicalNoteFor(raw,name,profile,faction,commander){
@@ -117,7 +117,7 @@ function detectForcesBlock(text,startingFaction='Unknown',ruleset=getEffectiveRu
   for(const raw of lines(text)){
     if(/^french(?: army)?$/i.test(raw)){current='French';continue;}
     if(/^imperial(?: army)?$/i.test(raw)||/^imperialist/i.test(raw)){current='Imperial';continue;}
-    if(/^(?:pavia )?garrison$/i.test(raw)){current='Garrison';continue;}
+    if(/^garrison$/i.test(raw)){current='Garrison';continue;}
     // Long narrative paragraphs frequently contain words such as artillery or pike. They are evidence, not force-list rows.
     if(raw.length>190)continue;
     const profile=profileForText(raw,ruleset);if(!profile)continue;
@@ -141,7 +141,7 @@ function buildCommands(forces){
   const map=new Map();
   for(const f of forces){
     const key=`${f.faction}|${f.command}`;
-    if(!map.has(key))map.set(key,{id:`src-command-${idify(key)}`,faction:f.faction,name:f.command,commander:f.commander||'',armyCommander:f.faction==='French'?'Francis I':f.faction==='Imperial'?'Charles de Lannoy':f.faction==='Garrison'?'Antonio de Leyva':'',formations:[]});
+    if(!map.has(key))map.set(key,{id:`src-command-${idify(key)}`,faction:f.faction,name:f.command,commander:f.commander||'',armyCommander:'',formations:[]});
     const c=map.get(key);if(!c.commander&&f.commander)c.commander=f.commander;c.formations.push(f.id);
   }
   return [...map.values()];

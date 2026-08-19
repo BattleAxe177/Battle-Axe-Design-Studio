@@ -14,7 +14,7 @@
   <noscript><div class="fatal">Battle Axe Design Studio requires JavaScript.</div></noscript>
   <header class="topbar">
     <button id="menuButton" class="icon-button" aria-label="Open navigation">☰</button>
-    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small><span id="sidebarProjectTop">Pavia 1525</span> · <span id="runtimeVersion">v0.5.0-ui-preview</span></small></div></div>
+    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small><span id="sidebarProjectTop">Untitled Scenario</span> · <span id="runtimeVersion">v0.5.2.1</span></small></div></div>
     <div class="top-actions"><button id="saveButton" class="secondary">Save project</button><span id="saveStatus" class="status-pill">Starting…</span></div>
   <button id="openHelpBtn" class="new-scenario-btn" type="button">How to Use</button>
   <button id="openProjectBtn" class="new-scenario-btn" type="button">Open Project</button><input id="openProjectFile" type="file" accept=".json" hidden>
@@ -32,14 +32,20 @@
         <button class="nav-item" data-view="playtest"><span>5</span>Playtest</button>
         <button class="nav-item" data-view="publish"><span>6</span>Publish</button>
       </nav>
-      <div class="sidebar-note"><strong>Current project</strong><br><span id="sidebarProject">Pavia 1525</span><br><small id="sidebarSpace">48 × 48 inches</small></div>
+      <div class="sidebar-note"><strong>Current project</strong><br><span id="sidebarProject">Untitled Scenario</span><br><small id="sidebarSpace">48 × 48 inches</small></div>
     </aside>
 
     <main class="workspace">
+<nav class="workspace-subnav" id="battlefieldSubnav" aria-label="Battlefield tools">
+  <button type="button" data-battlefield-view="map">Map & Terrain</button>
+  <button type="button" data-battlefield-view="sources">Sources & Context</button>
+  <button type="button" data-battlefield-view="review">Feature Review</button>
+  <button type="button" data-battlefield-view="advanced">Geometry Tools</button>
+</nav>
       <section id="view-home" class="view active">
         <div class="hero">
-          <div><p class="eyebrow">One project. One workflow.</p><h1>From imported battlefield map to tested and publishable historical scenario.</h1><p>This repository foundation establishes the permanent browser application that future Battle Axe modules will extend rather than replace.</p><div class="button-row"><button class="primary jump" data-view="intake">Open Pavia project</button><button class="secondary jump" data-view="features">Review battlefield</button></div></div>
-          <div class="hero-card"><h3>Startup diagnostics</h3><dl id="diagnostics"><div><dt>Application</dt><dd id="diagApp">Loading</dd></div><div><dt>Map</dt><dd id="diagMap">Loading</dd></div><div><dt>Features</dt><dd id="diagFeatures">Loading</dd></div><div><dt>Geometry Explorer</dt><dd id="diagExplorer">Loading</dd></div><div><dt>Storage</dt><dd id="diagStorage">Checking</dd></div></dl></div>
+          <div><p class="eyebrow">One project. One workflow.</p><h1>From imported battlefield map to tested and publishable historical scenario.</h1><p>This repository foundation establishes the permanent browser application that future Battle Axe modules will extend rather than replace.</p><div class="button-row"><button class="primary jump" data-view="intake">Open current project</button><button class="secondary jump" data-view="features">Review battlefield</button></div></div>
+          <details class="hero-card advanced-diagnostics"><summary>Advanced / Diagnostics</summary><h3>Startup diagnostics</h3><dl id="diagnostics"><div><dt>Application</dt><dd id="diagApp">Loading</dd></div><div><dt>Map</dt><dd id="diagMap">Loading</dd></div><div><dt>Features</dt><dd id="diagFeatures">Loading</dd></div><div><dt>Geometry Explorer</dt><dd id="diagExplorer">Loading</dd></div><div><dt>Storage</dt><dd id="diagStorage">Checking</dd></div></dl></details>
         </div>
         <div class="module-grid">
           <article><h3>Map Studio</h3><p>Import authoring sources, define scenario play space, interpret terrain, and approve functional battlefield geometry.</p><button class="link-button jump" data-view="intake">Map workflow →</button></article>
@@ -50,10 +56,10 @@
       </section>
 
       <section id="view-intake" class="view">
-        <div class="section-heading"><div><p class="eyebrow">Battlefield</p><h2>Sources & Context</h2></div><span class="phase">Functional</span></div>
+        <div class="section-heading"><div><p class="eyebrow">Battlefield</p><h2>Sources & Context</h2><button class="back-to-battlefield compact secondary" type="button">← Back to Battlefield</button></div><span class="phase">Functional</span></div>
         <div class="two-column">
-          <div class="panel"><h3>Scenario-defined play space</h3><div class="form-grid"><label>Width<input id="width" type="number" value="48" min="1" step="0.1"></label><label>Height<input id="height" type="number" value="48" min="1" step="0.1"></label><label>Units<select id="units"><option>inches</option><option>centimeters</option></select></label><label>Origin<select id="origin"><option>northwest</option><option>southwest</option></select></label></div><p class="help">Play-space dimensions are defined before compilation. Pavia uses 48 × 48 inches; other scenarios may use any declared rectangle.</p></div>
-          <div class="panel"><h3>Authoring sources</h3><label class="upload">PowerPoint (.pptx)<input id="pptx" type="file" accept=".pptx"><span>Select PPTX</span></label><label class="upload">Rendered reference (.pdf)<input id="pdf" type="file" accept=".pdf"><span>Select PDF</span></label><label class="upload">Vector map (.svg)<input id="svg" type="file" accept=".svg,image/svg+xml"><span>Select SVG</span></label><div id="fileSummary" class="file-summary">Bundled Pavia structured compiler package is loaded. Local source selections remain in your browser and are not uploaded anywhere.</div><p class="help"><strong>Compiler v0.2:</strong> PowerPoint object geometry and authoring metadata are the primary terrain source. SVG validates vector rendering; PDF validates appearance. Raster recognition is reserved for Geometry Explorer.</p></div>
+          <div class="panel"><h3>Scenario-defined play space</h3><div class="form-grid"><label>Width<input id="width" type="number" value="48" min="1" step="0.1"></label><label>Height<input id="height" type="number" value="48" min="1" step="0.1"></label><label>Units<select id="units"><option>inches</option><option>centimeters</option></select></label><label>Origin<select id="origin"><option>northwest</option><option>southwest</option></select></label></div><p class="help">Play-space dimensions are defined before compilation. Define the physical play-space dimensions for this scenario. Any rectangular battlefield is supported.</p></div>
+          <div class="panel"><h3>Authoring sources</h3><label class="upload">PowerPoint (.pptx)<input id="pptx" type="file" accept=".pptx"><span>Select PPTX</span></label><label class="upload">Rendered reference (.pdf)<input id="pdf" type="file" accept=".pdf"><span>Select PDF</span></label><label class="upload">Vector map (.svg)<input id="svg" type="file" accept=".svg,image/svg+xml"><span>Select SVG</span></label><div id="fileSummary" class="file-summary">No map source selected. Local source selections remain in your browser and are not uploaded anywhere.</div><p class="help"><strong>Compiler v0.2:</strong> PowerPoint object geometry and authoring metadata are the primary terrain source. SVG validates vector rendering; PDF validates appearance. Raster recognition is reserved for Geometry Explorer.</p></div>
         </div>
         <div class="two-column context-row">
           <label class="panel text-panel"><h3>Historical Battlefield Description</h3><textarea id="historicalContext" rows="12"></textarea><small>Interpretive guide only. It may influence confidence but cannot create or alter geometry.</small></label>
@@ -66,7 +72,7 @@
         <div class="section-heading"><div><p class="eyebrow">Battlefield</p><h2>Battlefield Workspace</h2><p class="section-subtitle">Approved map geometry first. Source intake and advanced detection stay available when needed.</p></div><div class="button-row"><button class="secondary jump" data-view="intake">Sources & context</button><button id="addMissingFeature" class="primary">Draw feature</button><button id="detectButton" class="secondary">Geometry Explorer</button></div></div>
         <div class="map-layout">
           <div class="feature-list panel"><div class="panel-heading"><h3>Review queue</h3><span id="featureCount" class="count-pill">0</span></div><div id="featureBulkBar" class="bulk-bar" hidden><strong id="featureBulkInfo"></strong><div class="button-row"><button id="bulkApproveFeatures" class="primary compact">Approve selected</button><button id="bulkApplyFeatures" class="secondary compact">Apply current attributes</button><button id="bulkRejectFeatures" class="danger compact">Reject selected</button><button id="clearFeatureSelection" class="link-button">Clear</button></div></div><div id="featureRows"></div><div class="divider"></div><p class="muted">Normal review shows only promoted battlefield features. Use Geometry Explorer only when you think something was missed.</p></div>
-          <div class="map-panel panel"><div class="map-toolbar"><strong>Pavia battlefield</strong><span id="mapStatus">Loading…</span></div><div id="mapFrame" class="map-frame"><div id="battlefieldMapHost" class="map-svg-host" aria-label="Pavia battlefield"></div><div id="selectionOverlay" class="selection-overlay hidden"></div></div><div class="map-foot"><span id="mapFootHint">Selected feature flashes its actual geometry. Use Add missing feature when the compiler misses source geometry entirely.</span><div class="button-row"><button id="finishManualFeature" class="primary compact" hidden>Finish drawing</button><button id="cancelManualFeature" class="secondary compact" hidden>Cancel drawing</button><button id="clearSelection" class="link-button">Clear highlight</button></div></div></div>
+          <div class="map-panel panel"><div class="map-toolbar"><strong>Battlefield</strong><span id="mapStatus">Loading…</span></div><div id="mapFrame" class="map-frame"><div id="battlefieldMapHost" class="map-svg-host" aria-label="Battlefield"></div><div id="selectionOverlay" class="selection-overlay hidden"></div></div><div class="map-foot"><span id="mapFootHint">Selected feature flashes its actual geometry. Use Add missing feature when the compiler misses source geometry entirely.</span><div class="button-row"><button id="finishManualFeature" class="primary compact" hidden>Finish drawing</button><button id="cancelManualFeature" class="secondary compact" hidden>Cancel drawing</button><button id="clearSelection" class="link-button">Clear highlight</button></div></div></div>
           <div class="inspector panel"><p class="eyebrow">Selected feature</p><h3 id="featureName">Select a feature</h3><p id="featureProposal" class="confidence">Choose a feature from the review queue.</p><label>Classification<select id="terrainClass"></select></label><fieldset><legend>Battle Axe effects</legend><div id="effectList" class="effect-list"></div></fieldset><div id="rulesBox" class="rules-box"><strong>Rules context</strong><p>No Battle Axe effects selected.</p></div><label>Reviewer note<textarea id="reviewerNote" rows="4" placeholder="Optional note"></textarea></label><div class="button-row"><button id="approveButton" class="primary">Approve</button><button id="reviseButton" class="secondary">Save revision</button><button id="rejectButton" class="danger">Reject</button></div></div>
         </div>
       </section>
@@ -78,7 +84,7 @@
         <div class="scenario-tabs" role="tablist"><button class="scenario-tab active" data-scenario-tab="sources">1 Source Intake</button><button class="scenario-tab" data-scenario-tab="review">2 Extraction Review</button><button class="scenario-tab" data-scenario-tab="suggestions">3 Suggestions</button><button class="scenario-tab" data-scenario-tab="forces">4 Force Builder</button><button class="scenario-tab" data-scenario-tab="summary">5 Scenario Summary</button></div>
         <div id="scenario-sources" class="scenario-pane active">
           <div class="scenario-grid two-up">
-            <div class="panel"><h3>Scenario sources</h3><p class="muted">Add whatever source material you have. Studio records the source first, then proposes a structured scenario. Source files are never modified.</p><label class="upload wide">Scenario documents<input id="scenarioFiles" type="file" multiple accept=".txt,.md,.json,.docx,.pdf,image/*"><span>Select files</span></label><div id="scenarioSourceList" class="source-list"></div><div class="button-row"><button id="loadPaviaDraft" class="secondary">Load Pavia draft example</button><button id="loadGuideExample" class="secondary">Load scanned-guide example</button></div></div>
+            <div class="panel"><h3>Scenario sources</h3><p class="muted">Add whatever source material you have. Studio records the source first, then proposes a structured scenario. Source files are never modified.</p><label class="upload wide">Scenario documents<input id="scenarioFiles" type="file" multiple accept=".txt,.md,.json,.docx,.pdf,image/*"><span>Select files</span></label><div id="scenarioSourceList" class="source-list"></div></div>
             <div class="panel"><h3>Paste or type source text</h3><textarea id="scenarioSourceText" rows="15" placeholder="Paste scenario notes, a transcription, an order of battle, or any text you want Studio to analyze…"></textarea><div class="button-row"><button id="analyzeScenario" class="primary">Analyze sources</button><button id="clearScenarioSources" class="secondary">Clear intake</button></div><p class="help">Alpha.1 extracts TXT/MD/JSON text directly in-browser. DOCX/PDF/image files are registered as evidence; scanned-page visual extraction will be connected to the future Studio analysis service.</p></div>
           </div>
         </div>
@@ -120,11 +126,11 @@
     </main>
   </div>
 
-  <div class="studio-statusbar" aria-label="Project status"><span><strong id="statusProject">Pavia 1525</strong></span><span id="statusScenario">Scenario ready</span><span id="statusDeployment">Deployment status</span><span class="status-spacer"></span><span id="statusSave">Saved locally</span></div>
+  <div class="studio-statusbar" aria-label="Project status"><span><strong id="statusProject">Untitled Scenario</strong></span><span id="statusScenario">Scenario ready</span><span id="statusDeployment">Deployment status</span><span class="status-spacer"></span><span id="statusSave">Saved locally</span></div>
 
   <dialog id="geometryDialog">
     <div class="dialog-card">
-      <div class="dialog-heading"><div><p class="eyebrow">QA tool</p><h2>Geometry Explorer</h2></div><button id="closeExplorer" class="icon-button" aria-label="Close">✕</button></div>
+      <div class="dialog-heading"><div><p class="eyebrow">QA tool</p><h2>Geometry Explorer</h2><button class="back-to-battlefield compact secondary" type="button">← Back to Battlefield</button></div><button id="closeExplorer" class="icon-button" aria-label="Close">✕</button></div>
       <p class="muted">The normal review remains uncluttered. Geometry Explorer exposes lower-confidence source geometry only when you ask for it.</p>
       <div class="explorer-layout">
         <div class="candidate-list"><div id="candidateRows"></div></div>
@@ -178,7 +184,7 @@
     <p class="warning-copy"><strong>This cannot be undone unless you export the current scenario first.</strong></p>
     <div class="modal-actions">
       <button id="exportBeforeNewScenario" class="secondary" type="button">Export / Save Current Scenario First</button>
-      <button id="confirmNewScenario" class="danger" type="button">Start New Scenario</button>
+      <button id="confirmNewScenario" class="danger" type="button">Start New Scenario</button><button id="loadPaviaSample" class="secondary" type="button">Load Pavia Test Scenario</button>
       <button id="cancelNewScenario" type="button">Cancel</button>
     </div>
   </section>

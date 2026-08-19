@@ -1,4 +1,4 @@
-import { PAVIA_DRAFT_SAMPLE, WARGAMERS_GUIDE_SAMPLE, createBlankScenario } from '../data/scenarioData.js?v=0.5.0.2-phase25';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.5.2.1';
 import { getEffectiveRuleset, listSupplements, ensureScenarioRuleset, effectiveArmyAssetPolicy } from '../rules/ruleset.js?v=0.5.0.2-phase25';
 import { analyzeScenarioText, proposedRosterUnits } from './scenarioAnalyzer.js?v=0.5.0.1-camp-override-fix';
 
@@ -72,10 +72,7 @@ export function setupScenarioBuilder(state,persist){
   tabs();renderAllScenario();window.addEventListener('bax:scenario-changed',renderAllScenario);
   $('#scenarioSupplementSelector')?.addEventListener('change',e=>{const selected=listSupplements().find(x=>x.id===e.target.value);scenario().ruleset={core:'battle-axe-core',supplement:e.target.value,supplementVersion:selected?.version||'1'};persist();window.dispatchEvent(new CustomEvent('bax:scenario-changed'));renderAllScenario();});
   $('#tabletopPreset')?.addEventListener('change',saveTabletop);['unitBaseMm','commanderBaseMm','measurementMultiplier'].forEach(id=>$('#'+id)?.addEventListener('change',()=>{$('#tabletopPreset').value='custom';saveTabletop();}));$('#checkScenario')?.addEventListener('click',validateScenario);
-  $('#scenarioFiles').addEventListener('change',e=>addFiles([...e.target.files]));
-  $('#loadPaviaDraft').addEventListener('click',()=>{$('#scenarioSourceText').value=PAVIA_DRAFT_SAMPLE;stagedText=PAVIA_DRAFT_SAMPLE;scenario().sources.push({id:uid('source'),name:'Pavia scenario draft example',type:'bundled text example',size:PAVIA_DRAFT_SAMPLE.length,status:'text extracted',textExtracted:true});renderSources();});
-  $('#loadGuideExample').addEventListener('click',()=>{$('#scenarioSourceText').value=WARGAMERS_GUIDE_SAMPLE;stagedText=WARGAMERS_GUIDE_SAMPLE;scenario().sources.push({id:uid('source'),name:"Wargamer's Guide scanned-page example",type:'bundled visual-source summary',size:WARGAMERS_GUIDE_SAMPLE.length,status:'visual source observations loaded',textExtracted:true});renderSources();});
-  $('#analyzeScenario').addEventListener('click',()=>{const text=[stagedText,$('#scenarioSourceText').value,...scenario().sources.filter(x=>x.text).map(x=>x.text)].filter(Boolean).join('\n\n');analyze(text,scenario().sources.map(x=>x.name).join(' + ')||'Pasted source text');});
+  $('#scenarioFiles').addEventListener('change',e=>addFiles([...e.target.files]));  $('#analyzeScenario').addEventListener('click',()=>{const text=[stagedText,$('#scenarioSourceText').value,...scenario().sources.filter(x=>x.text).map(x=>x.text)].filter(Boolean).join('\n\n');analyze(text,scenario().sources.map(x=>x.name).join(' + ')||'Pasted source text');});
   $('#clearScenarioSources').addEventListener('click',()=>{scenario().sources=[];scenario().observations=[];scenario().suggestions=[];scenario().sourceForces=[];scenario().sourceCommands=[];scenario().unresolved=[];stagedText='';$('#scenarioSourceText').value='';persist();renderAllScenario();});
   $('#saveScenarioFields').addEventListener('click',saveFields);$('#addProposedForces').addEventListener('click',addProposals);$('#unitLibrarySearch').addEventListener('input',renderLibrary);
   document.querySelectorAll('[data-add-command]').forEach(b=>b.addEventListener('click',()=>addCommand(b.dataset.addCommand)));
