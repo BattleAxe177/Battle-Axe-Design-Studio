@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const VERSION='0.5.3.0';
+const VERSION=(await readFile(new URL('../VERSION', import.meta.url),'utf8')).trim().match(/^\d+\.\d+\.\d+\.\d+/)?.[0];
 
 test('runtime release exposes uncached versioned main module', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(VERSION);
   assert.match(html, new RegExp(`main\\.js\\?v=${VERSION.replaceAll('.','\\.')}`));
   assert.match(html, /Scenario Workspace/);
   assert.match(html, /runtimeError/);

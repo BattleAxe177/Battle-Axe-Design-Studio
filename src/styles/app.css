@@ -155,3 +155,46 @@ button:active{transform:translateY(1px)}
 .map-empty{position:relative;min-height:180px;background:#091522!important}
 .map-empty::after{content:"No battlefield map generated for the current scenario";position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;color:var(--muted);font-size:12px;line-height:1.4;pointer-events:none}
 .map-empty>img[hidden]{display:none!important}
+
+/* v0.5.4.0 — calibrated battlefield geometry and legible non-geometric labels */
+.deployment-map-frame{width:100%;height:auto;min-height:0;aspect-ratio:var(--battlefield-width,48) / var(--battlefield-height,48)}
+.deployment-map-frame>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+.play-replay-frame{height:auto;min-height:360px;max-height:calc(100vh - 195px);overflow:auto}
+.play-replay-stage{width:100%;height:auto!important;max-height:none;aspect-ratio:var(--battlefield-width,48) / var(--battlefield-height,48)}
+.play-replay-stage>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+.deployment-piece.unit .piece-label,.replay-piece .piece-label{
+  position:absolute!important;left:50%!important;top:50%!important;
+  transform:translate(-50%,-50%) rotate(var(--label-counter-rotation,0deg))!important;
+  width:max-content!important;max-width:240%!important;white-space:normal!important;
+  overflow:visible!important;text-overflow:clip!important;line-height:1.05!important;
+  padding:2px 4px!important;border-radius:3px!important;background:rgba(5,12,20,.74)!important;
+  color:#fff!important;text-align:center!important;pointer-events:none!important;z-index:4!important;
+}
+.deployment-piece.unit .piece-label{transform:translate(-50%,-50%)!important}
+.replay-commander,.deployment-piece.commander{box-sizing:border-box}
+
+/* v0.5.4.0 — visual force planning */
+.force-plan{display:grid;gap:14px;margin:10px 0 4px}
+.force-plan-side{border:1px solid rgba(145,174,205,.22);border-radius:10px;padding:10px;background:#0a1726}
+.force-plan-army{display:flex;justify-content:space-between;align-items:center;padding:7px 9px;margin-bottom:10px;border-radius:7px;background:#13243a;border-left:4px solid #5d8fff}
+.force-plan-side.imperial .force-plan-army{border-left-color:#e06464}
+.force-plan-army span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.force-plan-command-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;align-items:start}
+.force-plan-command{position:relative;border:1px solid var(--line);border-radius:9px;background:#0e1b2d;padding:9px}
+.force-plan-command:before{content:"";position:absolute;left:50%;top:-10px;height:10px;border-left:1px solid rgba(145,174,205,.45)}
+.force-plan-command header{display:flex;justify-content:space-between;gap:8px;align-items:start;padding-bottom:8px;border-bottom:1px solid rgba(145,174,205,.16)}
+.force-plan-command header small{display:block;margin-top:3px;color:var(--muted);font-size:10px}
+.force-plan-branch{display:grid;gap:7px;padding-top:9px}
+.force-plan-unit{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px;border-radius:8px;background:#15263c;border:1px solid rgba(145,174,205,.14)}
+.force-plan-symbol{display:grid;place-items:center;width:26px;height:26px;border:1px solid rgba(255,255,255,.45);border-radius:4px;background:#efe7d2;color:#111;font-size:17px}
+.force-plan-unit small,.force-plan-unit p{display:block;margin:2px 0;color:var(--muted);font-size:10px}
+.force-plan-unit b{color:var(--accent2)}
+.library-card.library-highlight{outline:3px solid #ffd45c;box-shadow:0 0 0 4px rgba(255,212,92,.16)}
+@media(max-width:760px){.force-plan-unit{grid-template-columns:28px 1fr}.force-plan-unit button{grid-column:2}}
+
+/* v0.5.4.0 — AI review defaults to plain-English presentation */
+.ai-review-summary{margin:12px 0;padding:12px;border:1px solid rgba(95,150,245,.35);border-radius:9px;background:#0d1d30}
+.ai-review-summary p{margin:6px 0;line-height:1.45}.ai-review-summary .eyebrow{margin:0 0 8px}
+.ai-change header strong{font-size:14px;line-height:1.35}.ai-change header span{white-space:nowrap;font-size:10px;color:var(--accent2)}
+.ai-change-rationale{color:#d8e3ef;line-height:1.4}
+.ai-technical-detail{margin:8px 0;color:var(--muted)}.ai-technical-detail summary{cursor:pointer;font-size:11px}.ai-technical-detail pre{max-height:220px;overflow:auto;background:#091522;padding:8px;border-radius:6px}

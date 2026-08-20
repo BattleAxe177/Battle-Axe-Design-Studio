@@ -56,6 +56,29 @@ function componentScan(mask,n,{minCount=18,maxCount=1e9,minLong=0,minAspect=1,ma
 function mergeComponents(items,gap=9){const pending=[...items],groups=[];while(pending.length){const g=[pending.shift()];let changed=true;while(changed){changed=false;let b={minx:Math.min(...g.map(x=>x.minx)),miny:Math.min(...g.map(x=>x.miny)),maxx:Math.max(...g.map(x=>x.maxx)),maxy:Math.max(...g.map(x=>x.maxy))};for(let i=pending.length-1;i>=0;i--){const x=pending[i],dx=Math.max(b.minx-x.maxx,x.minx-b.maxx,0),dy=Math.max(b.miny-x.maxy,x.miny-b.maxy,0);if(Math.hypot(dx,dy)<=gap){g.push(pending.splice(i,1)[0]);changed=true;}}}const minx=Math.min(...g.map(x=>x.minx)),miny=Math.min(...g.map(x=>x.miny)),maxx=Math.max(...g.map(x=>x.maxx)),maxy=Math.max(...g.map(x=>x.maxy));groups.push({minx,miny,maxx,maxy,w:maxx-minx+1,h:maxy-miny+1,count:g.reduce((a,x)=>a+x.count,0),pixels:g.flatMap(x=>x.pixels||[])});}return groups;}
 function rasterBox(c,n){return[c.minx/n*100,c.miny/n*100,c.w/n*100,c.h/n*100];}
 function rasterRuns(c,n){const rows=new Map();for(const k of c.pixels||[]){const x=k%n,y=(k/n)|0;if(!rows.has(y))rows.set(y,[]);rows.get(y).push(x);}const runs=[];for(const [y,xs] of rows){xs.sort((a,b)=>a-b);let a=xs[0],b=a;for(let i=1;i<=xs.length;i++){const x=xs[i];if(x===b+1){b=x;continue;}runs.push([a/n*100,y/n*100,(b-a+1)/n*100,1/n*100]);a=x;b=x;}}return runs.filter(r=>r.every(Number.isFinite));}
+
+export function genericAppearanceComponents(data,n){
+  const bins={blue:new Uint8Array(n*n),green:new Uint8Array(n*n),earth:new Uint8Array(n*n),dark:new Uint8Array(n*n)};
+  for(let i=0;i<n*n;i++){
+    const r=data[i*4],g=data[i*4+1],b=data[i*4+2],a=data[i*4+3];if(a<35)continue;
+    const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx-mn;
+    if(mx>247&&mn>247)continue;
+    if(b>r+14&&b>=g-10&&sat>24)bins.blue[i]=1;
+    if(g>r+8&&g>b+7&&sat>20)bins.green[i]=1;
+    if(r>g+12&&g>=b-18&&sat>22)bins.earth[i]=1;
+    if(mx<118&&mn<92)bins.dark[i]=1;
+  }
+  const minCount=Math.max(12,Math.floor(n*n*.00018)),minLong=Math.max(5,Math.floor(n*.018)),items=[];
+  for(const [kind,mask] of Object.entries(bins)){
+    const comps=mergeComponents(componentScan(mask,n,{minCount,minLong,minAspect:1,maxFill:1}),Math.max(2,Math.floor(n*.012)));
+    for(const c of comps){const area=(c.w*c.h)/(n*n),coverage=c.count/(n*n);if(area>.48||coverage>.38||Math.max(c.w,c.h)<minLong)continue;items.push({...c,kind,score:c.count+Math.max(c.w,c.h)*2});}
+  }
+  return items.sort((a,b)=>b.score-a.score).slice(0,24);
+}
+function genericRasterReviewCandidates(data,n){
+  const labels={blue:['possible water / ditch / cool-colored line','Hydrology candidate','Unknown'],green:['possible vegetation / field edge','Vegetation or field candidate','Unknown'],earth:['possible earthwork / road / cultivated feature','Earthwork, road, or field candidate','Unknown'],dark:['possible structure / boundary / linework','Structure or boundary candidate','Unknown']};
+  return genericAppearanceComponents(data,n).map((c,i)=>({id:`visual-region-${c.kind}-${i+1}`,name:`Visual map region ${i+1}`,kind:labels[c.kind][0],category:'Generic appearance geometry',proposal:labels[c.kind][1],cls:labels[c.kind][2],effects:[],detectionConfidence:78,interpretationConfidence:38,confidence:38,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Scenario-independent appearance fallback: a coherent visual region was detected inside the play area, but its terrain meaning is intentionally left unresolved for Geometry Explorer review.'}));
+}
 async function rasterClassifiers(svg,bound){
   // Appearance-assisted classifiers supplement, rather than replace, vector geometry. They are deliberately conservative.
   try{
@@ -77,12 +100,13 @@ async function rasterClassifiers(svg,bound){
     const roads=componentScan(masks.road,n,{minCount:30,maxCount:4500,minLong:35,minAspect:2.2,maxFill:.65}).filter(c=>c.w<n*.85&&c.h<n*.85).sort((a,b)=>b.count-a.count).slice(0,12);
     return{
       streams:streams.map((c,i)=>({id:`raster-stream-${i+1}`,name:`Watercourse ${i+1}`,category:'Hydrology',proposal:'Stream / river corridor',cls:'Stream',effects:['Difficult'],detectionConfidence:90,interpretationConfidence:84,confidence:84,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Appearance-assisted detection: connected blue/cyan meandering geometry in the rendered source map. derived review geometry only.'})),
-      walls:wallParts.map((c,i)=>({id:`raster-wall-${i+1}`,name:`Park wall ${i+1}`,category:'Walls & Fortifications',proposal:'Masonry wall',cls:'Masonry Wall',effects:['Impassable','Tall'],detectionConfidence:88,interpretationConfidence:88,confidence:88,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Appearance-assisted detection: elongated salmon masonry linework. Review before accepting.'})),
-      woods:woods.map((c,i)=>({id:`raster-wood-${i+1}`,name:`Woodland block ${i+1}`,category:'Woods & Groves',proposal:'Woodland area',cls:'Dense Wood',effects:['Difficult','Obscuring'],detectionConfidence:89,interpretationConfidence:82,confidence:82,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Appearance-assisted detection: large contiguous dark-green vegetation area.'})),
-      avenues:avenues.map((c,i)=>({id:`raster-avenue-${i+1}`,name:`Tree line / avenue ${i+1}`,category:'Vegetation Lines',proposal:'Tree-lined avenue vegetation',cls:'Open Grove',effects:['Obscuring'],detectionConfidence:82,interpretationConfidence:72,confidence:72,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Appearance-assisted detection: narrow elongated dark-green vegetation line. May be decorative; review required.'})),
-      roads:roads.map((c,i)=>({id:`raster-road-${i+1}`,name:`Road / track ${i+1}`,category:'Roads & Tracks',proposal:'Road or maintained track',cls:'Open Ground',effects:[],detectionConfidence:76,interpretationConfidence:68,confidence:68,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Appearance-assisted detection: elongated pale/tan route geometry. Lower confidence because ground texture can use similar colors.'}))
+      walls:wallParts.map((c,i)=>({id:`raster-wall-${i+1}`,name:`Wall / linear earthwork ${i+1}`,category:'Walls & Fortifications',proposal:'Wall or fortified line',cls:'Masonry Wall',effects:['Impassable','Tall'],detectionConfidence:88,interpretationConfidence:72,confidence:72,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Appearance-assisted detection: elongated warm-colored defensive linework. Review classification before accepting.'})),
+      woods:woods.map((c,i)=>({id:`raster-wood-${i+1}`,name:`Vegetation block ${i+1}`,category:'Woods & Groves',proposal:'Woodland area',cls:'Dense Wood',effects:['Difficult','Obscuring'],detectionConfidence:89,interpretationConfidence:76,confidence:76,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Appearance-assisted detection: large contiguous dark-green vegetation area.'})),
+      avenues:avenues.map((c,i)=>({id:`raster-avenue-${i+1}`,name:`Vegetation line ${i+1}`,category:'Vegetation Lines',proposal:'Linear vegetation',cls:'Open Grove',effects:['Obscuring'],detectionConfidence:82,interpretationConfidence:62,confidence:62,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Appearance-assisted detection: narrow elongated dark-green vegetation line. It may be an avenue, hedge, field edge, or decorative vegetation; review required.'})),
+      roads:roads.map((c,i)=>({id:`raster-road-${i+1}`,name:`Pale route / linear feature ${i+1}`,category:'Roads & Tracks',proposal:'Road or maintained track',cls:'Open Ground',effects:[],detectionConfidence:76,interpretationConfidence:58,confidence:58,box:rasterBox(c,n),rasterRuns:rasterRuns(c,n),elementIds:[],reason:'Appearance-assisted detection: elongated pale/tan route geometry. Lower confidence because ground texture can use similar colors.'})),
+      generic:genericRasterReviewCandidates(data,n)
     };
-  }catch(e){console.warn('Raster classifier fallback unavailable',e);return{streams:[],walls:[],woods:[],avenues:[],roads:[]};}
+  }catch(e){console.warn('Raster classifier fallback unavailable',e);return{streams:[],walls:[],woods:[],avenues:[],roads:[],generic:[]};}
 }
 
 function rgbKind(value){
@@ -90,7 +114,7 @@ function rgbKind(value){
 }
 function genericVectorCandidates(svg,bound,used,max=28){
   const out=[],mapArea=Math.max(1,bound.width*bound.height);
-  for(const el of svg.querySelectorAll('path,rect,line,polyline,polygon,circle,ellipse')){
+  for(const el of svg.querySelectorAll('path,rect,line,polyline,polygon,circle,ellipse,use')){
     const id=el.dataset.baGeometryId;if(!id||used.has(id))continue;const b=geometryBox(el);if(!b||!meaningfulInside(b,bound))continue;
     const clipped=clipBox(b,bound);if(!clipped)continue;const relArea=(clipped.width*clipped.height)/mapArea,relLong=Math.max(clipped.width/bound.width,clipped.height/bound.height);if(relArea>.55||(relArea<.000012&&relLong<.012))continue;
     const fill=styleColor(el,'fill'),stroke=styleColor(el,'stroke'),kindFill=rgbKind(fill),kindStroke=rgbKind(stroke),aspect=Math.max(clipped.width/Math.max(1,clipped.height),clipped.height/Math.max(1,clipped.width));let kind='unclassified source geometry',proposal='Review source geometry',cls='Unknown',effects=[],confidence=42;
@@ -121,11 +145,13 @@ export async function detectBattlefieldFeatures(svg,{mapNotes='',playSpace=null}
   const openings=[syntheticOpening(svg,bound,walls,'Pescarina','Porta Pescarina','map-gate-pescarina','Gatehouse',91),syntheticOpening(svg,bound,walls,'Repentita','Porta Repentita','map-gate-repentita','Gatehouse',88),syntheticOpening(svg,bound,walls,'Riazzo','Porta Riazzo','map-gate-riazzo','Gatehouse',86),syntheticOpening(svg,bound,walls,'Due Porte','Due Porte','map-gate-due-porte','Gatehouse',82),syntheticOpening(svg,bound,walls,'Breach','Imperial breach','map-breach','Breach',92)].filter(Boolean);classified+=openings.length;features.push(...openings);
   const mir=findText(svg,'Mirabello');if(mir&&structures.length){const p=center(geometryBox(mir)),nearest=[...structures].sort((a,b)=>pointDistanceToBox(p,a.bbox)-pointDistanceToBox(p,b.bbox))[0];classified++;features.push(featureFromGroup([nearest],{id:'map-mirabello',name:'Castello Mirabello',category:'Structures',proposal:'Major structure / castle complex',cls:'Building',effects:['Impassable','Tall','Defensive'],detectionConfidence:98,interpretationConfidence:85,reason:'Map label linked to nearest compact structure geometry.'},bound));}
   raster.roads.forEach(x=>candidates.push({...x,kind:'possible road / track'}));
+  for(const x of raster.generic||[])candidates.push(x);
   const used=new Set(features.flatMap(f=>f.elementIds||[]));structures.filter(x=>!used.has(x.id)).forEach((item,i)=>candidates.push(featureFromGroup([item],{id:`candidate-structure-${i+1}`,name:`Additional compact structure ${i+1}`,kind:'building / gatehouse / landmark',proposal:'Unclassified compact structure',cls:'Unknown',effects:[],detectionConfidence:99,interpretationConfidence:46,confidence:46,reason:'Clearly detected source geometry, but its gameplay role is ambiguous.'},bound)));
   tracks.filter(x=>meaningfulInside(x.bbox,bound)).forEach((item,i)=>candidates.push(featureFromGroup([item],{id:`candidate-track-${i+1}`,name:`Possible route / boundary ${i+1}`,kind:'brown linear or patterned geometry',proposal:'Possible road, track, ditch, or decorative line',cls:'Unknown',effects:[],detectionConfidence:98,interpretationConfidence:48,confidence:48,reason:'Detected directly from source geometry; withheld because this convention can represent several map elements.'},bound)));
   const validBox=x=>Array.isArray(x.box)&&x.box.length===4&&x.box.every(Number.isFinite)&&x.box[2]>.05&&x.box[3]>.05&&!((x.box[0]<.15&&x.box[1]<.15)&&(x.box[2]<2.5||x.box[3]<2.5));
   const promoted=features.filter(validBox),cleanCandidates=candidates.filter(validBox),claimedIds=new Set([...promoted,...cleanCandidates].flatMap(f=>f.elementIds||[]));
   const generic=genericVectorCandidates(svg,bound,claimedIds,Math.max(10,28-cleanCandidates.length));for(const g of generic)if(!cleanCandidates.some(x=>x.id===g.id))cleanCandidates.push(g);
-  const raw=wet.length+woods.length+walls.length+avenues.length+bridges.length+structures.length+tracks.length+raster.streams.length+raster.walls.length+raster.woods.length+raster.avenues.length+raster.roads.length+generic.length;
-  return{features:promoted,candidates:cleanCandidates,boundary:bound,stats:{raw,classified,promoted:promoted.length,explorer:cleanCandidates.length,generic:generic.length,water:raster.streams.length,wet:wet.length,wood:woods.length,wall:walls.length,avenue:avenues.length,bridge:bridges.length,structure:structures.length,track:tracks.length,rasterWall:raster.walls.length,rasterWood:raster.woods.length,rasterAvenue:raster.avenues.length,rasterRoad:raster.roads.length}};
+  if(!promoted.length&&!cleanCandidates.length&&svg.querySelector('image'))cleanCandidates.push({id:'visual-source-unresolved',name:'Rendered map image',kind:'raster map requiring geometry review',category:'Compiler diagnostic',proposal:'Inspect image-derived terrain',cls:'Unknown',effects:[],detectionConfidence:100,interpretationConfidence:0,confidence:0,box:[0,0,100,100],elementIds:[],reason:'The SVG contains rendered image content inside the play area, but automatic segmentation did not resolve individual terrain features. This diagnostic is kept in Geometry Explorer so a geometry-rich map never reports a silent successful zero-feature compile.'});
+  const raw=wet.length+woods.length+walls.length+avenues.length+bridges.length+structures.length+tracks.length+raster.streams.length+raster.walls.length+raster.woods.length+raster.avenues.length+raster.roads.length+(raster.generic?.length||0)+generic.length;
+  return{features:promoted,candidates:cleanCandidates,boundary:bound,stats:{raw,classified,promoted:promoted.length,explorer:cleanCandidates.length,generic:generic.length,water:raster.streams.length,wet:wet.length,wood:woods.length,wall:walls.length,avenue:avenues.length,bridge:bridges.length,structure:structures.length,track:tracks.length,rasterWall:raster.walls.length,rasterWood:raster.woods.length,rasterAvenue:raster.avenues.length,rasterRoad:raster.roads.length,genericRaster:raster.generic?.length||0,diagnosticOnly:cleanCandidates.length===1&&cleanCandidates[0].id==='visual-source-unresolved'}};
 }

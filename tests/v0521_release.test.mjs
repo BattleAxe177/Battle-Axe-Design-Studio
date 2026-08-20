@@ -3,7 +3,7 @@ const read=p=>fs.readFile(new URL('../'+p,import.meta.url),'utf8');
 
 test('deployment and replay visual footprint derive from base mm and battlefield dimensions',async()=>{
   const d=await read('src/modules/deploymentEditor.js'),p=await read('src/modules/playtestCenter.js');
-  assert.match(d,/pctFromMm/);assert.match(d,/unitBaseMm/);assert.match(p,/pctFromMm/);assert.match(p,/commanderBaseMm/);
+  assert.match(d,/footprintPercent/);assert.match(d,/unitBaseMm/);assert.match(p,/footprintPercent/);assert.match(p,/commanderBaseMm/);
 });
 test('battlefield subnavigation remains available and has explicit back controls',async()=>{
   const h=await read('index.html'),n=await read('src/modules/navigation.js');

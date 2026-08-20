@@ -1,18 +1,18 @@
-import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.3.0';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.3.0';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.5.3.0';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.3.0';
-import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.3.0';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.3.0';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.3.0';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.3.0';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.3.0';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.3.0';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.5.3.0';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.3.0';
-import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.3.0';
+import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.4.0';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.4.0';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.5.4.0';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.4.0';
+import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.4.0';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.4.0';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.4.0';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.4.0';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.4.0';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.4.0';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.5.4.0';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.4.0';
+import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.4.0';
 
-const VERSION = '0.5.3.0';
+const VERSION = '0.5.4.0';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -97,7 +97,7 @@ function setupFiles() {
     const button=$('#generateBattlefield');if(button)button.disabled=true;
     try{
       setText('#battlefieldBuildStatus','Compiling battlefield geometry…');
-      const sourceText=await file.text();if(!/<svg[\s>]/i.test(sourceText))throw new Error('Selected vector file is not valid SVG.');
+      const sourceText=await file.text();if(!/<(?:[\w.-]+:)?svg[\s>]/i.test(sourceText))throw new Error('Selected vector file is not valid SVG.');
       const playSpace={width:Number($('#width').value||48),height:Number($('#height').value||48),units:$('#units').value,origin:$('#origin').value};
       state.project.playSpace=playSpace;
       state.project.historicalContext=$('#historicalContext').value;
@@ -126,9 +126,12 @@ function setupFiles() {
       saveState(state);
 
       const total=state.project.features.length+state.project.candidates.length;
-      sessionStorage.setItem('bax-battlefield-build-status',total
-        ? `${file.name}: ${state.project.features.length} review feature(s), ${state.project.candidates.length} Geometry Explorer candidate(s).`
-        : `${file.name}: map imported, but no battlefield geometry candidates were generated. Review Geometry Tools or the source SVG.`);
+      const diagnosticOnly=!!detected.stats?.diagnosticOnly;
+      sessionStorage.setItem('bax-battlefield-build-status',diagnosticOnly
+        ? `${file.name}: map imported, but terrain segmentation was inconclusive. A diagnostic candidate was retained in Geometry Explorer instead of reporting a silent zero-feature success.`
+        : total
+          ? `${file.name}: ${state.project.features.length} review feature(s), ${state.project.candidates.length} Geometry Explorer candidate(s).`
+          : `${file.name}: map imported, but no battlefield geometry candidates were generated. Review Geometry Tools or the source SVG.`);
       // A full reload is deliberate: every workspace is rebound to the same persisted
       // battlefield revision instead of retaining an editor-local reference to the old map.
       window.location.reload();
@@ -200,7 +203,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.5.3.0');
+      const mod=await import('./samples/paviaSample.js?v=0.5.4.0');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}
