@@ -1,9 +1,0 @@
-{
-  "format": "battle-axe-sample-project",
-  "id": "pavia",
-  "name": "Pavia Test Scenario",
-  "module": "src/data/paviaProject.js",
-  "map": "projects/pavia/battlefield.svg",
-  "terrain": "projects/pavia/pptx-terrain-manifest.json",
-  "purpose": "Development/regression sample only. No Pavia-specific assumptions should live in generic Studio logic."
-}
