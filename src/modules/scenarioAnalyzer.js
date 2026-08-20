@@ -1,4 +1,4 @@
-import { getEffectiveRuleset, profileForText } from '../rules/ruleset.js?v=0.5.2.3';
+import { getEffectiveRuleset, profileForText } from '../rules/ruleset.js?v=0.5.3.0';
 
 const cleanInline=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
 const cleanBlock=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n[ \t]+/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
@@ -26,12 +26,21 @@ function headingKey(line){
   return null;
 }
 
+function armyHeadingLabel(line){
+  const normalized=line.replace(/^#{1,6}\s*/,'').replace(/\*\*/g,'').replace(/[:.]+$/,'').trim();
+  if(/^(?:battle axe )?forces?$/i.test(normalized))return null;
+  const m=normalized.match(/^(.+?)\s+(?:army|forces?|host|contingent)$/i);
+  if(!m)return null;
+  const label=cleanInline(m[1]).replace(/^(?:the)\s+/i,'');
+  return label&&label.length<=48?label:null;
+}
+
 function splitSections(text){
   const raw=text.replace(/\r/g,'').split('\n');
   const out={preamble:[]}; let current='preamble';
   for(const line of raw){
-    const key=headingKey(line.trim());
-    if(key){current=key;if(!out[current])out[current]=[];continue;}
+    const trimmed=line.trim(),key=headingKey(trimmed),army=key?null:armyHeadingLabel(trimmed);
+    if(key||army){current=key||`army:${army}`;if(!out[current])out[current]=[];continue;}
     if(!out[current])out[current]=[];out[current].push(line);
   }
   return Object.fromEntries(Object.entries(out).map(([k,v])=>[k,cleanBlock(v.join('\n'))]));
@@ -49,22 +58,22 @@ function detectMetadata(text){
 }
 
 function factionFor(text,current='Unknown'){
-  const m=text.match(/\b(French|Spanish|Imperial|English|Scottish|Venetian|Milanese|Papal|Swiss|Ottoman|Burgundian|Garrison)\b/i);
+  const m=text.match(/\b(French|Spanish|Imperial|English|Scottish|Venetian|Milanese|Papal|Swiss|Ottoman|Burgundian)\b/i);
   return m?m[1][0].toUpperCase()+m[1].slice(1).toLowerCase():current;
 }
 function strengthFrom(text){const m=text.match(/\b(?:approximately|about|roughly|c\.?|circa)?\s*(\d{1,3}(?:,\d{3})+|\d{3,5})\b/i);return m?m[1]:'';}
 function explicitCommander(line){const m=line.match(/^(?:\*\*)?Commander(?:\*\*)?\s*:\s*(.+)$/i);return m?cleanInline(m[1]).replace(/\*\*/g,'').trim():'';}
 function evidenceName(line,profile){const x=cleanInline(line).replace(/^[-*•\d.)\s]+/,'').replace(/\*\*/g,'');const first=x.split(/[.;]/)[0];return first.length<=110?first:profile;}
 function detectHistoricalFormations(text,sections={},ruleset=getEffectiveRuleset(null)){
-  const out=[];for(const [section,block] of Object.entries(sections)){if(!block)continue;let current=section==='french'?'French':section==='imperial'?'Imperial':'Unknown';
+  const out=[];for(const [section,block] of Object.entries(sections)){if(!block)continue;let current=section==='french'?'French':section==='imperial'?'Imperial':section.startsWith('army:')?section.slice(5):'Unknown';
     for(const raw of lines(block)){if(explicitCommander(raw)||raw.length>240)continue;const profile=profileForText(raw,ruleset);if(!profile)continue;
       const listLike=/^[-*•]|\d+[.)]\s/.test(raw),faction=factionFor(raw,current),name=evidenceName(raw,profile),key=`${section}|${faction}|${name}|${profile}`;
-      if(!out.some(x=>x.key===key))out.push({key,id:`src-${idify(key)}`,faction,name,profileHint:profile,strength:strengthFrom(raw),sourceText:raw,section,confidence:listLike?92:(raw.length<125?76:58),provenance:'SOURCE',translationStatus:'unresolved'});
+      if(!out.some(x=>x.key===key))out.push({key,id:`src-${idify(key)}`,faction,name,profileHint:profile,strength:strengthFrom(raw),sourceText:raw,section,confidence:listLike?92:(raw.length<125?76:58),provenance:'SOURCE',translationStatus:'unresolved',forceRole:/\bgarrison\b|\bdefenders? of\b/i.test(raw)?'garrison':null});
     }}
   return out.slice(0,80);
 }
 function detectCommandEvidence(sections={}){
-  const out=[];for(const [section,block] of Object.entries(sections)){const faction=section==='french'?'French':section==='imperial'?'Imperial':'Unknown';for(const raw of lines(block||'')){const commander=explicitCommander(raw);if(commander)out.push({id:`cmd-evidence-${idify(faction+'-'+commander)}`,faction,commander,name:'Command organization unresolved',formations:[],provenance:'SOURCE',confidence:96,sourceText:raw});}}return out;
+  const out=[];for(const [section,block] of Object.entries(sections)){const faction=section==='french'?'French':section==='imperial'?'Imperial':section.startsWith('army:')?section.slice(5):'Unknown';for(const raw of lines(block||'')){const commander=explicitCommander(raw);if(commander)out.push({id:`cmd-evidence-${idify(faction+'-'+commander)}`,faction,commander,name:'Command organization unresolved',formations:[],provenance:'SOURCE',confidence:96,sourceText:raw});}}return out;
 }
 function makeSuggestion(type,title,proposal,evidence,confidence=70){return {id:`sug-${idify(type+'-'+title)}`,type,title,proposal,evidence,confidence,status:'pending',provenance:'STUDIO PROPOSAL'};}
 function detectSuggestions(text,sections={}){
@@ -84,5 +93,5 @@ export function analyzeScenarioText(text,{sourceName='Pasted text',ruleset=getEf
   return {metadata,historicalSituation,deploymentNotes,victoryText,forces,sourceCommands,suggestions,observations,unresolved};
 }
 export function proposedRosterUnits(sourceForces,ruleset=getEffectiveRuleset(null)){
-  const byFaction={};for(const f of sourceForces){if(!byFaction[f.faction])byFaction[f.faction]=[];const profile=f.profileHint;byFaction[f.faction].push({proposalId:`proposal-${f.id}`,sourceId:f.id,name:profile,profile,represents:f.name,commander:'',commandName:`${f.faction} — command unresolved`,traits:[...(ruleset.unitLibrary.find(u=>u.profile===profile)?.traits||[])],notes:`STUDIO PROPOSAL from historical evidence: ${f.sourceText}${f.strength?` Strength recorded: ${f.strength}.`:''} The source does not by itself determine how many Battle Axe units this formation should become. Review unit count, profile, and command allocation before acceptance.`,accepted:false,provenance:'STUDIO PROPOSAL',confidence:Math.max(45,f.confidence-12)});}return byFaction;
+  const byFaction={};for(const f of sourceForces){if(!byFaction[f.faction])byFaction[f.faction]=[];const profile=f.profileHint;byFaction[f.faction].push({proposalId:`proposal-${f.id}`,sourceId:f.id,name:profile,profile,represents:f.name,commander:'',commandName:`${f.faction} — command unresolved`,traits:[...(ruleset.unitLibrary.find(u=>u.profile===profile)?.traits||[])],notes:`STUDIO PROPOSAL from historical evidence: ${f.sourceText}${f.strength?` Strength recorded: ${f.strength}.`:''} The source does not by itself determine how many Battle Axe units this formation should become. Review unit count, profile, and command allocation before acceptance.`,accepted:false,provenance:'STUDIO PROPOSAL',confidence:Math.max(45,f.confidence-12),forceRole:f.forceRole||null});}return byFaction;
 }

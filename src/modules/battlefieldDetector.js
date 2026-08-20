@@ -25,7 +25,22 @@ function centerInside(b,bound){const c=center(b);return c&&c.x>=bound.x&&c.x<=bo
 function meaningfulInside(b,bound){const c=clipBox(b,bound);if(!c)return false;if(centerInside(b,bound))return true;const ratio=(c.width*c.height)/Math.max(1,b.width*b.height);return ratio>.45&&(c.width/bound.width>.015||c.height/bound.height>.015);}
 function cluster(items,tol=12){const pending=[...items],groups=[];while(pending.length){const g=[pending.shift()];let changed=true;while(changed){changed=false;const ub=unionBox(g);for(let i=pending.length-1;i>=0;i--)if(distanceBoxes(ub,pending[i].bbox)<=tol){g.push(pending.splice(i,1)[0]);changed=true;}}groups.push(g);}return groups;}
 function assignGeometryIds(svg){let n=0;for(const el of svg.querySelectorAll('path,rect,line,polyline,polygon,circle,ellipse,image,use,g'))if(!el.dataset.baGeometryId)el.dataset.baGeometryId=`ba-geom-${++n}`;}
-function findBoundary(svg){for(const rect of svg.querySelectorAll('rect'))if(norm(rect.getAttribute('stroke'))===norm(COLORS.boundary)){const b=geometryBox(rect);if(b?.width&&b?.height)return b;}const v=svg.viewBox?.baseVal;if(v?.width)return{x:v.x,y:v.y,width:v.width,height:v.height};return geometryBox(svg)||{x:0,y:0,width:1000,height:1000};}
+function findBoundary(svg,playSpace=null){
+  for(const rect of svg.querySelectorAll('rect'))if(isColor(rect,'stroke',COLORS.boundary,18)){const b=geometryBox(rect);if(b?.width&&b?.height)return b;}
+  const v=svg.viewBox?.baseVal,root=v?.width?{x:v.x,y:v.y,width:v.width,height:v.height}:geometryBox(svg)||{x:0,y:0,width:1000,height:1000};
+  const desired=(Number(playSpace?.width)||0)/(Number(playSpace?.height)||0),rootArea=Math.max(1,root.width*root.height),candidates=[];
+  for(const rect of svg.querySelectorAll('rect')){
+    const b=geometryBox(rect);if(!b?.width||!b?.height)continue;
+    const area=(b.width*b.height)/rootArea;if(area<.08||area>.985)continue;
+    const stroke=styleColor(rect,'stroke'),fill=styleColor(rect,'fill'),fillOpacity=Number(rect.getAttribute('fill-opacity')??1),strokeWidth=Number.parseFloat(rect.getAttribute('stroke-width')||'1')||1;
+    const outlined=!!stroke&&stroke!=='none'&&(fill==='none'||!fill||fillOpacity<.12);if(!outlined)continue;
+    const aspect=b.width/b.height,aspectPenalty=desired>0?Math.abs(Math.log(Math.max(.01,aspect/desired))):0;
+    if(desired>0&&aspectPenalty>.72)continue;
+    candidates.push({b,score:aspectPenalty*5-area+Math.min(.5,strokeWidth/100)});
+  }
+  if(candidates.length)return candidates.sort((a,b)=>a.score-b.score)[0].b;
+  return root;
+}
 function collect(svg,bound,pred,selector='path,rect,line,polyline,polygon,circle,ellipse'){const out=[];for(const el of svg.querySelectorAll(selector)){if(!pred(el))continue;const bbox=geometryBox(el);if(!bbox||!overlap(bbox,bound)||!meaningfulInside(bbox,bound))continue;out.push({el,bbox,id:el.dataset.baGeometryId});}return out;}
 function featureFromGroup(group,opts,bound){const bbox=unionBox(group),box=percentBox(bbox,bound,.7);return{...opts,detectionConfidence:opts.detectionConfidence??99,interpretationConfidence:opts.interpretationConfidence??opts.confidence??80,confidence:opts.interpretationConfidence??opts.confidence??80,box,elementIds:group.map(x=>x.id).filter(Boolean)};}
 function findText(svg,needle){const t=needle.toLowerCase();return[...svg.querySelectorAll('text')].find(x=>(x.textContent||'').trim().toLowerCase().includes(t));}
@@ -44,7 +59,8 @@ function rasterRuns(c,n){const rows=new Map();for(const k of c.pixels||[]){const
 async function rasterClassifiers(svg,bound){
   // Appearance-assisted classifiers supplement, rather than replace, vector geometry. They are deliberately conservative.
   try{
-    const xml=new XMLSerializer().serializeToString(svg.cloneNode(true)),blob=new Blob([xml],{type:'image/svg+xml'}),url=URL.createObjectURL(blob),img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url;});
+    const clone=svg.cloneNode(true);clone.setAttribute('viewBox',`${bound.x} ${bound.y} ${bound.width} ${bound.height}`);clone.removeAttribute('width');clone.removeAttribute('height');clone.setAttribute('preserveAspectRatio','none');
+    const xml=new XMLSerializer().serializeToString(clone),blob=new Blob([xml],{type:'image/svg+xml'}),url=URL.createObjectURL(blob),img=new Image();await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url;});
     const n=420,canvas=document.createElement('canvas');canvas.width=n;canvas.height=n;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0,n,n);URL.revokeObjectURL(url);const data=ctx.getImageData(0,0,n,n).data;
     const masks={water:new Uint8Array(n*n),wall:new Uint8Array(n*n),green:new Uint8Array(n*n),road:new Uint8Array(n*n)};
     for(let i=0;i<n*n;i++){const r=data[i*4],g=data[i*4+1],b=data[i*4+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);
@@ -69,8 +85,28 @@ async function rasterClassifiers(svg,bound){
   }catch(e){console.warn('Raster classifier fallback unavailable',e);return{streams:[],walls:[],woods:[],avenues:[],roads:[]};}
 }
 
-export async function detectBattlefieldFeatures(svg,{mapNotes=''}={}){
-  assignGeometryIds(svg);const bound=findBoundary(svg),byFill=(c,t=18)=>collect(svg,bound,e=>isColor(e,'fill',c,t)),byStroke=(c,t=18)=>collect(svg,bound,e=>isColor(e,'stroke',c,t));
+function rgbKind(value){
+  const c=parseColor(value);if(!c)return null;const [r,g,b]=c,mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(mx-mn<22)return 'neutral';if(b>r+20&&b>=g-8)return 'water';if(g>r+12&&g>b+12)return 'vegetation';if(r>g+18&&g>b-5)return 'earth';return 'other';
+}
+function genericVectorCandidates(svg,bound,used,max=28){
+  const out=[],mapArea=Math.max(1,bound.width*bound.height);
+  for(const el of svg.querySelectorAll('path,rect,line,polyline,polygon,circle,ellipse')){
+    const id=el.dataset.baGeometryId;if(!id||used.has(id))continue;const b=geometryBox(el);if(!b||!meaningfulInside(b,bound))continue;
+    const clipped=clipBox(b,bound);if(!clipped)continue;const relArea=(clipped.width*clipped.height)/mapArea,relLong=Math.max(clipped.width/bound.width,clipped.height/bound.height);if(relArea>.55||(relArea<.000012&&relLong<.012))continue;
+    const fill=styleColor(el,'fill'),stroke=styleColor(el,'stroke'),kindFill=rgbKind(fill),kindStroke=rgbKind(stroke),aspect=Math.max(clipped.width/Math.max(1,clipped.height),clipped.height/Math.max(1,clipped.width));let kind='unclassified source geometry',proposal='Review source geometry',cls='Unknown',effects=[],confidence=42;
+    if(kindStroke==='water'||kindFill==='water'){kind='possible watercourse / wet feature';proposal='Hydrology candidate';cls=aspect>2.2?'Stream':'Wet Ground';effects=['Difficult'];confidence=68;}
+    else if(kindFill==='vegetation'&&relArea>.0015){kind='possible vegetation area';proposal='Woodland / grove candidate';cls=relArea>.01?'Dense Wood':'Open Grove';effects=relArea>.01?['Difficult','Obscuring']:['Obscuring'];confidence=64;}
+    else if(aspect>4&&stroke&&stroke!=='none'){kind='possible linear terrain';proposal='Road / wall / ditch / boundary candidate';confidence=54;}
+    else if(relArea>.003){kind='possible area terrain';proposal='Area terrain candidate';confidence=48;}
+    else if(relArea>.00008){kind='possible compact structure / point feature';proposal='Structure / landmark candidate';confidence=46;}
+    else continue;
+    out.push({id:`generic-${id}`,name:`Source geometry ${out.length+1}`,kind,category:'Generic source geometry',proposal,cls,effects,detectionConfidence:96,interpretationConfidence:confidence,confidence,box:percentBox(clipped,bound,.35),elementIds:[id],reason:'Scenario-independent vector fallback: meaningful source geometry was detected inside the play area, but its map convention was not recognized confidently enough for automatic classification.',_score:confidence+Math.min(20,relArea*500)+Math.min(8,aspect)});
+  }
+  return out.filter(x=>x.box).sort((a,b)=>b._score-a._score).slice(0,max).map(({_score,...x})=>x);
+}
+
+export async function detectBattlefieldFeatures(svg,{mapNotes='',playSpace=null}={}){
+  assignGeometryIds(svg);const bound=findBoundary(svg,playSpace),byFill=(c,t=18)=>collect(svg,bound,e=>isColor(e,'fill',c,t)),byStroke=(c,t=18)=>collect(svg,bound,e=>isColor(e,'stroke',c,t));
   const wet=byFill(COLORS.water,45),woods=byFill(COLORS.wood),walls=byStroke(COLORS.wall),avenues=byStroke(COLORS.avenue),bridges=byFill(COLORS.bridge),structures=byFill(COLORS.structure),tracks=byFill(COLORS.track);
   const raster=await rasterClassifiers(svg,bound),features=[],candidates=[];let classified=0;
   wet.forEach((item,i)=>{classified++;features.push(featureFromGroup([item],{id:`map-wet-${i+1}`,name:`Wet-ground polygon ${i+1}`,category:'Hydrology',proposal:'Wet ground / marsh margin',cls:'Wet Ground',effects:['Difficult'],detectionConfidence:99,interpretationConfidence:82,reason:'Detected directly from cyan source-map polygon geometry. Classified separately from stream channels.'},bound));});
@@ -88,6 +124,8 @@ export async function detectBattlefieldFeatures(svg,{mapNotes=''}={}){
   const used=new Set(features.flatMap(f=>f.elementIds||[]));structures.filter(x=>!used.has(x.id)).forEach((item,i)=>candidates.push(featureFromGroup([item],{id:`candidate-structure-${i+1}`,name:`Additional compact structure ${i+1}`,kind:'building / gatehouse / landmark',proposal:'Unclassified compact structure',cls:'Unknown',effects:[],detectionConfidence:99,interpretationConfidence:46,confidence:46,reason:'Clearly detected source geometry, but its gameplay role is ambiguous.'},bound)));
   tracks.filter(x=>meaningfulInside(x.bbox,bound)).forEach((item,i)=>candidates.push(featureFromGroup([item],{id:`candidate-track-${i+1}`,name:`Possible route / boundary ${i+1}`,kind:'brown linear or patterned geometry',proposal:'Possible road, track, ditch, or decorative line',cls:'Unknown',effects:[],detectionConfidence:98,interpretationConfidence:48,confidence:48,reason:'Detected directly from source geometry; withheld because this convention can represent several map elements.'},bound)));
   const validBox=x=>Array.isArray(x.box)&&x.box.length===4&&x.box.every(Number.isFinite)&&x.box[2]>.05&&x.box[3]>.05&&!((x.box[0]<.15&&x.box[1]<.15)&&(x.box[2]<2.5||x.box[3]<2.5));
-  const promoted=features.filter(validBox),cleanCandidates=candidates.filter(validBox),raw=wet.length+woods.length+walls.length+avenues.length+bridges.length+structures.length+tracks.length+raster.streams.length+raster.walls.length+raster.woods.length+raster.avenues.length+raster.roads.length;
-  return{features:promoted,candidates:cleanCandidates,boundary:bound,stats:{raw,classified,promoted:promoted.length,explorer:cleanCandidates.length,water:raster.streams.length,wet:wet.length,wood:woods.length,wall:walls.length,avenue:avenues.length,bridge:bridges.length,structure:structures.length,track:tracks.length,rasterWall:raster.walls.length,rasterWood:raster.woods.length,rasterAvenue:raster.avenues.length,rasterRoad:raster.roads.length}};
+  const promoted=features.filter(validBox),cleanCandidates=candidates.filter(validBox),claimedIds=new Set([...promoted,...cleanCandidates].flatMap(f=>f.elementIds||[]));
+  const generic=genericVectorCandidates(svg,bound,claimedIds,Math.max(10,28-cleanCandidates.length));for(const g of generic)if(!cleanCandidates.some(x=>x.id===g.id))cleanCandidates.push(g);
+  const raw=wet.length+woods.length+walls.length+avenues.length+bridges.length+structures.length+tracks.length+raster.streams.length+raster.walls.length+raster.woods.length+raster.avenues.length+raster.roads.length+generic.length;
+  return{features:promoted,candidates:cleanCandidates,boundary:bound,stats:{raw,classified,promoted:promoted.length,explorer:cleanCandidates.length,generic:generic.length,water:raster.streams.length,wet:wet.length,wood:woods.length,wall:walls.length,avenue:avenues.length,bridge:bridges.length,structure:structures.length,track:tracks.length,rasterWall:raster.walls.length,rasterWood:raster.woods.length,rasterAvenue:raster.avenues.length,rasterRoad:raster.roads.length}};
 }

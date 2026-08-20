@@ -33,7 +33,7 @@ test('Battle Axe unit library seeds command-aware roster proposals',()=>{
 });
 
 test('blank scenario distinguishes source commands, working commands and deployment',()=>{
-  const s=createBlankScenario();assert.deepEqual(s.sourceCommands,[]);assert.deepEqual(s.commands,{French:[],Imperial:[],Garrison:[]});assert.deepEqual(s.deployment,{placements:{},commanderPlacements:{},zones:[]});assert.equal(s.ruleset.supplement,'italian-wars');
+  const s=createBlankScenario();assert.deepEqual(s.sourceCommands,[]);assert.deepEqual(s.commands,{French:[],Imperial:[]});assert.deepEqual(s.deployment,{placements:{},commanderPlacements:{},zones:[],battlefieldRevision:null});assert.equal(s.ruleset.supplement,'italian-wars');
 });
 
 test('Scenario Builder and Deployment UI expose command hierarchy and rule editor',async()=>{

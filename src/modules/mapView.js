@@ -27,6 +27,20 @@ function parseSvgDocument(text) {
   return root;
 }
 
+export function loadInlineMapText(host, text) {
+  if (!host) throw new Error('Battlefield map host element was not found.');
+  if(!String(text||'').trim()) throw new Error('Map source is empty.');
+  const parsedRoot=parseSvgDocument(text);
+  const svg=document.importNode(parsedRoot,true);
+  host.replaceChildren(svg);
+  svg.removeAttribute('width');
+  svg.removeAttribute('height');
+  svg.setAttribute('preserveAspectRatio','xMidYMid meet');
+  svg.classList.add('battlefield-svg');
+  svg.dataset.baLoaded='true';
+  return svg;
+}
+
 export async function loadInlineMap(host, url) {
   if (!host) throw new Error('Battlefield map host element was not found.');
   const response=await fetch(url,{cache:'no-store'});

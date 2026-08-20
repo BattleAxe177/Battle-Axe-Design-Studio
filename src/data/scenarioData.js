@@ -95,8 +95,9 @@ export function createBlankScenario(){
     historicalSituation:'',deploymentNotes:'',victoryText:'',
     sources:[],observations:[],suggestions:[],ignoredSuggestionIds:[],acceptedSuggestionIds:[],
     sourceForces:[],sourceCommands:[],
-    commands:{French:[],Imperial:[],Garrison:[]},
+    sideLabels:{French:'Side A',Imperial:'Side B'},sideAliases:{},
+    commands:{French:[],Imperial:[]},
     unresolved:[],lastAnalysis:null,
-    deployment:{placements:{},commanderPlacements:{},zones:[]}
+    deployment:{placements:{},commanderPlacements:{},zones:[],battlefieldRevision:null}
   };
 }

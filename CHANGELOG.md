@@ -1,3 +1,19 @@
+# Battle Axe Design Studio v0.5.3.0 — Scenario Isolation & Battlefield State
+
+- New Scenario now establishes a clean scenario boundary: map, terrain, force, deployment, playtest, and publisher state can no longer silently reuse the prior scenario.
+- Added one authoritative battlefield revision shared by Battlefield Workspace, Geometry Explorer, Deployment, Playtest, and Scenario Publisher.
+- Local imported SVG battlefields now persist across reloads, compile terrain immediately, and carry their play-area/compile metadata with the project.
+- Generate Battlefield now determines the table boundary, clips the rendered battlefield to that play area, generates review/explorer candidates, invalidates dependent deployment/playtest state, and reloads all workspaces against the new battlefield.
+- Added scenario-independent vector candidate fallback so meaningful source geometry is surfaced in Geometry Explorer when classification confidence is too low for normal review. A geometry-rich map that yields zero candidates now raises an explicit compiler warning.
+- Removed runtime Pavia-map fallbacks from Geometry Explorer, Deployment, Playtest, and Scenario Publisher; an unavailable battlefield is shown as unavailable rather than substituted with a test fixture.
+- Force Builder now models exactly two opposing sides. Garrison, reserve, detachment, reinforcement, and sortie forces remain commands/roles within one of those sides rather than creating a third faction column.
+- Added arbitrary army-heading/side registration so new scenarios are not limited to French/Imperial source terminology; the old internal keys remain compatibility slots only.
+- Historical formations remain visible in Force Builder even when command organization is unresolved, and proposed Battle Axe translations can be created before perfect command assignment.
+- Deployment now reports an empty force list correctly and detects battlefield-revision mismatch rather than treating 0/0 units as a complete deployment.
+- Playtest configuration fingerprints now include battlefield revision, preventing a prepared run for an earlier map from being treated as current.
+- Scenario Publisher/export now renders exclusively from the active scenario battlefield and current two-side roster; stale Pavia export content is not used as a fallback.
+- Added cross-scenario regression tests for two-side forces, legacy garrison migration, map persistence, clipping/compilation, downstream battlefield binding, playtest invalidation, and removal of Pavia runtime fallbacks.
+
 # Battle Axe Design Studio v0.5.2.3 — Module Startup / Cache Hotfix
 
 - Fixed the release entry point still requesting `main.js?v=0.5.0-ui-preview`.

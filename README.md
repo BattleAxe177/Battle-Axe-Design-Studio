@@ -1,13 +1,22 @@
-# Battle Axe Design Studio v0.4.0-alpha.6
+# Battle Axe Design Studio v0.5.3.0
 
-This release is a corrective architecture milestone focused on battlefield compilation and commander adjudication.
+Battle Axe Design Studio is a browser-based workspace for turning historical source material and authored battlefield maps into Battle Axe scenarios, deployments, playtests, analysis, and publishable scenario material.
 
-## Map Compiler v0.2
-Normal terrain creation no longer relies on raster recognition. The bundled Pavia project is compiled from PowerPoint authoring geometry/metadata into an explicit terrain manifest. SVG remains the display/vector check and PDF the visual check. Raster recognition is available only as an additional-feature recovery path.
+## Current release: Scenario Isolation & Battlefield State
 
-Selecting a terrain feature flashes the actual compiled feature geometry. Approved terrain geometry—not the rendered picture—is what the playtest engine queries.
+Version 0.5.3.0 makes the active scenario and its battlefield the single source of truth across the Studio. Imported SVG maps are compiled and clipped to the tabletop play area, persisted with the project, and shared by Battlefield Workspace, Geometry Explorer, Deployment, Playtest, and Scenario Publisher. Starting a new scenario no longer permits map, terrain, deployment, playtest, or export artifacts from the previous scenario to appear as current data.
 
-## Commander audit
-Command bonuses are tied to the appropriate command, commander holds/moves are explicitly logged, and commanders receive a post-unit-activation movement phase to improve command coverage when needed.
+Force Builder now has exactly two opposing sides. Garrisons, reserves, detachments, reinforcements, and sortie forces are represented as roles or commands within one of those sides rather than as a third faction. Historical formations remain available even when their command organization is unresolved.
 
-See `docs/MAP_COMPILER_V0.2_STRUCTURED.md` and `docs/COMMAND_RULES_AUDIT.md`.
+Pavia remains an explicit test/sample project, not a runtime fallback for unrelated scenarios.
+
+## Development commands
+
+```sh
+npm test
+npm run build
+npm run check
+npm run verify
+```
+
+See `CHANGELOG.md` for release history and the `docs/` directory for architecture notes.
