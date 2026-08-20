@@ -1,0 +1,16 @@
+{
+  "name": "battle-axe-design-studio",
+  "version": "0.5.3-0",
+  "private": true,
+  "description": "Integrated browser-based workspace for historical wargame map compilation, scenario design, deployment, playtesting, analytics, and publication.",
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "verify": "npm test && npm run build && npm run check"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

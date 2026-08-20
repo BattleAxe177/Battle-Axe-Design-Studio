@@ -1,0 +1,75 @@
+import { battlefieldImageUrl } from './battlefieldState.js?v=0.5.3.0';
+import { sideLabel } from './scenarioSides.js?v=0.5.3.0';
+
+const $=s=>document.querySelector(s);
+const esc=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function commands(s){
+  return Object.entries(s.commands||{}).flatMap(([side,cs])=>(cs||[]).map((c,i)=>({side,commandIndex:i,...c})));
+}
+function acceptedRules(s){return(s.suggestions||[]).filter(x=>x.status==='accepted');}
+function authoritativeText(v){
+  const raw=String(v||'').trim();if(!raw)return'';
+  const paras=raw.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean),out=[];
+  for(const p of paras)if(!out.some(x=>x===p))out.push(p);
+  if(out.length===1)return out[0];
+  const half=Math.floor(out.length/2);
+  if(half&&out.slice(0,half).join('\n')===out.slice(half).join('\n'))return out.slice(0,half).join('\n\n');
+  return out.join('\n\n');
+}
+function forceHtml(s,side){
+  const cs=commands(s).filter(c=>c.side===side);if(!cs.length)return'<p>None.</p>';
+  return cs.map(c=>`<div class="pub-command"><h4>${esc(c.name)}${c.commander?` — ${esc(c.commander)}`:''}</h4><ul>${(c.units||[]).map(u=>`<li>${esc(u.name===u.profile?u.name:`${u.name} — ${u.profile}`)}</li>`).join('')}</ul></div>`).join('');
+}
+function shade(side,i){
+  const palettes={French:['#164A7A','#2376BD','#49A0D8','#285A8F','#196F82','#5A57B5','#2E87A7'],Imperial:['#7E2727','#A93A32','#D45A4D','#8B405D','#B96A32','#C64468','#6D3947']};
+  const a=palettes[side]||['#4d6380'];return `background:${a[i%a.length]}`;
+}
+function currentMapHtml(state,cls='map',alt='Battlefield map'){
+  const url=battlefieldImageUrl(state.project);
+  return url?`<img class="${cls}" src="${esc(url)}" alt="${esc(alt)}">`:`<div class="map-missing">No battlefield map generated for the current scenario.</div>`;
+}
+function deploymentMapHtml(state){
+  const s=state.project.scenario,items=[];
+  for(const c of commands(s)){
+    for(const u of c.units||[]){
+      const p=s.deployment?.placements?.[u.id];if(!p)continue;
+      items.push(`<div class="dep-piece" style="left:${Number(p.x)}%;top:${Number(p.y)}%;${shade(c.side,c.commandIndex)}"><span>${esc(u.name)}</span></div>`);
+    }
+    const cp=s.deployment?.commanderPlacements?.[c.id];
+    if(cp&&c.commander)items.push(`<div class="dep-cmd" style="left:${Number(cp.x)}%;top:${Number(cp.y)}%;${shade(c.side,c.commandIndex)}">★</div>`);
+  }
+  const width=Number(state.project.playSpace?.width)||1,height=Number(state.project.playSpace?.height)||1;
+  return `<div class="deployment-map" style="aspect-ratio:${width}/${height}">${currentMapHtml(state,'deployment-base','Deployment map')}${items.join('')}</div>`;
+}
+function documentHtml(state,opts={}){
+  const s=state.project.scenario,title=esc(s.metadata?.title||'Battle Axe Scenario'),date=esc(s.metadata?.date||''),location=esc(s.metadata?.location||''),rules=acceptedRules(s),compact=opts.layout!=='comfortable',hist=authoritativeText(s.historicalSituation),sideA=sideLabel(s,'French'),sideB=sideLabel(s,'Imperial');
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>@page{size:letter;margin:.45in}*{box-sizing:border-box}body{font-family:Georgia,serif;color:#181818;margin:0;font-size:${compact?'9.2':'10.5'}pt;line-height:1.28}h1{font-family:Arial,sans-serif;font-size:24pt;margin:0;text-transform:uppercase}h2{font-family:Arial,sans-serif;font-size:12pt;border-bottom:1.5px solid #222;padding-bottom:3px;margin:10px 0 5px;text-transform:uppercase;letter-spacing:.04em}h3,h4{font-family:Arial,sans-serif;margin:4px 0 2px}p{margin:4px 0}.meta{display:flex;gap:14px;font-family:Arial,sans-serif;font-size:8.5pt;margin:2px 0 8px}.map{width:100%;max-height:4.35in;object-fit:contain;border:1px solid #777}.map-missing{display:grid;place-items:center;min-height:1.5in;padding:16px;border:1px dashed #777;color:#666;font-family:Arial,sans-serif}.forces{display:grid;grid-template-columns:1fr 1fr;gap:18px}.pub-command{break-inside:avoid}.pub-command ul{margin:2px 0 5px;padding-left:15px}.pub-command li{margin:1px 0}.rule{break-inside:avoid;margin:5px 0}.rule b{font-family:Arial,sans-serif}.small{font-size:8pt;color:#555}.deployment-map{position:relative;width:min(100%,6.7in);margin:5px auto;overflow:hidden;border:1px solid #777}.deployment-map>.deployment-base{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block}.deployment-map>.map-missing{position:absolute;inset:0}.dep-piece,.dep-cmd{position:absolute;transform:translate(-50%,-50%);color:#fff;border:1px solid #222;text-shadow:0 1px 1px #000;text-align:center;font:700 6.5pt Arial,sans-serif;line-height:1.05}.dep-piece{width:4.1%;aspect-ratio:1;padding:1px;overflow:visible;display:grid;place-items:center;border-radius:3px}.dep-piece>span{display:block;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-width:100%;width:max-content;max-width:82px;color:#fff;text-shadow:0 1px 2px #000,0 0 2px #000;padding:1px 2px;white-space:normal;overflow:visible;font:700 5.8pt Arial,sans-serif;line-height:1.0;z-index:3}.dep-cmd{width:2.1%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center}@media print{button{display:none}}</style></head><body><h1>${title}</h1><div class="meta"><span>${date}</span><span>${location}</span><span>${esc(s.metadata?.gameLength||'—')} turns</span><span>${esc(state.project.playSpace?.width||'?')} × ${esc(state.project.playSpace?.height||'?')} ${esc(state.project.playSpace?.units||'')}</span></div>${opts.historical?`<h2>Historical Situation</h2>${hist?hist.split(/\n\s*\n/).map(p=>`<p>${esc(p).replace(/\n/g,' ')}</p>`).join(''):'<p>Not provided.</p>'}`:''}${opts.map?`<h2>Battlefield</h2>${currentMapHtml(state)}`:''}${opts.forces?`<h2>Forces</h2><div class="forces"><section><h3>${esc(sideA)}</h3>${forceHtml(s,'French')}</section><section><h3>${esc(sideB)}</h3>${forceHtml(s,'Imperial')}</section></div>`:''}${opts.rules?`<h2>Scenario Special Rules</h2>${rules.length?rules.map(r=>`<div class="rule"><b>${esc(r.title)}.</b> ${esc(r.proposal)}${r.engineStatus==='tabletop'?'<span class="small"> [Tabletop rule]</span>':''}</div>`).join(''):'<p>None.</p>'}`:''}${opts.victory?`<h2>Victory Conditions</h2><p>${esc(authoritativeText(s.victoryText)||'Not provided.').replace(/\n/g,'<br>')}</p>`:''}${opts.deployment?`<h2>Deployment</h2>${deploymentMapHtml(state)}${authoritativeText(s.deploymentNotes)?`<p>${esc(authoritativeText(s.deploymentNotes)).replace(/\n/g,'<br>')}</p>`:''}`:''}${opts.notes?`<h2>Designer Notes / Sources</h2><p>${esc(authoritativeText(s.designerNotes))}</p><p class="small">Sources registered in Studio: ${(s.sources||[]).map(x=>esc(x.name)).join('; ')||'None listed.'}</p>`:''}</body></html>`;
+}
+
+export function setupScenarioPublisher(state){
+  const frame=$('#publisherPreview');if(!frame)return null;
+  function opts(){return{layout:$('#publisherLayout')?.value||'compact',historical:$('#pubHistorical')?.checked,map:$('#pubMap')?.checked,forces:$('#pubForces')?.checked,deployment:$('#pubDeployment')?.checked,rules:$('#pubRules')?.checked,victory:$('#pubVictory')?.checked,notes:$('#pubNotes')?.checked};}
+  function validate(){
+    const s=state.project.scenario,issues=[];
+    if(!s.metadata?.title)issues.push('Scenario title missing');
+    if(!authoritativeText(s.historicalSituation))issues.push('Historical situation missing');
+    if(!state.project.mapSource)issues.push('No battlefield map generated for current scenario');
+    if(!Object.values(s.commands||{}).flatMap(x=>x).length)issues.push('No force commands');
+    if(!acceptedRules(s).length)issues.push('No scenario special rules');
+    if(!authoritativeText(s.victoryText))issues.push('Victory conditions missing');
+    const undeployed=Object.values(s.commands||{}).flatMap(cs=>cs.flatMap(c=>c.units||[])).filter(u=>!s.deployment?.placements?.[u.id]).length;
+    if(undeployed)issues.push(`${undeployed} unit(s) are not deployed`);
+    $('#publisherValidation').innerHTML=issues.length?`<strong>${issues.length} publication warning${issues.length===1?'':'s'}</strong><ul>${issues.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p class="success">Ready to publish ✓</p>';
+    return issues;
+  }
+  function refresh(){const html=documentHtml(state,opts());frame.srcdoc=html;validate();const unitCount=Object.values(state.project.scenario.commands||{}).flatMap(cs=>cs.flatMap(c=>c.units||[])).length,rules=acceptedRules(state.project.scenario).length;$('#publisherPageEstimate').textContent=unitCount>18||rules>5?'~3–4 pages':'~2–3 pages';return html;}
+  function printPdf(){const html=refresh(),w=window.open('','_blank');if(!w)return;try{w.opener=null;}catch{}w.document.open();w.document.write(html);w.document.close();setTimeout(()=>{w.focus();w.print();},650);}
+  function download(){const html=refresh(),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));a.download=`${(state.project.scenario.metadata?.title||'Battle_Axe_Scenario').replace(/[^a-z0-9]+/gi,'_')}.html`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);}
+  $('#refreshPublisher')?.addEventListener('click',refresh);$('#exportPublisherPdf')?.addEventListener('click',printPdf);$('#downloadPublisherHtml')?.addEventListener('click',download);
+  ['publisherLayout','pubHistorical','pubMap','pubForces','pubDeployment','pubRules','pubVictory','pubNotes'].forEach(id=>$(`#${id}`)?.addEventListener('change',refresh));
+  document.querySelector('[data-view="publish"]')?.addEventListener('click',()=>setTimeout(refresh,0));
+  window.addEventListener('bax:scenario-changed',()=>{if(document.querySelector('[data-view="publish"]')?.classList.contains('active'))refresh();});
+  window.addEventListener('bax:battlefield-changed',refresh);
+  refresh();return{refresh,documentHtml:()=>documentHtml(state,opts())};
+}
