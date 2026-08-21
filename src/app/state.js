@@ -1,5 +1,5 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.5.6.0';
-import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.5.6.0';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.5.7.0';
+import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.5.7.0';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 

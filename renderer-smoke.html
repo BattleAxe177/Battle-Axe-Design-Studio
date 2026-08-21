@@ -1,0 +1,6 @@
+<!doctype html><meta charset="utf-8"><body><pre id="out">loading</pre><img id="map"><script type="module">
+import { battlefieldImageUrl } from './src/modules/battlefieldState.js';
+const svgText=await (await fetch('./cerignola-test.svg')).text();
+const project={mapSource:{svgText,playArea:{x:377,y:225,width:576,height:288}}};
+const img=document.querySelector('#map');img.src=battlefieldImageUrl(project);await img.decode();document.querySelector('#out').textContent=JSON.stringify({naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,ratio:img.naturalWidth/img.naturalHeight,srcHasViewBox:decodeURIComponent(img.src).includes('viewBox="377 225 576 288"')});
+</script></body>

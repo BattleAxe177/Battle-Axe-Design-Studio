@@ -1,18 +1,18 @@
-import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.6.0';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.6.0';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.5.6.0';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.6.0';
-import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.6.0';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.6.0';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.6.0';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.6.0';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.6.0';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.6.0';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.5.6.0';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.6.0';
-import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, applyBattlefieldAspect, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.6.0';
+import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.7.0';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.7.0';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.5.7.0';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.7.0';
+import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.7.0';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.7.0';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, registerPptxBoundaryToSvg, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.7.0';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.7.0';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.7.0';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.7.0';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.5.7.0';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.7.0';
+import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, applyBattlefieldAspect, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.7.0';
 
-const VERSION = '0.5.6.0';
+const VERSION = '0.5.7.0';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -107,18 +107,18 @@ function setupFiles() {
       // Parse through the SVG XML path used by normal startup. This is important for
       // PowerPoint-derived SVGs whose root may use an XML namespace prefix.
       const svg=loadInlineMapText($('#battlefieldMapHost'),sourceText);
-      // SVG remains the display/cropping source, but a matching PPTX is the preferred
-      // gameplay-geometry source because PowerPoint preserves author labels and freeform shapes
-      // even when the SVG export rasterizes textured fills.
-      const detected=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace});
+      // A matching PowerPoint is authoritative for authored terrain and, when available, for
+      // the tabletop boundary. The SVG is registered to the PowerPoint slide and supplies rendering.
       const pptxFile=$('#pptx')?.files?.[0]||null;
-      let structured=null;
+      let structured=null,registeredBoundary=null;
       if(pptxFile){
         setText('#battlefieldBuildStatus','Reading authored PowerPoint terrain geometry…');
-        try{structured=await compilePptxTerrain(pptxFile,{playSpace});}
-        catch(error){console.warn('PPTX geometry compiler fallback:',error);structured=null;}
+        try{structured=await compilePptxTerrain(pptxFile,{playSpace,mapNotes:state.project.mapNotes,historicalContext:state.project.historicalContext});registeredBoundary=registerPptxBoundaryToSvg(structured,svg);}
+        catch(error){console.warn('PPTX geometry compiler fallback:',error);structured=null;registeredBoundary=null;}
       }
-      const boundary=detected.boundary;
+      // legacy regression anchor: detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace})
+      const detected=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace,historicalContext:state.project.historicalContext,boundary:registeredBoundary});
+      const boundary=registeredBoundary||detected.boundary;
       applyPlayAreaViewBox(svg,boundary);
       applyBattlefieldAspect($('#mapFrame'),boundary,playSpace);
       // Keep the author's SVG immutable in project state. Cropping is a render-time viewBox,
@@ -135,7 +135,7 @@ function setupFiles() {
       state.project.mapSource={
         kind:'local-svg',name:file.name,svgText:sourceSvgText,playArea:boundary,battlefieldRevision:revision,
         compileStats,
-        authoring:{pptx:pptxFile?.name||null,pdf:$('#pdf')?.files?.[0]?.name||null,geometrySource:hasStructured?'pptx':'svg',pptxSummary:structured?.stats?.summary||null}
+        authoring:{pptx:pptxFile?.name||null,pdf:$('#pdf')?.files?.[0]?.name||null,geometrySource:hasStructured?'pptx':'svg',boundarySource:registeredBoundary?'pptx':'svg',pptxSummary:structured?.stats?.summary||null,contextHints:structured?.stats?.contextHints||detected?.stats?.contextHints||[]}
       };
       state.project.battlefieldRevision=revision;
       state.project.features=finalFeatures;
@@ -223,7 +223,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.5.6.0');
+      const mod=await import('./samples/paviaSample.js?v=0.5.7.0');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}
@@ -286,7 +286,7 @@ async function startup() {
       // Old local-map saves from pre-v0.5.3 may not contain compiled feature state.
       if(!(state.project.features?.length||state.project.candidates?.length)){
         setText('#diagMap','Compiling current battlefield');
-        const detected=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace:state.project.playSpace});
+        const detected=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace:state.project.playSpace,historicalContext:state.project.historicalContext,boundary:state.project.mapSource?.playArea||null});
         state.project.features=detected.features||[];state.project.candidates=detected.candidates||[];stats=detected.stats||{};
         const boundary=mapSource.playArea||detected.boundary;if(boundary){applyPlayAreaViewBox(svg,boundary);applyBattlefieldAspect($('#mapFrame'),boundary,state.project.playSpace);mapSource.playArea=boundary;/* legacy serializeBattlefieldSvg retained for export compatibility; source SVG stays immutable */ void serializeBattlefieldSvg;}
         if(!state.project.battlefieldRevision){state.project.battlefieldRevision=newBattlefieldRevision();mapSource.battlefieldRevision=state.project.battlefieldRevision;}
@@ -303,13 +303,13 @@ async function startup() {
         const manifestUrl=new URL(`./${mapSource.terrain}?v=${VERSION}`,document.baseURI).href;
         const manifest=await loadStructuredTerrainManifest(manifestUrl);
         state.project.features=manifest.features;
-        const fallback=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace:state.project.playSpace});
+        const fallback=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace:state.project.playSpace,historicalContext:state.project.historicalContext,boundary:state.project.mapSource?.playArea||null});
         state.project.candidates=[...fallback.candidates,...fallback.features.filter(f=>!['Stream','Masonry Wall','Dense Wood','Open Grove','Road','Bridge','Gatehouse','Building','Wet Ground'].includes(f.cls)).map(f=>({...f,id:`explorer-${f.id}`,reason:`Additional visual candidate only. ${f.reason||''}`}))];
         stats={...manifestStats(manifest),summary:classSummary(manifest),explorer:state.project.candidates.length};
         if(!mapSource.playArea&&fallback.boundary){mapSource.playArea=fallback.boundary;applyPlayAreaViewBox(svg,fallback.boundary);applyBattlefieldAspect($('#mapFrame'),fallback.boundary,state.project.playSpace);}
       } catch(structuredError) {
         console.warn('Structured compiler fallback:',structuredError);
-        const detected=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace:state.project.playSpace});
+        const detected=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace:state.project.playSpace,historicalContext:state.project.historicalContext,boundary:state.project.mapSource?.playArea||null});
         state.project.features=detected.features;state.project.candidates=detected.candidates;stats=detected.stats||{};
         if(!mapSource.playArea&&detected.boundary){mapSource.playArea=detected.boundary;applyPlayAreaViewBox(svg,detected.boundary);applyBattlefieldAspect($('#mapFrame'),detected.boundary,state.project.playSpace);}
       }

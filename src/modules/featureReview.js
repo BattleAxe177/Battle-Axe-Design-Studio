@@ -1,4 +1,4 @@
-import { highlightFeature, clearOverlay } from './mapView.js?v=0.5.6.0';
+import { highlightFeature, clearOverlay } from './mapView.js?v=0.5.7.0';
 
 export const RULES = {
   Difficult: 'Move Value is halved for units moving in Difficult terrain.',
@@ -57,7 +57,7 @@ export function setupFeatureReview(state,persist,svg){
         const row=document.createElement('div');row.className='feature-row-shell';row.dataset.id=feature.id;
         const cb=document.createElement('input');cb.type='checkbox';cb.className='feature-select-box';cb.checked=selectedIds().includes(feature.id);cb.setAttribute('aria-label',`Select ${feature.name}`);cb.addEventListener('change',e=>{e.stopPropagation();toggleSelected(feature.id,e.target.checked);});
         const button=document.createElement('button');button.className='feature-row';button.dataset.id=feature.id; const decision=state.decisions[feature.id];
-        button.innerHTML=`<span class="feature-symbol"></span><span><strong>${feature.name}</strong><small>${feature.proposal} · detect ${feature.detectionConfidence??feature.confidence}% · interpret ${feature.interpretationConfidence??feature.confidence}%</small></span><b>${decision?.status==='approved'?'✓':decision?.status==='rejected'?'×':'›'}</b>`;
+        button.innerHTML=`<span class="feature-symbol"></span><span><strong>${feature.name}</strong><small>${feature.proposal} · ${confidenceLabel(feature.interpretationConfidence??feature.confidence)}</small></span><b>${decision?.status==='approved'?'✓':decision?.status==='rejected'?'×':'›'}</b>`;
         button.addEventListener('click',()=>select(feature.id));row.append(cb,button);section.appendChild(row);
       } rows.appendChild(section);
     }
@@ -67,7 +67,7 @@ export function setupFeatureReview(state,persist,svg){
     const feature=currentFeatures().find(f=>f.id===id);if(!feature)return;state.selectedFeatureId=id;
     document.querySelectorAll('.feature-row').forEach(r=>r.classList.toggle('selected',r.dataset.id===id));const d=state.decisions[id]||{};
     document.querySelector('#featureName').textContent=feature.name;
-    document.querySelector('#featureProposal').innerHTML=`<strong>${feature.proposal}</strong><br><span class="confidence-line">Detection ${feature.detectionConfidence??feature.confidence}% · Interpretation ${feature.interpretationConfidence??feature.confidence}%</span><br><small>${feature.reason||''}</small>`;
+    document.querySelector('#featureProposal').innerHTML=`<strong>${feature.proposal}</strong><div class="feature-confidence">${confidenceLabel(feature.interpretationConfidence??feature.confidence)}</div><p class="feature-user-note">${friendlySource(feature)}</p><details class="feature-technical-detail"><summary>Technical details</summary><small>Detection ${feature.detectionConfidence??feature.confidence}% · Interpretation ${feature.interpretationConfidence??feature.confidence}%${feature.sourceLabel?` · Source label: ${feature.sourceLabel}`:''}</small><p>${feature.reason||'No additional diagnostic detail.'}</p></details>`;
     terrainClass.value=d.cls||feature.cls||'Unknown';document.querySelector('#reviewerNote').value=d.note||'';renderEffects(d.effects||feature.effects||[]);highlightFeature(svg,overlay,feature,{flash});
   }
   function saveOne(status){if(!state.selectedFeatureId)return;state.decisions[state.selectedFeatureId]={status,cls:terrainClass.value,effects:[...effectList.querySelectorAll('input:checked')].map(x=>x.value),note:document.querySelector('#reviewerNote').value};persist();renderRows();}

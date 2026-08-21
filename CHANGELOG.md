@@ -1,4 +1,16 @@
-# Battle Axe Design Studio v0.5.6.0 — Shared Battlefield Renderer & UI Polish
+# Battle Axe Design Studio v0.5.7.0 — Battlefield Registration & Designer-Facing Polish
+
+- Made the structured PowerPoint battlefield boundary authoritative when a PPTX is supplied and registered that boundary into SVG coordinates for one shared crop/overlay coordinate system.
+- Added map-note and historical-context terrain evidence: Studio now analyzes those inputs and records matching terrain concepts as support for classification confidence without inventing geometry.
+- Removed the redundant Imported / Historical Forces column from Force Builder while preserving all source evidence in Extraction Review and the suggested-force pipeline.
+- Expanded the central suggested-force and final roster workspace.
+- Reworked Battlefield Review to show plain-English confidence/source summaries by default and move detection percentages, source labels, and classifier reasoning under Technical details.
+- Fixed Deployment pointer dragging so a piece preserves its click/grab offset and is dropped exactly where it is visually positioned.
+- Reworded stale playtest/configuration messages and warnings for scenario designers; internal configuration hashes are no longer part of the normal view.
+- Increased contrast, size, and hierarchy for How to Use, Open Project, and New Scenario controls and added broader user-facing UI cleanup.
+- Full release verification: 119 tests pass, static production build passes, and GitHub Pages deployment check passes.
+
+# Battle Axe Design Studio v0.5.7.0 — Shared Battlefield Renderer & UI Polish
 
 - Changed local battlefield persistence to store the original SVG unchanged; the detected tabletop/play-area boundary is now separate render metadata.
 - Added render-only SVG cloning and crop application so source artwork is never destructively rewritten just to create the tabletop view.

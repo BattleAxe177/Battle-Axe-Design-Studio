@@ -1,0 +1,16 @@
+<!doctype html><meta charset="utf-8"><body><pre id="out">running</pre><script type="module">
+import { compilePptxTerrain, registerPptxBoundaryToSvg } from '../src/modules/structuredMapCompiler.js?v=0.5.7.0';
+import { loadInlineMapText } from '../src/modules/mapView.js?v=0.5.7.0';
+import { detectBattlefieldFeatures } from '../src/modules/battlefieldDetector.js?v=0.5.7.0';
+const out=document.querySelector('#out');
+try{
+ const [pr,sr]=await Promise.all([fetch('./cerignola.pptx'),fetch('./cerignola.svg')]);
+ const pb=await pr.blob(); const file=new File([pb],'Cerignola Map.pptx',{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});
+ const text=await sr.text(); const host=document.createElement('div');document.body.append(host); const svg=loadInlineMapText(host,text);
+ const structured=await compilePptxTerrain(file,{playSpace:{width:72,height:36},mapNotes:'the 3-d elements which are similar in color to the basemap on the bottom of the map are hills.',historicalContext:'The battlefield includes a ditch, vineyards, hills, and a fortified Spanish position.'});
+ const reg=registerPptxBoundaryToSvg(structured,svg);
+ const detected=await detectBattlefieldFeatures(svg,{mapNotes:'the 3-d elements which are similar in color to the basemap on the bottom of the map are hills.',historicalContext:'The battlefield includes a ditch, vineyards, hills, and a fortified Spanish position.',playSpace:{width:72,height:36},boundary:reg});
+ out.textContent=JSON.stringify({pptxBoundary:structured.boundary,slide:structured.slideBounds,registered:reg,features:structured.features.map(x=>({name:x.name,cls:x.cls,confidence:x.interpretationConfidence,ctx:x.contextSupport})),candidates:structured.candidates.length,visualFeatures:detected.features.length,visualCandidates:detected.candidates.length,contextHints:structured.stats.contextHints},null,2);
+ host.remove();
+}catch(e){out.textContent='ERROR '+e.stack;}
+</script>
