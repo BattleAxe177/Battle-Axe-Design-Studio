@@ -156,7 +156,7 @@ button:active{transform:translateY(1px)}
 .map-empty::after{content:"No battlefield map generated for the current scenario";position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;color:var(--muted);font-size:12px;line-height:1.4;pointer-events:none}
 .map-empty>img[hidden]{display:none!important}
 
-/* v0.5.6.0 — calibrated battlefield geometry and legible non-geometric labels */
+/* v0.5.6.1 — calibrated battlefield geometry and legible non-geometric labels */
 .deployment-map-frame{width:100%;height:auto;min-height:0;aspect-ratio:var(--battlefield-width,48) / var(--battlefield-height,48)}
 .deployment-map-frame>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
 .play-replay-frame{height:auto;min-height:360px;max-height:calc(100vh - 195px);overflow:auto}
@@ -173,7 +173,7 @@ button:active{transform:translateY(1px)}
 .deployment-piece.unit .piece-label{transform:translate(-50%,-50%)!important}
 .replay-commander,.deployment-piece.commander{box-sizing:border-box}
 
-/* v0.5.6.0 — visual force planning */
+/* v0.5.6.1 — visual force planning */
 .force-plan{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 2px;align-items:start}
 .force-sketch{margin:0;min-width:0;border:1px solid rgba(145,174,205,.2);border-radius:8px;background:#0a1726;padding:8px 9px 10px;overflow:hidden}
 .force-sketch figcaption{display:grid;justify-items:center;text-align:center;gap:1px;padding:3px 6px 5px;font-family:Georgia,serif}
@@ -192,19 +192,19 @@ button:active{transform:translateY(1px)}
 @media(max-width:620px){.force-sketch-commands{grid-template-columns:1fr 1fr}.force-sketch-command li{font-size:8.5px}}
 
 
-/* v0.5.6.0 — AI review defaults to plain-English presentation */
+/* v0.5.6.1 — AI review defaults to plain-English presentation */
 .ai-review-summary{margin:12px 0;padding:12px;border:1px solid rgba(95,150,245,.35);border-radius:9px;background:#0d1d30}
 .ai-review-summary p{margin:6px 0;line-height:1.45}.ai-review-summary .eyebrow{margin:0 0 8px}
 .ai-change header strong{font-size:14px;line-height:1.35}.ai-change header span{white-space:nowrap;font-size:10px;color:var(--accent2)}
 .ai-change-rationale{color:#d8e3ef;line-height:1.4}
 .ai-technical-detail{margin:8px 0;color:var(--muted)}.ai-technical-detail summary{cursor:pointer;font-size:11px}.ai-technical-detail pre{max-height:220px;overflow:auto;background:#091522;padding:8px;border-radius:6px}
 
-/* v0.5.6.0 — terrain review actions stay available while the long feature list scrolls. */
+/* v0.5.6.1 — terrain review actions stay available while the long feature list scrolls. */
 .feature-list>.panel-heading{position:sticky;top:74px;z-index:16;margin:-17px -17px 0;padding:14px 17px 10px;background:rgba(17,29,46,.985);border-bottom:1px solid var(--line)}
 .feature-list>.bulk-bar{position:sticky;top:126px;z-index:15;margin:0 -9px 8px;padding:10px 9px;background:rgba(17,29,46,.985);border-bottom:1px solid #3b4e69;box-shadow:0 8px 12px rgba(4,9,16,.25)}
 @media(max-width:760px){.feature-list>.panel-heading{top:60px}.feature-list>.bulk-bar{top:112px}}
 
-/* v0.5.6.0 — optional tactical planning in the Playtest workspace */
+/* v0.5.6.1 — optional tactical planning in the Playtest workspace */
 .tactical-plan-panel{margin-bottom:14px}
 #tacticalPlanEditor{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .tactical-army{min-width:0;border:1px solid var(--line);border-radius:10px;padding:11px 12px;background:#0b1828}
@@ -220,7 +220,7 @@ button:active{transform:translateY(1px)}
 .tactical-auto-reason{margin-top:7px;color:var(--muted);font-size:9.5px;line-height:1.35}
 .cue-control{display:flex!important;flex-direction:row!important;align-items:center;gap:5px;color:var(--muted);font-size:10px;white-space:nowrap}.cue-control select{width:auto;padding:5px 6px;font-size:10px}
 
-/* v0.5.6.0 — transient replay event language.  This layer never participates in game geometry. */
+/* v0.5.6.1 — transient replay event language.  This layer never participates in game geometry. */
 .play-replay-events{position:absolute;inset:0;z-index:9;pointer-events:none;overflow:visible;line-height:normal}
 .replay-cue{position:absolute;z-index:11;transform:translate(-50%,-50%);pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.85));animation:baxCuePop .82s ease-out both}
 @keyframes baxCuePop{0%{opacity:0;transform:translate(-50%,-50%) scale(.55)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}72%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:.18;transform:translate(-50%,-58%) scale(.95)}}

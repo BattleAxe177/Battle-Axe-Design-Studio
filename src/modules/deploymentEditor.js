@@ -1,6 +1,6 @@
-import { syncBattlefieldImages } from './battlefieldState.js?v=0.5.6.0';
-import { footprintPercent, applyBattlefieldAspect } from './battlefieldScale.js?v=0.5.6.0';
-import { SIDE_KEYS, sideLabel, sideForFaction } from './scenarioSides.js?v=0.5.6.0';
+import { syncBattlefieldImages } from './battlefieldState.js?v=0.5.6.1';
+import { footprintPercent, applyBattlefieldAspect } from './battlefieldScale.js?v=0.5.6.1';
+import { SIDE_KEYS, sideLabel, sideForFaction } from './scenarioSides.js?v=0.5.6.1';
 const $=s=>document.querySelector(s);
 const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=p=>`${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`;

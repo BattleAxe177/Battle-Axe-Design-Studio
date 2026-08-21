@@ -14,7 +14,7 @@
   <noscript><div class="fatal">Battle Axe Design Studio requires JavaScript.</div></noscript>
   <header class="topbar">
     <button id="menuButton" class="icon-button" aria-label="Open navigation">☰</button>
-    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small><span id="sidebarProjectTop">Untitled Scenario</span> · <span id="runtimeVersion">v0.5.6.0</span></small></div></div>
+    <div class="brand"><span class="brand-mark">⚔</span><div><strong>Battle Axe Design Studio</strong><small><span id="sidebarProjectTop">Untitled Scenario</span> · <span id="runtimeVersion">v0.5.6.1</span></small></div></div>
     <div class="top-actions"><button id="saveButton" class="secondary">Save project</button><span id="saveStatus" class="status-pill">Starting…</span></div>
   <button id="openHelpBtn" class="new-scenario-btn" type="button">How to Use</button>
   <button id="openProjectBtn" class="new-scenario-btn" type="button">Open Project</button><input id="openProjectFile" type="file" accept=".json" hidden>
@@ -153,18 +153,18 @@
       const box=document.getElementById('runtimeError');
       if(box){box.hidden=false;box.textContent='Browser error before startup: '+(event.message||'Unknown error');}
       const banner=document.getElementById('startupBanner');
-      if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.5.6.0 failed before application startup: '+(event.message||'Unknown error');}
+      if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.5.6.1 failed before application startup: '+(event.message||'Unknown error');}
     });
     setTimeout(function(){
       if(!window.__BAX_MAIN_STARTED__){
         const box=document.getElementById('runtimeError');
         if(box){box.hidden=false;box.textContent='The main JavaScript module did not start. This usually indicates a module path or cached-script problem.';}
         const banner=document.getElementById('startupBanner');
-        if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.5.6.0: main module did not start. A stale browser/module cache is the most likely cause; refresh once after this hotfix is deployed.';}
+        if(banner){banner.classList.remove('hidden');banner.textContent='Battle Axe v0.5.6.1: main module did not start. A stale browser/module cache is the most likely cause; refresh once after this hotfix is deployed.';}
       }
     },3500);
   </script>
-  <script type="module" src="./src/main.js?v=0.5.6.0"></script>
+  <script type="module" src="./src/main.js?v=0.5.6.1"></script>
 
   <dialog id="aiBridgeDialog"><div class="dialog-card ai-bridge"><div class="dialog-heading"><div><p class="eyebrow">External AI workflow</p><h2>AI Review Bridge</h2></div><button id="closeAiBridge" class="icon-button" aria-label="Close">✕</button></div><p class="muted">Send a structured project brief to an external AI, then paste its Battle Axe changeset back for explicit Accept / Reject review. Nothing is applied automatically.</p><label>What would you like the AI to review or improve?<textarea id="aiDesignerRequest" rows="5" placeholder="Example: Review balance and propose a French camp without changing the Swiss force."></textarea></label><label>Generated AI brief (read only)<textarea id="aiBriefText" rows="18" readonly></textarea></label><div class="button-row"><button id="refreshAiBrief" class="secondary">Refresh brief</button><button id="copyAiBrief" class="primary">Copy AI brief</button><button id="downloadAiBrief" class="secondary">Download Markdown</button></div><div class="divider"></div><h3>Return from AI</h3><label>Paste external AI response<textarea id="aiResponseText" rows="10" placeholder="Paste the complete response, including the BATTLE AXE CHANGESET markers…"></textarea></label><div class="button-row"><button id="parseAiResponse" class="primary">Parse proposed changes</button><button id="saveAiResponse" class="secondary">Import as source/advice only</button></div><div id="aiChangeReview"></div><p id="aiBridgeStatus" class="help">Ready</p></div></dialog>
 

@@ -1,4 +1,11 @@
-# Battle Axe Design Studio v0.5.6.0 — Tactical AI, Replay Cues & Interaction Fixes
+# Battle Axe Design Studio v0.5.6.1 — Repository Test Isolation Hotfix
+
+- Replaces the broad `tests/*.test.mjs` test glob with a release-owned test manifest.
+- GitHub-retained stale test files are now reported and ignored instead of breaking deployment.
+- Missing tests that belong to the current release still fail verification.
+- No gameplay or scenario behavior changes from v0.5.6.0.
+
+# Battle Axe Design Studio v0.5.6.1 — Tactical AI, Replay Cues & Interaction Fixes
 
 - Added a zero-input Auto tactical planner to Playtest. It derives broad army posture and command orders from deployment, approved Defensive terrain, and unit roles before the first activation.
 - Added Playtest-only army posture dropdowns (`Auto`, `Offensive`, `Balanced`, `Defensive`, `Delay`) and command-order dropdowns (`Auto`, `Hold`, `Defend`, `Advance`, `Assault`, `Reserve`, `Screen`, `Maneuver`, `Withdraw`). Unspecified commands remain on Auto.

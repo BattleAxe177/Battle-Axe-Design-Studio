@@ -1,5 +1,5 @@
-import { setOverlay, clearOverlay } from './mapView.js?v=0.5.6.0';
-import { syncBattlefieldImages } from './battlefieldState.js?v=0.5.6.0';
+import { setOverlay, clearOverlay } from './mapView.js?v=0.5.6.1';
+import { syncBattlefieldImages } from './battlefieldState.js?v=0.5.6.1';
 
 export function setupGeometryExplorer(state,persist,featureReview){
   const dialog=document.querySelector('#geometryDialog'),rows=document.querySelector('#candidateRows'),info=document.querySelector('#candidateInfo'),overlay=document.querySelector('#candidateOverlay');

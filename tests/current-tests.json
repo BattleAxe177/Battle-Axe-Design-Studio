@@ -1,0 +1,27 @@
+{
+  "release": "0.5.6.1",
+  "files": [
+    "alpha8.test.mjs",
+    "alpha9.test.mjs",
+    "conformance_phase2.test.mjs",
+    "conformance_phase3.test.mjs",
+    "core.test.mjs",
+    "new_scenario_reset.test.mjs",
+    "playtest.test.mjs",
+    "playtest_responsiveness.test.mjs",
+    "rules_architecture_phase25.test.mjs",
+    "runtime.test.mjs",
+    "scenario.test.mjs",
+    "v033.test.mjs",
+    "v050.test.mjs",
+    "v051_release.test.mjs",
+    "v0521_release.test.mjs",
+    "v0522_release.test.mjs",
+    "v052_release.test.mjs",
+    "v0530_scenario_isolation.test.mjs",
+    "v0530_startup_cache.test.mjs",
+    "v0540_release.test.mjs",
+    "v0550_release.test.mjs",
+    "v0560_tactical_ai_replay.test.mjs"
+  ]
+}
