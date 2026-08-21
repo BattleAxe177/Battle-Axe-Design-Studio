@@ -1,4 +1,4 @@
-// Battle Axe Design Studio v0.5.8.0
+// Battle Axe Design Studio v0.3.3.4
 // Runtime-stabilization release: disable offline caching so GitHub deployments are never hidden by a stale PWA shell.
 self.addEventListener('install', event => event.waitUntil(self.skipWaiting()));
 self.addEventListener('activate', event => event.waitUntil(

@@ -1,47 +1,20 @@
-# Battle Axe Design Studio v0.5.8.0 — Command Hierarchy & Designer Workflow
+# Battle Axe Design Studio v0.5.6.0 — Tactical AI, Replay Cues & Interaction Fixes
 
-- Reworked Scenario Builder command extraction so structured army sections preserve command headings, commander assignments, commander-in-chief relationships, subordinate formations, and explicitly provisional commanders instead of flattening everything into “Command organization unresolved.”
-- Suggested Force Composition now renders real commands as branches and keeps genuinely unassigned formations in one full-width “Command assignment uncertain” area rather than creating fake unresolved command columns.
-- Re-analysis replaces stale parser evidence from earlier Studio versions while preserving designer-authored rules and accepted/rejected state for still-valid suggestions.
-- Filters Scenario Builder meta-instructions and other process-language artifacts out of user-facing scenario-rule suggestions unless they contain an actual playable mechanism.
-- Battlefield Feature Review now has an editable Feature name. Reclassified Geometry Explorer imports automatically join the normal terrain family (Topography, Hydrology, Agriculture, etc.) and generic names are replaced with sensible defaults such as Hill, Stream, or Vineyard unless the designer supplies a custom name.
-- Deployment Editor now opens in an explicit Select / Move mode, adds clear Rectangle Zone and Polygon Zone tools, provides Finish / Cancel controls, supports Escape to leave zone drawing, and automatically exits zone mode when a unit is placed.
-- Corrected deployed-piece drag boundary math so the cursor grab point and the visible square remain consistent all the way to the battlefield edge.
-- Added map-to-battlefield aspect-ratio validation. Sources & Context warns when the authored map proportions differ from the entered physical battlefield and offers Match battlefield proportions; Deployment repeats the warning when necessary.
-- Added v0.5.8 regression tests covering structured command hierarchy, provisional command relationships, rule-artifact filtering, feature renaming/regrouping, deployment tool states, footprint drag behavior, and battlefield proportion warnings.
-- Release verification: 127 automated tests pass, production build passes, and the GitHub Pages static deployment check passes.
-
-# Battle Axe Design Studio v0.5.7.1 — Feature Review Startup Hotfix
-
-- Fixes a startup-blocking `ReferenceError` in Battlefield Feature Review introduced by the v0.5.7.0 user-facing confidence-label polish.
-- Adds the missing plain-English confidence and source-description helpers used by the review queue and selected-feature panel.
-- Adds regression tests that require those helpers to be defined before their first use.
-- Bumps browser module cache keys so GitHub Pages clients do not keep the broken v0.5.7.0 module.
-
-# Battle Axe Design Studio v0.5.7.1 — Battlefield Registration & Designer-Facing Polish
-
-- Made the structured PowerPoint battlefield boundary authoritative when a PPTX is supplied and registered that boundary into SVG coordinates for one shared crop/overlay coordinate system.
-- Added map-note and historical-context terrain evidence: Studio now analyzes those inputs and records matching terrain concepts as support for classification confidence without inventing geometry.
-- Removed the redundant Imported / Historical Forces column from Force Builder while preserving all source evidence in Extraction Review and the suggested-force pipeline.
-- Expanded the central suggested-force and final roster workspace.
-- Reworked Battlefield Review to show plain-English confidence/source summaries by default and move detection percentages, source labels, and classifier reasoning under Technical details.
-- Fixed Deployment pointer dragging so a piece preserves its click/grab offset and is dropped exactly where it is visually positioned.
-- Reworded stale playtest/configuration messages and warnings for scenario designers; internal configuration hashes are no longer part of the normal view.
-- Increased contrast, size, and hierarchy for How to Use, Open Project, and New Scenario controls and added broader user-facing UI cleanup.
-- Full release verification: 119 tests pass, static production build passes, and GitHub Pages deployment check passes.
-
-# Battle Axe Design Studio v0.5.7.1 — Shared Battlefield Renderer & UI Polish
-
-- Changed local battlefield persistence to store the original SVG unchanged; the detected tabletop/play-area boundary is now separate render metadata.
-- Added render-only SVG cloning and crop application so source artwork is never destructively rewritten just to create the tabletop view.
-- Added reliable intrinsic width/height to cropped SVG render clones and shared battlefield aspect helpers, fixing the shallow/blank inline-map failure seen with PowerPoint-derived SVGs.
-- Routed Deployment, Geometry Explorer, Playtest/replay, and other image-based battlefield views through the same active-project render crop.
-- Stacked Suggested Force Composition diagrams vertically by side and enlarged army titles, command labels, and formation bullets for legibility.
-- Added AI Review `Accept all remaining`, `Reject all remaining`, pending-count feedback, and an Undo accepted batch action.
-- Refreshed the External AI brief with historical/source formation evidence, uncertainty rules, two-side command guidance, suggested force-composition expectations, canonical profile translation rules, terrain constraints, and plain-English output guidance.
-- Added a site-wide visual polish pass: stronger Battle Axe identity, cartographic/brass accents, module illustrations, richer panel hierarchy, refined navigation and buttons, improved empty states, and more polished AI review/analysis surfaces.
-- Added v0.5.6 regression tests for immutable map source state, render-time cropping/aspect handling, readable force sketches, AI batch review controls, and presentation hooks.
-- Full release verification: 112 tests pass, static production build passes, and GitHub Pages deployment check passes.
+- Added a zero-input Auto tactical planner to Playtest. It derives broad army posture and command orders from deployment, approved Defensive terrain, and unit roles before the first activation.
+- Added Playtest-only army posture dropdowns (`Auto`, `Offensive`, `Balanced`, `Defensive`, `Delay`) and command-order dropdowns (`Auto`, `Hold`, `Defend`, `Advance`, `Assault`, `Reserve`, `Screen`, `Maneuver`, `Withdraw`). Unspecified commands remain on Auto.
+- Added optional free-text tactical intent and deterministic interpretation into bounded structured modifiers for position preservation, fire preference, counterattack triggers, delayed commitment, force preservation, aggression, flank/screen emphasis, and no-pursuit intent.
+- Added `Hold` as a first-class tactical action and replaced the universal shoot/charge/move priority with utility scoring informed by order, terrain value, unit role, and threat state.
+- Prepared defenders now strongly penalize voluntarily abandoning approved Defensive terrain; ranged troops prefer useful fire; artillery prefers useful firing positions; reserves stay held until a close threat releases them.
+- Added order-specific movement intent: Defend can seek nearby Defensive terrain, Maneuver takes a flank-biased route, Withdraw moves away from the nearest enemy, and Screen approaches to a useful engagement envelope rather than behaving as a generic assault order.
+- Kept tactical decisions reproducible without consuming the Battle Axe combat/command RNG stream merely for AI tie-breaking.
+- Added tactical-plan explanations and detailed decision reasons to Playtest/Debug output while keeping the default Run Playtest workflow one-click.
+- Added transient replay visual cues: green/red command-test standards, firing smoke, shot arrows, charge arrows, crossed-swords melee cue, skull cue before removal, commander escape cue, and active event-log highlighting.
+- Added `Off / Standard / Detailed` replay-cue control; Detailed mode also shows a small deliberate-Hold marker.
+- Fixed deployed-piece drag pickup so the grab offset is preserved from pointer-down through drop; labels cannot affect physical footprint or drag geometry.
+- Strengthened command hierarchy extraction to distinguish commander-in-chief, subordinate commander, and associated commander roles and link formations to the enclosing source command.
+- Re-analysis now enriches matching historical evidence and command links instead of leaving an older orphan copy that continues to appear as “Command organization unresolved.”
+- Pinned Terrain & Feature Review heading and bulk action controls while feature rows scroll.
+- Added v0.5.6 regression coverage for hierarchy parsing, free-text intent, zero-input prepared-defense behavior, Playtest-only order isolation, RNG-stream preservation, drag offset behavior, sticky terrain controls, and replay cue UI.
 
 # Battle Axe Design Studio v0.5.5.0 — PPTX Geometry Ontology & Compact Force Diagram
 

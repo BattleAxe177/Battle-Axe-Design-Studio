@@ -1,5 +1,5 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.5.8.0';
-import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.5.8.0';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.5.6.0';
+import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.5.6.0';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 
@@ -18,7 +18,7 @@ export function createInitialState(){
     battlefieldRevision:null,
     scenario:createBlankScenario()
   };
-  return{project,decisions:{},ignoredCandidates:{},importedCandidateIds:[],selectedFeatureId:null,selectedFeatureIds:[],selectedCandidateId:null,selectedCandidateIds:[]};
+  return{project,playtestWorkspace:{armyOrders:{},commandOrders:{},cueLevel:'standard'},decisions:{},ignoredCandidates:{},importedCandidateIds:[],selectedFeatureId:null,selectedFeatureIds:[],selectedCandidateId:null,selectedCandidateIds:[]};
 }
 
 function migrateScenario(saved){
@@ -54,6 +54,9 @@ export function loadState(storage=window.localStorage){
     base.project.mapSource=p.mapSource||null;
     base.project.battlefieldRevision=p.battlefieldRevision||p.mapSource?.battlefieldRevision||null;
     base.project.scenario=migrateScenario(p.scenario);
+    base.playtestWorkspace={armyOrders:{},commandOrders:{},cueLevel:'standard',...(saved.playtestWorkspace||{})};
+    base.playtestWorkspace.armyOrders={...(saved.playtestWorkspace?.armyOrders||{})};
+    base.playtestWorkspace.commandOrders={...(saved.playtestWorkspace?.commandOrders||{})};
     base.decisions=saved.decisions||{};
     base.ignoredCandidates=saved.ignoredCandidates||{};
     base.importedCandidateIds=saved.importedCandidateIds||[];
@@ -68,6 +71,7 @@ export function loadState(storage=window.localStorage){
 export function saveState(state,storage=window.localStorage){
   storage.setItem(STORAGE_KEY,JSON.stringify({
     project:state.project,
+    playtestWorkspace:state.playtestWorkspace||{armyOrders:{},commandOrders:{},cueLevel:'standard'},
     decisions:state.decisions||{},
     ignoredCandidates:state.ignoredCandidates||{},
     importedCandidateIds:state.importedCandidateIds||[],

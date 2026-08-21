@@ -1,4 +1,3 @@
-import { contextTerrainEvidence } from './structuredMapCompiler.js?v=0.5.8.0';
 const COLORS={water:'#69D9E5',wood:'#3B7D23',wall:'#F2AA84',avenue:'#196B24',bridge:'#595959',structure:'#747474',track:'#726530',boundary:'#042433'};
 const norm=v=>(v||'').trim().toUpperCase();
 function parseColor(v){if(!v||v==='none')return null;const h=v.trim().match(/^#([0-9a-f]{6})$/i);if(h){const n=parseInt(h[1],16);return[(n>>16)&255,(n>>8)&255,n&255];}const r=v.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);return r?[+r[1],+r[2],+r[3]]:null;}
@@ -137,8 +136,8 @@ function genericVectorCandidates(svg,bound,used,max=28){
   return out.filter(x=>x.box).sort((a,b)=>b._score-a._score).slice(0,max).map(({_score,...x})=>x);
 }
 
-export async function detectBattlefieldFeatures(svg,{mapNotes='',historicalContext='',playSpace=null,boundary=null}={}){
-  assignGeometryIds(svg);const bound=boundary||findBoundary(svg,playSpace),contextEvidence=contextTerrainEvidence(mapNotes,historicalContext),byFill=(c,t=18)=>collect(svg,bound,e=>isColor(e,'fill',c,t)),byStroke=(c,t=18)=>collect(svg,bound,e=>isColor(e,'stroke',c,t));
+export async function detectBattlefieldFeatures(svg,{mapNotes='',playSpace=null}={}){
+  assignGeometryIds(svg);const bound=findBoundary(svg,playSpace),byFill=(c,t=18)=>collect(svg,bound,e=>isColor(e,'fill',c,t)),byStroke=(c,t=18)=>collect(svg,bound,e=>isColor(e,'stroke',c,t));
   const wet=byFill(COLORS.water,45),woods=byFill(COLORS.wood),walls=byStroke(COLORS.wall),avenues=byStroke(COLORS.avenue),bridges=byFill(COLORS.bridge),structures=byFill(COLORS.structure),tracks=byFill(COLORS.track);
   const raster=await rasterClassifiers(svg,bound),features=[],candidates=[];let classified=0;
   wet.forEach((item,i)=>{classified++;features.push(featureFromGroup([item],{id:`map-wet-${i+1}`,name:`Wet-ground polygon ${i+1}`,category:'Hydrology',proposal:'Wet ground / marsh margin',cls:'Wet Ground',effects:['Difficult'],detectionConfidence:99,interpretationConfidence:82,reason:'Detected directly from cyan source-map polygon geometry. Classified separately from stream channels.'},bound));});
@@ -161,17 +160,6 @@ export async function detectBattlefieldFeatures(svg,{mapNotes='',historicalConte
   const promoted=features.filter(validBox),cleanCandidates=candidates.filter(validBox),claimedIds=new Set([...promoted,...cleanCandidates].flatMap(f=>f.elementIds||[]));
   const generic=genericVectorCandidates(svg,bound,claimedIds,Math.max(10,28-cleanCandidates.length));for(const g of generic)if(!cleanCandidates.some(x=>x.id===g.id))cleanCandidates.push(g);
   if(!promoted.length&&!cleanCandidates.length&&svg.querySelector('image'))cleanCandidates.push({id:'visual-source-unresolved',name:'Rendered map image',kind:'raster map requiring geometry review',category:'Compiler diagnostic',proposal:'Inspect image-derived terrain',cls:'Unknown',effects:[],detectionConfidence:100,interpretationConfidence:0,confidence:0,box:[0,0,100,100],elementIds:[],reason:'The SVG contains rendered image content inside the play area, but automatic segmentation did not resolve individual terrain features. This diagnostic is kept in Geometry Explorer so a geometry-rich map never reports a silent successful zero-feature compile.'});
-  const hints=[...contextEvidence.mapNotes,...contextEvidence.historical];
-  const enrich=rec=>{
-    const match=hints.find(h=>h.cls===rec.cls||h.sourceType===rec.proposal||h.family===rec.category);
-    if(!match)return rec;
-    const note=contextEvidence.mapNotes.some(h=>h.sourceType===match.sourceType||h.cls===match.cls);
-    const history=contextEvidence.historical.some(h=>h.sourceType===match.sourceType||h.cls===match.cls);
-    const base=Number(rec.interpretationConfidence??rec.confidence??0);
-    const confidence=Math.min(99,base+(note?4:0)+(history?2:0));
-    return {...rec,interpretationConfidence:confidence,confidence,reason:`${rec.reason||''}${note||history?` Scenario context also mentions ${match.sourceType}${note?' in Input Map Notes':''}${history?' in the Historical Battlefield Description':''}.`:''}`,contextSupport:{mapNotes:note,historical:history}};
-  };
-  const contextualFeatures=promoted.map(enrich),contextualCandidates=cleanCandidates.map(enrich);
   const raw=wet.length+woods.length+walls.length+avenues.length+bridges.length+structures.length+tracks.length+raster.streams.length+raster.walls.length+raster.woods.length+raster.avenues.length+raster.roads.length+(raster.generic?.length||0)+generic.length;
-  return{features:contextualFeatures,candidates:contextualCandidates,boundary:bound,stats:{raw,classified,promoted:contextualFeatures.length,explorer:contextualCandidates.length,generic:generic.length,contextHints:hints.map(x=>x.sourceType),water:raster.streams.length,wet:wet.length,wood:woods.length,wall:walls.length,avenue:avenues.length,bridge:bridges.length,structure:structures.length,track:tracks.length,rasterWall:raster.walls.length,rasterWood:raster.woods.length,rasterAvenue:raster.avenues.length,rasterRoad:raster.roads.length,genericRaster:raster.generic?.length||0,diagnosticOnly:contextualCandidates.length===1&&contextualCandidates[0].id==='visual-source-unresolved'}};
+  return{features:promoted,candidates:cleanCandidates,boundary:bound,stats:{raw,classified,promoted:promoted.length,explorer:cleanCandidates.length,generic:generic.length,water:raster.streams.length,wet:wet.length,wood:woods.length,wall:walls.length,avenue:avenues.length,bridge:bridges.length,structure:structures.length,track:tracks.length,rasterWall:raster.walls.length,rasterWood:raster.woods.length,rasterAvenue:raster.avenues.length,rasterRoad:raster.roads.length,genericRaster:raster.generic?.length||0,diagnosticOnly:cleanCandidates.length===1&&cleanCandidates[0].id==='visual-source-unresolved'}};
 }
