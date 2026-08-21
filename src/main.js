@@ -1,18 +1,18 @@
-import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.4.0';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.4.0';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.5.4.0';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.4.0';
-import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.4.0';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.4.0';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.4.0';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.4.0';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.4.0';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.4.0';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.5.4.0';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.4.0';
-import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.4.0';
+import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.5.0';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.5.0';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.5.5.0';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.5.0';
+import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.5.0';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.5.0';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.5.0';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.5.0';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.5.0';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.5.0';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.5.5.0';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.5.0';
+import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.5.0';
 
-const VERSION = '0.5.4.0';
+const VERSION = '0.5.5.0';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -84,12 +84,13 @@ function setupFiles() {
     setText('#fileSummary',names.length?`Selected locally: ${names.join(' · ')}`:'No map source selected.');
     const ready=!!$('#svg')?.files?.[0];
     $('#generateBattlefield').disabled=!ready;
-    setText('#battlefieldBuildStatus',ready?'Ready to generate from the selected vector map. PPTX/PDF remain supporting evidence.':names.length?'Sources selected. Add a browser-readable SVG to render the battlefield.':'Select map source files to begin.');
+    const hasPptx=!!$('#pptx')?.files?.[0];
+    setText('#battlefieldBuildStatus',ready?(hasPptx?'Ready: PowerPoint authored geometry will be primary; SVG will supply the rendered battlefield.':'Ready to generate from SVG. Add the matching PPTX when available for authored terrain geometry.'):names.length?'Sources selected. Add a browser-readable SVG to render the battlefield.':'Select map source files to begin.');
   };
   ['pdf','svg'].forEach(id=>$(`#${id}`)?.addEventListener('change',refreshNames));
   $('#pptx')?.addEventListener('change',async e=>{
     refreshNames();const file=e.target.files?.[0];if(!file)return;
-    try{const info=await inspectPptxAuthoring(file);setText('#fileSummary',`${file.name}: structured PowerPoint metadata found — ${info.summary||'no recognized terrain groups yet'}. Select the matching SVG to render the battlefield.`);}
+    try{const info=await inspectPptxAuthoring(file);setText('#fileSummary',`${file.name}: ${info.shapeCount||0} authored shapes inspected · ${info.featureCount||0} terrain features · ${info.candidateCount||0} unresolved geometry. ${info.summary||''} Select the matching SVG to render the battlefield.`);}
     catch(error){setText('#fileSummary',`${file.name}: PPTX inventory failed — ${error.message}`);}
   });
   $('#generateBattlefield')?.addEventListener('click',async()=>{
@@ -106,31 +107,47 @@ function setupFiles() {
       // Parse through the SVG XML path used by normal startup. This is important for
       // PowerPoint-derived SVGs whose root may use an XML namespace prefix.
       const svg=loadInlineMapText($('#battlefieldMapHost'),sourceText);
+      // SVG remains the display/cropping source, but a matching PPTX is the preferred
+      // gameplay-geometry source because PowerPoint preserves author labels and freeform shapes
+      // even when the SVG export rasterizes textured fills.
       const detected=await detectBattlefieldFeatures(svg,{mapNotes:state.project.mapNotes,playSpace});
+      const pptxFile=$('#pptx')?.files?.[0]||null;
+      let structured=null;
+      if(pptxFile){
+        setText('#battlefieldBuildStatus','Reading authored PowerPoint terrain geometry…');
+        try{structured=await compilePptxTerrain(pptxFile,{playSpace});}
+        catch(error){console.warn('PPTX geometry compiler fallback:',error);structured=null;}
+      }
       const boundary=detected.boundary;
       applyPlayAreaViewBox(svg,boundary);
       const clippedSvgText=serializeBattlefieldSvg(svg,boundary);
       const revision=newBattlefieldRevision();
+      const hasStructured=!!structured&&(structured.features.length||structured.candidates.length);
+      const structuredFeatures=hasStructured?structured.features:[];
+      const secondaryVisual=(detected.candidates||[]).filter(c=>c.cls==='Unknown'||c.category==='Generic source geometry'||c.category==='Compiler diagnostic').slice(0,12);
+      const finalFeatures=hasStructured?structuredFeatures:(detected.features||[]);
+      const finalCandidates=hasStructured?[...(structured.candidates||[]),...secondaryVisual]:(detected.candidates||[]);
+      const compileStats=hasStructured?{...structured.stats,visualPromoted:detected.features?.length||0,visualExplorer:detected.candidates?.length||0,explorer:finalCandidates.length,promoted:finalFeatures.length}:detected.stats||{};
 
       state.project.mapSource={
         kind:'local-svg',name:file.name,svgText:clippedSvgText,playArea:boundary,battlefieldRevision:revision,
-        compileStats:detected.stats||{},
-        authoring:{pptx:$('#pptx')?.files?.[0]?.name||null,pdf:$('#pdf')?.files?.[0]?.name||null}
+        compileStats,
+        authoring:{pptx:pptxFile?.name||null,pdf:$('#pdf')?.files?.[0]?.name||null,geometrySource:hasStructured?'pptx':'svg',pptxSummary:structured?.stats?.summary||null}
       };
       state.project.battlefieldRevision=revision;
-      state.project.features=detected.features||[];
-      state.project.candidates=detected.candidates||[];
+      state.project.features=finalFeatures;
+      state.project.candidates=finalCandidates;
       state.project.manualFeatures=[];
       state.decisions={};state.ignoredCandidates={};state.importedCandidateIds=[];state.selectedFeatureIds=[];state.selectedCandidateIds=[];state.selectedFeatureId=null;state.selectedCandidateId=null;
       invalidateBattlefieldDependents(state,revision,{clearDeployment:true});
       saveState(state);
 
       const total=state.project.features.length+state.project.candidates.length;
-      const diagnosticOnly=!!detected.stats?.diagnosticOnly;
+      const diagnosticOnly=!hasStructured&&!!detected.stats?.diagnosticOnly;
       sessionStorage.setItem('bax-battlefield-build-status',diagnosticOnly
         ? `${file.name}: map imported, but terrain segmentation was inconclusive. A diagnostic candidate was retained in Geometry Explorer instead of reporting a silent zero-feature success.`
         : total
-          ? `${file.name}: ${state.project.features.length} review feature(s), ${state.project.candidates.length} Geometry Explorer candidate(s).`
+          ? `${file.name}: ${state.project.features.length} review feature(s), ${state.project.candidates.length} Geometry Explorer candidate(s)${hasStructured?' · PowerPoint-authored geometry primary':''}.`
           : `${file.name}: map imported, but no battlefield geometry candidates were generated. Review Geometry Tools or the source SVG.`);
       // A full reload is deliberate: every workspace is rebound to the same persisted
       // battlefield revision instead of retaining an editor-local reference to the old map.
@@ -203,7 +220,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.5.4.0');
+      const mod=await import('./samples/paviaSample.js?v=0.5.5.0');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}

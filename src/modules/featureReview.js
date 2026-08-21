@@ -1,4 +1,4 @@
-import { highlightFeature, clearOverlay } from './mapView.js?v=0.5.4.0';
+import { highlightFeature, clearOverlay } from './mapView.js?v=0.5.5.0';
 
 export const RULES = {
   Difficult: 'Move Value is halved for units moving in Difficult terrain.',
@@ -8,7 +8,7 @@ export const RULES = {
   Impassable: 'Units may not move into or across Impassable terrain except through an approved opening or crossing override.',
   Defensive: 'Units benefiting from Defensive terrain receive the applicable defensive combat benefit.'
 };
-export const CLASSES = ['Open Ground','Dense Wood','Open Grove','Wet Ground','Stream','Road','Masonry Wall','Bridge','Gatehouse','Breach','Building','Decorative','Unknown'];
+export const CLASSES = ['Open Ground','Elevated Ground','Ravine','Dense Wood','Open Grove','Orchard','Vineyard','Field','Wet Ground','Stream','Water Body','Ditch','Road','Track','Masonry Wall','Hedge','Fence','Earthwork','Fortification','Bridge','Ford','Gatehouse','Breach','Settlement','Building','Structure','Decorative','Unknown'];
 export const EFFECTS = Object.keys(RULES);
 
 const signature=f=>JSON.stringify({cls:f.cls||'Unknown',effects:[...(f.effects||[])].sort()});

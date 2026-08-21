@@ -156,7 +156,7 @@ button:active{transform:translateY(1px)}
 .map-empty::after{content:"No battlefield map generated for the current scenario";position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;color:var(--muted);font-size:12px;line-height:1.4;pointer-events:none}
 .map-empty>img[hidden]{display:none!important}
 
-/* v0.5.4.0 — calibrated battlefield geometry and legible non-geometric labels */
+/* v0.5.5.0 — calibrated battlefield geometry and legible non-geometric labels */
 .deployment-map-frame{width:100%;height:auto;min-height:0;aspect-ratio:var(--battlefield-width,48) / var(--battlefield-height,48)}
 .deployment-map-frame>img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
 .play-replay-frame{height:auto;min-height:360px;max-height:calc(100vh - 195px);overflow:auto}
@@ -173,26 +173,26 @@ button:active{transform:translateY(1px)}
 .deployment-piece.unit .piece-label{transform:translate(-50%,-50%)!important}
 .replay-commander,.deployment-piece.commander{box-sizing:border-box}
 
-/* v0.5.4.0 — visual force planning */
-.force-plan{display:grid;gap:14px;margin:10px 0 4px}
-.force-plan-side{border:1px solid rgba(145,174,205,.22);border-radius:10px;padding:10px;background:#0a1726}
-.force-plan-army{display:flex;justify-content:space-between;align-items:center;padding:7px 9px;margin-bottom:10px;border-radius:7px;background:#13243a;border-left:4px solid #5d8fff}
-.force-plan-side.imperial .force-plan-army{border-left-color:#e06464}
-.force-plan-army span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.force-plan-command-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;align-items:start}
-.force-plan-command{position:relative;border:1px solid var(--line);border-radius:9px;background:#0e1b2d;padding:9px}
-.force-plan-command:before{content:"";position:absolute;left:50%;top:-10px;height:10px;border-left:1px solid rgba(145,174,205,.45)}
-.force-plan-command header{display:flex;justify-content:space-between;gap:8px;align-items:start;padding-bottom:8px;border-bottom:1px solid rgba(145,174,205,.16)}
-.force-plan-command header small{display:block;margin-top:3px;color:var(--muted);font-size:10px}
-.force-plan-branch{display:grid;gap:7px;padding-top:9px}
-.force-plan-unit{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px;border-radius:8px;background:#15263c;border:1px solid rgba(145,174,205,.14)}
-.force-plan-symbol{display:grid;place-items:center;width:26px;height:26px;border:1px solid rgba(255,255,255,.45);border-radius:4px;background:#efe7d2;color:#111;font-size:17px}
-.force-plan-unit small,.force-plan-unit p{display:block;margin:2px 0;color:var(--muted);font-size:10px}
-.force-plan-unit b{color:var(--accent2)}
-.library-card.library-highlight{outline:3px solid #ffd45c;box-shadow:0 0 0 4px rgba(255,212,92,.16)}
-@media(max-width:760px){.force-plan-unit{grid-template-columns:28px 1fr}.force-plan-unit button{grid-column:2}}
+/* v0.5.5.0 — visual force planning */
+.force-plan{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 2px;align-items:start}
+.force-sketch{margin:0;min-width:0;border:1px solid rgba(145,174,205,.2);border-radius:8px;background:#0a1726;padding:8px 9px 10px;overflow:hidden}
+.force-sketch figcaption{display:grid;justify-items:center;text-align:center;gap:1px;padding:3px 6px 5px;font-family:Georgia,serif}
+.force-sketch figcaption strong{font-size:14px;text-transform:uppercase;letter-spacing:.04em}.force-sketch figcaption span{font-size:9px;color:var(--muted);font-family:var(--font,system-ui)}
+.force-sketch-trunk{width:1px;height:9px;background:rgba(184,203,223,.48);margin:0 auto}
+.force-sketch-commands{position:relative;display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;padding-top:8px}
+.force-sketch-commands:before{content:"";position:absolute;left:8%;right:8%;top:0;border-top:1px solid rgba(184,203,223,.42)}
+.force-sketch-command{position:relative;min-width:0;text-align:left;padding:0 3px}.force-sketch-command:before{content:"";position:absolute;left:50%;top:-8px;height:8px;border-left:1px solid rgba(184,203,223,.42)}
+.force-sketch-command-title{text-align:center;line-height:1.1;padding-bottom:4px}.force-sketch-command-title strong{display:block;font-size:11px}.force-sketch-command-title span{display:block;margin-top:2px;font-size:8.5px;color:var(--muted);font-style:italic}
+.force-sketch-command.unresolved .force-sketch-command-title strong{color:#d5bd7a}.force-sketch-command ul{list-style:none;margin:0;padding:0;border-top:1px solid rgba(145,174,205,.12)}.force-sketch-command.dense ul{columns:2 145px;column-gap:10px}
+.force-sketch-command li{break-inside:avoid;display:grid;grid-template-columns:13px minmax(0,1fr);gap:3px;align-items:start;padding:3px 0;border-bottom:1px dotted rgba(145,174,205,.12);font-size:9px;line-height:1.18}.force-sketch-command li.empty{display:block;text-align:center;color:var(--muted);font-style:italic}
+.force-sketch-bullet{display:inline-grid;place-items:center;width:12px;height:12px;font-size:9px;color:#efe7d2}.force-sketch-command li b{font-weight:650}.force-sketch-command li em{font-style:normal;color:var(--muted);padding:0 3px}
+.force-sketch-profile{display:inline;border:0;background:none;padding:0;color:var(--accent2);font:inherit;font-weight:700;cursor:pointer;text-decoration:none}.force-sketch-profile:hover{text-decoration:underline}
+.force-sketch.imperial figcaption{border-bottom-color:#e06464}.force-sketch.french figcaption{border-bottom-color:#5d8fff}
+@media(max-width:1000px){.force-plan{grid-template-columns:1fr}.force-sketch-commands{grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}}
+@media(max-width:620px){.force-sketch-commands{grid-template-columns:1fr 1fr}.force-sketch-command li{font-size:8.5px}}
 
-/* v0.5.4.0 — AI review defaults to plain-English presentation */
+
+/* v0.5.5.0 — AI review defaults to plain-English presentation */
 .ai-review-summary{margin:12px 0;padding:12px;border:1px solid rgba(95,150,245,.35);border-radius:9px;background:#0d1d30}
 .ai-review-summary p{margin:6px 0;line-height:1.45}.ai-review-summary .eyebrow{margin:0 0 8px}
 .ai-change header strong{font-size:14px;line-height:1.35}.ai-change header span{white-space:nowrap;font-size:10px;color:var(--accent2)}

@@ -1,19 +1,18 @@
-# Battle Axe Design Studio v0.5.4.0 — Compiler, Force Plan, Token Geometry & Playtest State
+# Battle Axe Design Studio v0.5.5.0 — PPTX Geometry Ontology & Compact Force Diagram
 
-- Added scenario-independent appearance segmentation for image-heavy or unfamiliar SVG maps. Low-confidence visual regions are routed to Geometry Explorer instead of being discarded because they do not match Pavia-specific colors.
-- Added a compiler fail-safe diagnostic candidate when an SVG contains rendered image content but individual terrain segmentation remains inconclusive, preventing a silent “0 features” success state.
-- Generate Battlefield now accepts namespace-prefixed SVG roots from PowerPoint exports during its initial validity check as well as during XML parsing.
-- Added a shared battlefield-scale module used by Deployment and Playtest for physical base footprints and battlefield aspect ratio.
-- Deployment units now use the scenario-configured unit-base size rather than a hard-coded 50 mm display size; commanders use the configured commander diameter.
-- Playtest replay counters now use each runtime unit/commander base size and the same battlefield transform as Deployment.
-- Blank battlefields preserve the configured table aspect ratio, so token geometry remains calibrated even when no map image is available.
-- Labels may extend beyond unit footprints for legibility, but are presentation-only and never alter physical footprint, collision, contact, or movement geometry.
-- Current-scenario Playtest preview clears stale run/replay state when the scenario fingerprint changes and rebinds its map to the active battlefield.
-- Force Builder now includes a visual Suggested Force Composition diagram organized by side and proposed command. Each historical formation shows its suggested canonical Battle Axe profile and can jump directly to that profile in the Unit Library.
-- Suggested force composition no longer auto-populates a large proposed roster. Users can create suggested command shells and deliberately build the final roster from canonical Battle Axe units.
-- AI Review Bridge now renders a human-readable review summary and plain-English change descriptions by default. Machine-readable JSON is hidden under expandable Technical Detail controls.
-- Added regression tests for physical footprint calibration on rectangular battlefields, generic raster-region detection, stale replay clearing, visual force planning, and plain-English AI review rendering.
-- Converted cache-buster regression tests to derive the active release number from `VERSION`, preventing obsolete release test filenames from failing future GitHub uploads.
+- Reworked map compilation so a matching PPTX is the preferred source of gameplay terrain geometry; the SVG supplies rendering, clipping, and visual fallback.
+- Added browser-side extraction of PowerPoint shape bounds, freeforms, connectors, custom geometry paths, and author descriptions.
+- Replaced the narrow exact-label terrain dictionary with a broad terrain ontology covering relief, hydrology, wet ground, vegetation, agriculture, routes, walls/barriers, fortifications, crossings, built environments, structures, and military areas.
+- Added synonym/alias handling for varied mapmaker terminology and explicit regression vocabulary not present in the Pavia or Cerignola examples.
+- Unknown but meaningful PowerPoint-authored geometry is retained as an `Unknown` Geometry Explorer candidate instead of being discarded.
+- Preserved original source labels and interpretation confidence separately from the normalized terrain suggestion.
+- Added actual PowerPoint custom-geometry path extraction, including sampled Bézier curves, so structured feature highlighting is based on authored shapes rather than only bounding rectangles.
+- Fixed SVG coordinate normalization so geometry is measured in root SVG user coordinates and remains stable after battlefield viewBox clipping or reload.
+- Removed named Pavia gate/castle heuristics from the generic visual detector; generic labels such as gate/porta/breach may still ground a candidate without proper-name assumptions.
+- Redesigned Suggested Force Composition as a compact, read-only command-tree sketch with bullet-style formations and canonical Battle Axe profile references; removed command-creation controls from the suggestion graphic.
+- Expanded terrain review classes to preserve source concepts such as Elevated Ground, Vineyard, Orchard, Field, Hedge, Earthwork, Fortification, Ford, Water Body, Ditch, Ravine, and Settlement.
+- Updated GitHub Pages workflow to `actions/checkout@v5` and `actions/setup-node@v5`.
+- Added v0.5.5 regression tests for broad non-sample terrain vocabulary, unknown-term preservation, PPTX-primary compilation, viewBox-stable geometry, removal of named Pavia runtime heuristics, and compact force-sketch presentation.
 
 # Battle Axe Design Studio v0.5.3.0 — Scenario Isolation & Battlefield State
 

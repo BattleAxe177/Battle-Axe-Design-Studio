@@ -6,10 +6,17 @@ function styleColor(el,p){const direct=el.getAttribute(p);if(direct&&direct!=='n
 function isColor(el,p,target,tol=12){const c=styleColor(el,p);return norm(c)===norm(target)||colorDistance(c,target)<=tol;}
 
 function transformPoint(m,x,y){return{x:m.a*x+m.c*y+m.e,y:m.b*x+m.d*y+m.f};}
+function rootRelativeMatrix(el){
+  const m=el?.getCTM?.();if(!m)return null;const root=el.ownerSVGElement;if(!root||root===el)return m;
+  const rm=root.getCTM?.();if(!rm?.inverse)return m;
+  try{return rm.inverse().multiply(m);}catch{return m;}
+}
 function geometryBox(el){
   try{
     if(el.ownerSVGElement===null&&el.viewBox?.baseVal){const v=el.viewBox.baseVal;return{x:v.x,y:v.y,width:v.width,height:v.height};}
-    const b=el.getBBox(),m=el.getCTM();if(!b||!m)return null;
+    const b=el.getBBox(),m=rootRelativeMatrix(el);if(!b||!m)return null;
+    // Coordinates are normalized back into the root SVG user coordinate system. They therefore
+    // remain stable if the battlefield viewBox is changed for table clipping or after a reload.
     const pts=[transformPoint(m,b.x,b.y),transformPoint(m,b.x+b.width,b.y),transformPoint(m,b.x,b.y+b.height),transformPoint(m,b.x+b.width,b.y+b.height)];
     const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);return{x:Math.min(...xs),y:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};
   }catch{return null;}
@@ -142,8 +149,9 @@ export async function detectBattlefieldFeatures(svg,{mapNotes='',playSpace=null}
   cluster(avenues,14).forEach((group,i)=>{classified+=group.length;features.push(featureFromGroup(group,{id:`map-avenue-trees-${i+1}`,name:`Roadside tree line ${i+1}`,category:'Vegetation Lines',proposal:'Tree-lined avenue vegetation',cls:'Open Grove',effects:['Obscuring'],detectionConfidence:99,interpretationConfidence:80,reason:'Detected from paired green source-map linework.'},bound));});
   if(avenues.length<2){for(const x of raster.avenues)candidates.push({...x,kind:'possible tree line / avenue',interpretationConfidence:58,confidence:58,reason:'Appearance-assisted elongated vegetation candidate. Withheld from normal review until paired vegetation + route topology confirms a tree-lined avenue.'});}
   bridges.forEach((item,i)=>{classified++;features.push(featureFromGroup([item],{id:`map-crossing-${i+1}`,name:`Possible bridge / crossing ${i+1}`,category:'Crossings & Openings',proposal:'Bridge or culvert crossing',cls:'Bridge',effects:[],detectionConfidence:99,interpretationConfidence:72,reason:'Compact dark-gray source geometry resembles bridge/crossing symbols and is promoted for review.'},bound));});
-  const openings=[syntheticOpening(svg,bound,walls,'Pescarina','Porta Pescarina','map-gate-pescarina','Gatehouse',91),syntheticOpening(svg,bound,walls,'Repentita','Porta Repentita','map-gate-repentita','Gatehouse',88),syntheticOpening(svg,bound,walls,'Riazzo','Porta Riazzo','map-gate-riazzo','Gatehouse',86),syntheticOpening(svg,bound,walls,'Due Porte','Due Porte','map-gate-due-porte','Gatehouse',82),syntheticOpening(svg,bound,walls,'Breach','Imperial breach','map-breach','Breach',92)].filter(Boolean);classified+=openings.length;features.push(...openings);
-  const mir=findText(svg,'Mirabello');if(mir&&structures.length){const p=center(geometryBox(mir)),nearest=[...structures].sort((a,b)=>pointDistanceToBox(p,a.bbox)-pointDistanceToBox(p,b.bbox))[0];classified++;features.push(featureFromGroup([nearest],{id:'map-mirabello',name:'Castello Mirabello',category:'Structures',proposal:'Major structure / castle complex',cls:'Building',effects:['Impassable','Tall','Defensive'],detectionConfidence:98,interpretationConfidence:85,reason:'Map label linked to nearest compact structure geometry.'},bound));}
+  // Generic label-grounded openings. Proper names are not hard-coded: any map label that explicitly
+  // says gate/porta/breach can be tied to nearby wall geometry and offered for review.
+  const openings=[];let openingIndex=0;for(const textEl of svg.querySelectorAll('text')){const label=(textEl.textContent||'').trim();if(!label)continue;const q=label.toLowerCase();const isBreach=/\bbreach\b/.test(q),isGate=/\bgate(house)?\b|\bporta\b/.test(q);if(!isBreach&&!isGate)continue;const id=`map-labeled-opening-${++openingIndex}`;const item=syntheticOpening(svg,bound,walls,label,label,id,isBreach?'Breach':'Gatehouse',isBreach?86:82);if(item)openings.push(item);}classified+=openings.length;features.push(...openings);
   raster.roads.forEach(x=>candidates.push({...x,kind:'possible road / track'}));
   for(const x of raster.generic||[])candidates.push(x);
   const used=new Set(features.flatMap(f=>f.elementIds||[]));structures.filter(x=>!used.has(x.id)).forEach((item,i)=>candidates.push(featureFromGroup([item],{id:`candidate-structure-${i+1}`,name:`Additional compact structure ${i+1}`,kind:'building / gatehouse / landmark',proposal:'Unclassified compact structure',cls:'Unknown',effects:[],detectionConfidence:99,interpretationConfidence:46,confidence:46,reason:'Clearly detected source geometry, but its gameplay role is ambiguous.'},bound)));

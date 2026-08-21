@@ -1,19 +1,22 @@
-# Battle Axe Design Studio v0.5.4.0
+# Battle Axe Design Studio v0.5.5.0
 
 Battle Axe Design Studio is a browser-based workspace for turning historical source material and authored battlefield maps into Battle Axe scenarios, deployments, playtests, analysis, and publishable scenario material.
 
-## Current release: Compiler, Force Plan, Token Geometry & Playtest State
+## Current release: PPTX Geometry Ontology & Compact Force Diagram
 
-Version 0.5.4.0 is a focused test release for the issues exposed by the first non-Pavia scenario workflow.
+Version 0.5.5.0 changes the map compiler architecture so a structured PowerPoint map is treated as the preferred gameplay-geometry source instead of merely as supporting evidence.
 
-- Battlefield detection now includes a scenario-independent rendered-appearance fallback and retains an explicit Geometry Explorer diagnostic instead of silently reporting a successful zero-feature compile for image-heavy SVGs.
-- Deployment and Playtest now share one calibrated battlefield transform. Unit and commander footprints are derived from the configured physical base sizes and the scenario battlefield dimensions, so 25/50 mm square units remain physically square on both square and rectangular tables.
-- Unit labels are presentation-only overlays: they may extend beyond the base for legibility but never change collision/contact geometry.
-- Stale prepared playtest replays are cleared from the current-scenario preview when the scenario fingerprint changes; the preview always rebinds to the active battlefield.
-- Force Builder now presents a visual Suggested Force Composition diagram from historical evidence. It shows proposed commanders/commands and the recommended canonical Battle Axe profile for each historical formation without automatically creating a cluttered roster. Users create commands and select/drag final units from the Unit Library.
-- AI Review Bridge now shows plain-English recommendation cards by default. Raw Studio destination fields and JSON remain available only under an expandable Technical Detail section.
+- **PowerPoint-authored geometry is primary when a PPTX and matching SVG are supplied.** Freeforms, rectangles, connectors, shape bounds, and author descriptions are read directly from the PPTX. The SVG remains the rendered/cropped battlefield and visual fallback.
+- **General terrain ontology replaces the short exact-name dictionary.** The compiler recognizes broad families such as relief, hydrology, wet ground, vegetation, agriculture, roads/tracks, walls/barriers, fortifications, crossings, settlements, structures, and military areas using aliases and source wording rather than battle-specific names.
+- **Unknown authored geometry is never silently discarded.** A meaningful PowerPoint shape whose terminology is unfamiliar is retained in Geometry Explorer as an `Unknown` source-authored candidate for human classification.
+- **Source wording is preserved.** The compiler records the user's own label/description alongside the normalized terrain suggestion and confidence.
+- **Freeform geometry is retained.** PowerPoint custom geometry paths, including line and Bézier segments, are converted to battlefield-relative geometry for feature highlighting and game use.
+- **SVG clipping coordinates are stable.** Vector bounding boxes are normalized into root SVG coordinates so changing the battlefield `viewBox` no longer shifts feature coordinates after clipping/reload.
+- **Generic visual fallback remains available.** Maps without a structured PPTX still use SVG/vector/appearance detection and Geometry Explorer rather than failing silently.
+- **Suggested Force Composition is now a compact read-only force sketch.** Each side is presented as an army/command tree with short formation bullets and the suggested canonical Battle Axe profile. It is deliberately visually distinct from the actual drag/drop roster below and no longer acts as a second card editor.
+- **GitHub Pages workflow uses Node-24-generation actions** (`checkout@v5` and `setup-node@v5`) while continuing to run the full verification pipeline before deployment.
 
-Pavia remains an explicit regression/sample project, not a runtime fallback or the default recognition target.
+Pavia and Cerignola are regression examples only. The compiler's acceptance tests deliberately include terrain terminology not used by either map (for example bocage, sunken lanes, rice paddies, wadis, redoubts, ravines, and fords).
 
 ## Development commands
 
@@ -24,4 +27,4 @@ npm run check
 npm run verify
 ```
 
-See `CHANGELOG.md` for release history and the `docs/` directory for architecture notes.
+See `CHANGELOG.md` for release history and `docs/` for architecture notes.

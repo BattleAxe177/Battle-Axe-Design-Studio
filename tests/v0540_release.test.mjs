@@ -48,7 +48,7 @@ test('force builder exposes visual suggested composition without auto-populating
   const html=await read('index.html'),builder=await read('src/modules/scenarioBuilder.js');
   assert.match(html,/id="suggestedForcePlan"/);assert.match(html,/Suggested force composition/);
   assert.doesNotMatch(html,/id="addProposedForces"/);
-  assert.match(builder,/data-find-profile/);assert.match(builder,/data-create-plan-command/);
+  assert.match(builder,/data-find-profile/);assert.match(builder,/forcePlanGroups/);
 });
 
 test('AI change review has plain-English descriptions with technical JSON collapsed',async()=>{
