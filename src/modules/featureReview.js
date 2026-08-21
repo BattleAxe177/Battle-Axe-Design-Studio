@@ -1,4 +1,4 @@
-import { highlightFeature, clearOverlay } from './mapView.js?v=0.5.7.0';
+import { highlightFeature, clearOverlay } from './mapView.js?v=0.5.7.1';
 
 export const RULES = {
   Difficult: 'Move Value is halved for units moving in Difficult terrain.',
@@ -12,6 +12,31 @@ export const CLASSES = ['Open Ground','Elevated Ground','Ravine','Dense Wood','O
 export const EFFECTS = Object.keys(RULES);
 
 const signature=f=>JSON.stringify({cls:f.cls||'Unknown',effects:[...(f.effects||[])].sort()});
+
+// User-facing review helpers. Keep raw detector percentages and provenance in the
+// expandable Technical details section; the normal workflow gets plain language.
+function confidenceLabel(value){
+  const n=Number(value);
+  if(!Number.isFinite(n))return 'Confidence not rated';
+  if(n>=85)return 'High confidence';
+  if(n>=65)return 'Medium confidence';
+  if(n>=40)return 'Low confidence';
+  return 'Needs review';
+}
+function friendlySource(feature={}){
+  const provenance=String(feature.provenance||'').toLowerCase();
+  let message;
+  if(provenance.includes('pptx')||provenance.includes('powerpoint')) message='Identified directly from the uploaded PowerPoint map.';
+  else if(provenance.includes('manual')) message='Added manually by the designer.';
+  else if(provenance.includes('raster')||String(feature.id||'').startsWith('raster-')||String(feature.id||'').startsWith('visual-')) message='Detected from the map artwork; review the suggested interpretation.';
+  else if(String(feature.category||'').includes('Geometry Explorer')||String(feature.reason||'').startsWith('Imported candidate')) message='Imported from Geometry Explorer for normal battlefield review.';
+  else message='Detected from the uploaded battlefield map.';
+  const support=[];
+  if(feature.contextSupport?.mapNotes) support.push('your Input Map Notes');
+  if(feature.contextSupport?.historical) support.push('the Historical Battlefield Description');
+  if(support.length) message+=` The interpretation is also supported by ${support.join(' and ')}.`;
+  return message;
+}
 function grouped(features){const g=new Map();for(const f of features){if(!g.has(f.category))g.set(f.category,[]);g.get(f.category).push(f);}return g;}
 
 export function setupFeatureReview(state,persist,svg){

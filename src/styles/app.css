@@ -266,7 +266,7 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;z-
 @media(max-width:760px){.topbar{height:62px}.workspace{padding:14px}.module-grid{grid-template-columns:1fr}.module-card{min-height:0}.ai-batch-actions{position:static;align-items:flex-start;flex-direction:column}.section-heading h2{font-size:26px}}
 
 
-/* v0.5.7.0 — user-facing polish, wider Force Builder, and clearer actions */
+/* v0.5.7.1 — user-facing polish, wider Force Builder, and clearer actions */
 .top-action{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 13px;border-radius:8px;font-weight:780;font-size:13px;letter-spacing:.01em;box-shadow:inset 0 1px rgba(255,255,255,.08),0 4px 12px rgba(0,0,0,.14)}
 .top-action span{font-size:15px;line-height:1}.top-action-help{background:#17283d;border:1px solid #526a84;color:#f1f6fb}.top-action-open{background:#20344e;border:1px solid #66809d;color:#f4f8fc}.top-action-new{background:linear-gradient(180deg,#e5b64f,#c9912c);border:1px solid #efc666;color:#1d1609}.top-action:hover{filter:brightness(1.1);transform:translateY(-1px)}
 .scenario-force-layout{grid-template-columns:minmax(0,1fr) 300px!important}.source-force-panel{display:none!important}

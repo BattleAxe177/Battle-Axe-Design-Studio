@@ -1,4 +1,11 @@
-# Battle Axe Design Studio v0.5.7.0 — Battlefield Registration & Designer-Facing Polish
+# Battle Axe Design Studio v0.5.7.1 — Feature Review Startup Hotfix
+
+- Fixes a startup-blocking `ReferenceError` in Battlefield Feature Review introduced by the v0.5.7.0 user-facing confidence-label polish.
+- Adds the missing plain-English confidence and source-description helpers used by the review queue and selected-feature panel.
+- Adds regression tests that require those helpers to be defined before their first use.
+- Bumps browser module cache keys so GitHub Pages clients do not keep the broken v0.5.7.0 module.
+
+# Battle Axe Design Studio v0.5.7.1 — Battlefield Registration & Designer-Facing Polish
 
 - Made the structured PowerPoint battlefield boundary authoritative when a PPTX is supplied and registered that boundary into SVG coordinates for one shared crop/overlay coordinate system.
 - Added map-note and historical-context terrain evidence: Studio now analyzes those inputs and records matching terrain concepts as support for classification confidence without inventing geometry.
@@ -10,7 +17,7 @@
 - Increased contrast, size, and hierarchy for How to Use, Open Project, and New Scenario controls and added broader user-facing UI cleanup.
 - Full release verification: 119 tests pass, static production build passes, and GitHub Pages deployment check passes.
 
-# Battle Axe Design Studio v0.5.7.0 — Shared Battlefield Renderer & UI Polish
+# Battle Axe Design Studio v0.5.7.1 — Shared Battlefield Renderer & UI Polish
 
 - Changed local battlefield persistence to store the original SVG unchanged; the detected tabletop/play-area boundary is now separate render metadata.
 - Added render-only SVG cloning and crop application so source artwork is never destructively rewritten just to create the tabletop view.

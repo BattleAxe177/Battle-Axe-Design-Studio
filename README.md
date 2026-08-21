@@ -1,10 +1,12 @@
-# Battle Axe Design Studio v0.5.7.0
+# Battle Axe Design Studio v0.5.7.1
 
+
+**v0.5.7.1 hotfix:** fixes the Battlefield Feature Review startup error caused by missing user-facing confidence/source helper functions in v0.5.7.0.
 Battle Axe Design Studio is a browser-based workspace for turning historical source material and authored battlefield maps into Battle Axe scenarios, deployments, playtests, analysis, and publishable scenario material.
 
 ## Current release: Battlefield Registration & Designer-Facing Polish
 
-Version 0.5.7.0 focuses on the issues found while testing Cerignola and on making the now-stable Studio structure feel more like a finished scenario-design application.
+Version 0.5.7.1 focuses on the issues found while testing Cerignola and on making the now-stable Studio structure feel more like a finished scenario-design application.
 
 - PowerPoint-authored tabletop boundaries are now registered directly into the matching SVG coordinate system and become authoritative for crop and feature alignment.
 - Historical Battlefield Description and Input Map Notes are now analyzed as terrain context; matching terrain concepts can strengthen classification confidence while unknown geometry remains unresolved rather than being invented.

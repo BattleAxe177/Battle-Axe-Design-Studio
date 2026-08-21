@@ -1,7 +1,7 @@
 <!doctype html><meta charset="utf-8"><body><pre id="out">running</pre><script type="module">
-import { compilePptxTerrain, registerPptxBoundaryToSvg } from '../src/modules/structuredMapCompiler.js?v=0.5.7.0';
-import { loadInlineMapText } from '../src/modules/mapView.js?v=0.5.7.0';
-import { detectBattlefieldFeatures } from '../src/modules/battlefieldDetector.js?v=0.5.7.0';
+import { compilePptxTerrain, registerPptxBoundaryToSvg } from '../src/modules/structuredMapCompiler.js?v=0.5.7.1';
+import { loadInlineMapText } from '../src/modules/mapView.js?v=0.5.7.1';
+import { detectBattlefieldFeatures } from '../src/modules/battlefieldDetector.js?v=0.5.7.1';
 const out=document.querySelector('#out');
 try{
  const [pr,sr]=await Promise.all([fetch('./cerignola.pptx'),fetch('./cerignola.svg')]);
