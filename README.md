@@ -1,22 +1,18 @@
-# Battle Axe Design Studio v0.5.7.1
+# Battle Axe Design Studio v0.5.8.0
 
-
-**v0.5.7.1 hotfix:** fixes the Battlefield Feature Review startup error caused by missing user-facing confidence/source helper functions in v0.5.7.0.
 Battle Axe Design Studio is a browser-based workspace for turning historical source material and authored battlefield maps into Battle Axe scenarios, deployments, playtests, analysis, and publishable scenario material.
 
-## Current release: Battlefield Registration & Designer-Facing Polish
+## Current release: Command Hierarchy & Designer Workflow
 
-Version 0.5.7.1 focuses on the issues found while testing Cerignola and on making the now-stable Studio structure feel more like a finished scenario-design application.
+Version 0.5.8.0 focuses on the workflow issues found during Cerignola testing while preserving the now-working terrain compiler.
 
-- PowerPoint-authored tabletop boundaries are now registered directly into the matching SVG coordinate system and become authoritative for crop and feature alignment.
-- Historical Battlefield Description and Input Map Notes are now analyzed as terrain context; matching terrain concepts can strengthen classification confidence while unknown geometry remains unresolved rather than being invented.
-- Force Builder no longer dedicates a large column to duplicated imported-force cards; the suggested-force diagram and final army builder receive substantially more space.
-- Battlefield Review defaults to plain-English confidence and source summaries, with detector percentages and diagnostic reasoning moved under Technical details.
-- Deployment dragging preserves the exact point where the user grabbed a unit, so release drops the piece where it visually sits instead of recentering it under the cursor.
-- Playtest stale-state and warning text is rewritten for scenario designers rather than exposing configuration hashes.
-- Top-level actions and other controls receive higher contrast, larger hit areas, and clearer primary/secondary hierarchy.
-- Additional developer-oriented copy is reduced or moved behind expandable diagnostic sections.
-- Release verification: 119 automated tests pass, production build passes, and the GitHub Pages static deployment check passes.
+- Structured scenario briefs now retain real battlefield command headings, commanders-in-chief, subordinate commanders, formation links, and provisional assignments.
+- Suggested Force Composition no longer uses repeated fake “Command organization unresolved” branches; uncertain formations are shown once as unassigned evidence.
+- Scenario-rule extraction filters internal Scenario Builder instructions and other meta-language that does not describe a playable rule.
+- Geometry Explorer imports can be renamed in Battlefield Review, and reclassification moves them into the appropriate normal terrain family while keeping source provenance in Technical details.
+- Deployment has explicit Select / Move, Rectangle Zone, and Polygon Zone modes with Finish, Cancel, and Escape behavior. Placing a unit returns to Select / Move.
+- Battlefield dimensions are checked against the authored map aspect ratio, with a one-click Match battlefield proportions helper.
+- Release verification: 127 automated tests pass; production build and GitHub Pages static deployment checks pass.
 
 ## Development commands
 

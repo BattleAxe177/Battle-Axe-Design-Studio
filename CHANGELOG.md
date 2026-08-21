@@ -1,3 +1,16 @@
+# Battle Axe Design Studio v0.5.8.0 — Command Hierarchy & Designer Workflow
+
+- Reworked Scenario Builder command extraction so structured army sections preserve command headings, commander assignments, commander-in-chief relationships, subordinate formations, and explicitly provisional commanders instead of flattening everything into “Command organization unresolved.”
+- Suggested Force Composition now renders real commands as branches and keeps genuinely unassigned formations in one full-width “Command assignment uncertain” area rather than creating fake unresolved command columns.
+- Re-analysis replaces stale parser evidence from earlier Studio versions while preserving designer-authored rules and accepted/rejected state for still-valid suggestions.
+- Filters Scenario Builder meta-instructions and other process-language artifacts out of user-facing scenario-rule suggestions unless they contain an actual playable mechanism.
+- Battlefield Feature Review now has an editable Feature name. Reclassified Geometry Explorer imports automatically join the normal terrain family (Topography, Hydrology, Agriculture, etc.) and generic names are replaced with sensible defaults such as Hill, Stream, or Vineyard unless the designer supplies a custom name.
+- Deployment Editor now opens in an explicit Select / Move mode, adds clear Rectangle Zone and Polygon Zone tools, provides Finish / Cancel controls, supports Escape to leave zone drawing, and automatically exits zone mode when a unit is placed.
+- Corrected deployed-piece drag boundary math so the cursor grab point and the visible square remain consistent all the way to the battlefield edge.
+- Added map-to-battlefield aspect-ratio validation. Sources & Context warns when the authored map proportions differ from the entered physical battlefield and offers Match battlefield proportions; Deployment repeats the warning when necessary.
+- Added v0.5.8 regression tests covering structured command hierarchy, provisional command relationships, rule-artifact filtering, feature renaming/regrouping, deployment tool states, footprint drag behavior, and battlefield proportion warnings.
+- Release verification: 127 automated tests pass, production build passes, and the GitHub Pages static deployment check passes.
+
 # Battle Axe Design Studio v0.5.7.1 — Feature Review Startup Hotfix
 
 - Fixes a startup-blocking `ReferenceError` in Battlefield Feature Review introduced by the v0.5.7.0 user-facing confidence-label polish.

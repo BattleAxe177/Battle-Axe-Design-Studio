@@ -1,7 +1,7 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.5.7.1';
-import { getEffectiveRuleset, listSupplements, ensureScenarioRuleset, effectiveArmyAssetPolicy } from '../rules/ruleset.js?v=0.5.7.1';
-import { analyzeScenarioText, proposedRosterUnits } from './scenarioAnalyzer.js?v=0.5.7.1';
-import { SIDE_KEYS, registerEvidenceSides, sideForFaction, sideLabel, ensureTwoSideModel } from './scenarioSides.js?v=0.5.7.1';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.5.8.0';
+import { getEffectiveRuleset, listSupplements, ensureScenarioRuleset, effectiveArmyAssetPolicy } from '../rules/ruleset.js?v=0.5.8.0';
+import { analyzeScenarioText, proposedRosterUnits } from './scenarioAnalyzer.js?v=0.5.8.0';
+import { SIDE_KEYS, registerEvidenceSides, sideForFaction, sideLabel, ensureTwoSideModel } from './scenarioSides.js?v=0.5.8.0';
 
 const $=s=>document.querySelector(s);
 const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -39,7 +39,14 @@ export function setupScenarioBuilder(state,persist){
 
   function renderSources(){const s=scenario();$('#scenarioSourceList').innerHTML=s.sources.length?s.sources.map(x=>`<div class="source-item"><span><strong>${safe(x.name)}</strong><small>${safe(x.type)} · ${(x.size/1024).toFixed(1)} KB</small></span><span class="source-status ${x.textExtracted?'ok':'pending'}">${safe(x.status)}</span></div>`).join(''):'<p class="muted">No source documents registered yet.</p>';}
 
-  function mergeAnalysis(a,sourceName){const s=scenario();for(const [k,v] of Object.entries(a.metadata))if(v&&!s.metadata[k])s.metadata[k]=v;if(a.historicalSituation&&!s.historicalSituation)s.historicalSituation=a.historicalSituation;if(a.deploymentNotes&&!s.deploymentNotes)s.deploymentNotes=a.deploymentNotes;if(a.victoryText&&!s.victoryText)s.victoryText=a.victoryText;for(const o of a.observations)if(!s.observations.some(x=>x.field===o.field&&x.value===o.value))s.observations.push(o);for(const f of a.forces)if(!s.sourceForces.some(x=>x.key===f.key))s.sourceForces.push(f);for(const c of a.sourceCommands||[])if(!s.sourceCommands.some(x=>x.id===c.id))s.sourceCommands.push(c);registerEvidenceSides(s,s.sourceForces,s.sourceCommands);for(const sg of a.suggestions)if(!s.suggestions.some(x=>x.id===sg.id))s.suggestions.push(sg);s.unresolved=[...new Set([...s.unresolved,...a.unresolved])];s.lastAnalysis={at:new Date().toISOString(),sourceName};}
+  function mergeAnalysis(a,sourceName){const s=scenario();for(const [k,v] of Object.entries(a.metadata))if(v&&!s.metadata[k])s.metadata[k]=v;if(a.historicalSituation&&!s.historicalSituation)s.historicalSituation=a.historicalSituation;if(a.deploymentNotes&&!s.deploymentNotes)s.deploymentNotes=a.deploymentNotes;if(a.victoryText&&!s.victoryText)s.victoryText=a.victoryText;for(const o of a.observations)if(!s.observations.some(x=>x.field===o.field&&x.value===o.value))s.observations.push(o);
+    // The analyzer sees the complete current intake text each run, so replace its extracted evidence instead of
+    // accumulating stale parser artifacts from earlier Studio versions. Preserve designer-authored rules and
+    // accepted/rejected state for suggestions that still exist.
+    s.sourceForces=[...(a.forces||[])];s.sourceCommands=[...(a.sourceCommands||[])];registerEvidenceSides(s,s.sourceForces,s.sourceCommands);
+    const previous=new Map((s.suggestions||[]).map(x=>[x.id,x])),designer=(s.suggestions||[]).filter(x=>String(x.provenance||'').toLowerCase()==='designer');
+    s.suggestions=[...designer,...(a.suggestions||[]).map(sg=>{const prior=previous.get(sg.id);return prior?{...sg,status:prior.status||sg.status,engineStatus:prior.engineStatus||sg.engineStatus,engineText:prior.engineText||sg.engineText,overrides:prior.overrides||sg.overrides,proposal:prior.status==='accepted'&&prior.proposal?prior.proposal:sg.proposal}:sg;})];
+    s.unresolved=[...new Set(a.unresolved||[])];s.lastAnalysis={at:new Date().toISOString(),sourceName};}
   function analyze(text,name='Scenario intake'){if(!text.trim())return;mergeAnalysis(analyzeScenarioText(text,{sourceName:name,ruleset:ruleset()}),name);persist();renderAllScenario();activateTab('review');}
 
   function renderReview(){const s=scenario(),unresolved=s.unresolved.length;$('#scenarioReviewStatus').textContent=s.lastAnalysis?`${s.observations.length} observations`:'Not analyzed';$('#scenarioReviewSummary').innerHTML=s.lastAnalysis?`<div class="intake-metrics"><span><b>${s.sourceCommands.length}</b> source commands</span><span><b>${s.sourceForces.length}</b> formations</span><span><b>${unresolved}</b> unresolved</span></div>`:'<p class="muted">Analyze a source to populate the scenario.</p>';$('#sourceObservations').innerHTML=s.observations.length?s.observations.map(o=>`<div class="observation"><div><strong>${safe(o.field)}</strong><span class="confidence-badge">${o.confidence}%</span></div><p>${safe(o.value)}</p><small>Source: ${safe(o.sourceName)}</small></div>`).join(''):'<p class="muted">No extracted observations yet.</p>';$('#scenarioTitle').value=s.metadata.title||'';$('#scenarioDate').value=s.metadata.date||'';$('#scenarioLocation').value=s.metadata.location||'';$('#scenarioGameLength').value=s.metadata.gameLength||'';$('#scenarioTableSize').value=s.metadata.tableSize||'';$('#scenarioStatus').value=s.metadata.status||'';$('#scenarioSituation').value=s.historicalSituation||'';$('#scenarioDeployment').value=s.deploymentNotes||'';$('#scenarioVictory').value=s.victoryText||'';}
@@ -65,23 +72,27 @@ export function setupScenarioBuilder(state,persist){
     for(const list of Object.values(proposed))for(const p of list)bySource.set(p.sourceId,p);
     const used=new Set(),groups=[];
     for(const sc of s.sourceCommands||[]){
+      if(sc.name==='Command organization unresolved'&&!(sc.formations||[]).length)continue; // legacy pre-v0.5.8 parser artifact
       const formationIds=new Set(sc.formations||[]),formations=(s.sourceForces||[]).filter(f=>formationIds.has(f.id));formations.forEach(f=>used.add(f.id));
-      groups.push({id:sc.id,sourceCommand:sc,side:sideForFaction(s,sc.faction,{assign:true}),name:sc.name||'Suggested command',commander:sc.commander||'',armyCommander:sc.armyCommander||'',formations});
+      groups.push({id:sc.id,sourceCommand:sc,side:sideForFaction(s,sc.faction,{assign:true}),name:sc.name||'Suggested command',commander:sc.commander||'',commanderStatus:sc.commanderStatus||'confirmed',armyCommander:sc.armyCommander||'',formations});
     }
-    const remaining=(s.sourceForces||[]).filter(f=>!used.has(f.id));
+    const remaining=(s.sourceForces||[]).filter(f=>!used.has(f.id)&&f.faction&&f.faction!=='Unknown');
     const bySide=new Map();for(const f of remaining){const side=sideForFaction(s,f.faction,{assign:true});if(!bySide.has(side))bySide.set(side,[]);bySide.get(side).push(f);}
-    for(const [side,formations] of bySide)groups.push({id:`unresolved-${side}`,sourceCommand:null,side,name:'Command organization unresolved',commander:'',armyCommander:'',formations});
+    for(const [side,formations] of bySide)groups.push({id:`unassigned-${side}`,sourceCommand:null,side,name:'Command assignment uncertain',commander:'',commanderStatus:'unresolved',armyCommander:'',formations});
     return groups.map(g=>({...g,formations:g.formations.map(f=>({source:f,proposal:bySource.get(f.id)||null}))}));
   }
   function forcePlanSymbol(profile){const item=unitLibrary().find(x=>x.profile===profile);return item?.icon||'▪';}
+  function forcePlanFormation({source,proposal}){const profile=proposal?.profile||source.profileHint||'Review profile';return `<li title="${safe(source.strength?`Historical strength: ${source.strength}${source.forceRole?` · ${source.forceRole}`:''}`:(source.forceRole||'Historical formation'))}"><span class="force-sketch-bullet">${forcePlanSymbol(profile)}</span><span><b>${safe(source.name)}</b><em>→</em><button type="button" class="force-sketch-profile" data-find-profile="${safe(profile==='Review profile'?'':profile)}">${safe(profile)}</button></span></li>`;}
   function renderForcePlan(){
     const host=$('#suggestedForcePlan');if(!host)return;const groups=forcePlanGroups();
     if(!groups.length){host.innerHTML='<p class="muted">No historical formations are available yet. Analyze the scenario brief first.</p>';return;}
     const bySide=Object.fromEntries(SIDE_KEYS.map(x=>[x,groups.filter(g=>g.side===x)]));
     host.innerHTML=SIDE_KEYS.map(side=>{
-      const sideGroups=bySide[side]||[],armyCommanders=[...new Set(sideGroups.map(g=>g.armyCommander).filter(Boolean))];
-      const armyCommander=armyCommanders.length===1?armyCommanders[0]:'';
-      return `<figure class="force-sketch ${side.toLowerCase()}"><figcaption><strong>${safe(sideLabel(scenario(),side))}</strong>${armyCommander?`<span>${safe(armyCommander)}</span>`:'<span>Suggested force composition</span>'}</figcaption><div class="force-sketch-trunk"></div><div class="force-sketch-commands">${sideGroups.map(g=>`<section class="force-sketch-command ${g.sourceCommand?'':'unresolved'} ${g.formations.length>5?'dense':''}"><div class="force-sketch-command-title"><strong>${safe(g.name)}</strong><span>${g.commander?safe(g.commander):'Commander unresolved'}</span></div><ul>${g.formations.length?g.formations.map(({source,proposal})=>{const profile=proposal?.profile||source.profileHint||'Review profile';return `<li title="${safe(source.strength?`Historical strength: ${source.strength}${source.forceRole?` · ${source.forceRole}`:''}`:(source.forceRole||'Historical formation'))}"><span class="force-sketch-bullet">${forcePlanSymbol(profile)}</span><span><b>${safe(source.name)}</b><em>→</em><button type="button" class="force-sketch-profile" data-find-profile="${safe(profile==='Review profile'?'':profile)}">${safe(profile)}</button></span></li>`}).join(''):'<li class="empty">No formations linked.</li>'}</ul></section>`).join('')}</div></figure>`;
+      const sideGroups=bySide[side]||[],real=sideGroups.filter(g=>g.sourceCommand),uncertain=sideGroups.find(g=>!g.sourceCommand),armyCommanders=[...new Set(real.map(g=>g.armyCommander).filter(Boolean))],armyCommander=armyCommanders.length===1?armyCommanders[0]:'';
+      const status=uncertain?.formations.length?`<div class="force-sketch-status">Some formations still need a command assignment.</div>`:'';
+      const commands=real.map(g=>`<section class="force-sketch-command ${g.formations.length>5?'dense':''}"><div class="force-sketch-command-title"><strong>${safe(g.name)}</strong><span>${g.commander?safe(g.commander)+(g.commanderStatus==='provisional'?' · provisional':''):g.commanderStatus==='provisional'?'Commander provisional':'Commander not identified'}</span></div><ul>${g.formations.length?g.formations.map(forcePlanFormation).join(''):'<li class="empty">No formations linked yet.</li>'}</ul></section>`).join('');
+      const unassigned=uncertain?.formations.length?`<section class="force-sketch-unassigned"><div class="force-sketch-command-title"><strong>Command assignment uncertain</strong><span>These formations are preserved without inventing a commander.</span></div><ul>${uncertain.formations.map(forcePlanFormation).join('')}</ul></section>`:'';
+      return `<figure class="force-sketch ${side.toLowerCase()}"><figcaption><strong>${safe(sideLabel(scenario(),side))}</strong>${armyCommander?`<span>Commander-in-Chief: ${safe(armyCommander)}</span>`:'<span>Suggested force composition</span>'}</figcaption>${status}<div class="force-sketch-trunk"></div><div class="force-sketch-commands ${real.length<=1?'single':''}">${commands}</div>${unassigned}</figure>`;
     }).join('');
     host.querySelectorAll('[data-find-profile]').forEach(b=>b.addEventListener('click',()=>{const profile=b.dataset.findProfile||'';if(!profile)return;$('#unitLibrarySearch').value=profile;renderLibrary();const first=$('#unitLibrary .library-card');first?.scrollIntoView({behavior:'smooth',block:'center'});first?.classList.add('library-highlight');setTimeout(()=>first?.classList.remove('library-highlight'),1400);}));
   }

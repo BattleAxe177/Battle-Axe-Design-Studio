@@ -1,18 +1,18 @@
-import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.7.1';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.7.1';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.5.7.1';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.7.1';
-import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.7.1';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.7.1';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, registerPptxBoundaryToSvg, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.7.1';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.7.1';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.7.1';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.7.1';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.5.7.1';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.7.1';
-import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, applyBattlefieldAspect, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.7.1';
+import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.8.0';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.8.0';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.5.8.0';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.8.0';
+import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.8.0';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.8.0';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, registerPptxBoundaryToSvg, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.8.0';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.8.0';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.8.0';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.8.0';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.5.8.0';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.8.0';
+import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, applyBattlefieldAspect, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.8.0';
 
-const VERSION = '0.5.7.1';
+const VERSION = '0.5.8.0';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -55,6 +55,7 @@ function persist() {
     saveState(state);
     setText('#saveStatus', 'Saved');
     setText('#statusSave', 'Saved locally');
+    renderAspectNotice();
     setTimeout(() => setText('#saveStatus', 'Ready'), 1200);
   } catch (error) {
     console.error(error);
@@ -76,8 +77,18 @@ function populateProject() {
   setText('#statusProject', p.name);
   setText('#sidebarSpace', `${p.playSpace.width} × ${p.playSpace.height} ${p.playSpace.units}`);
   setText('#runtimeVersion', `v${VERSION}`);
+  renderAspectNotice();
 }
 
+
+function renderAspectNotice(){
+  const notice=$('#aspectMismatchNotice'),text=$('#aspectMismatchText');if(!notice||!text)return;
+  const boundary=state.project.mapSource?.playArea,w=Number($('#width')?.value||state.project.playSpace?.width||0),h=Number($('#height')?.value||state.project.playSpace?.height||0);
+  if(!boundary?.width||!boundary?.height||!(w>0&&h>0)){notice.hidden=true;return;}
+  const mapRatio=Number(boundary.width)/Number(boundary.height),spaceRatio=w/h,diff=Math.abs(mapRatio-spaceRatio)/mapRatio;
+  notice.hidden=!(Number.isFinite(diff)&&diff>.025);
+  if(!notice.hidden)text.textContent=` The authored map is about ${mapRatio.toFixed(2)}:1; the current battlefield is ${spaceRatio.toFixed(2)}:1. Deployment and playtest views may look wrong until these proportions agree.`;
+}
 function setupFiles() {
   const refreshNames=()=>{
     const names=['pptx','pdf','svg'].map(key=>$(`#${key}`)?.files?.[0]?.name).filter(Boolean);
@@ -223,7 +234,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.5.7.1');
+      const mod=await import('./samples/paviaSample.js?v=0.5.8.0');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}
@@ -272,6 +283,7 @@ async function startup() {
     setupFiles();
     $('#saveButton')?.addEventListener('click', persist);
     ['width','height','units','origin','historicalContext','mapNotes'].forEach(id => $(`#${id}`)?.addEventListener('change', persist));
+    $('#matchMapAspect')?.addEventListener('click',()=>{const b=state.project.mapSource?.playArea,w=Number($('#width').value||state.project.playSpace.width||48);if(!b?.width||!b?.height||!(w>0))return;const ratio=Number(b.width)/Number(b.height);$('#height').value=Number((w/ratio).toFixed(2));persist();window.dispatchEvent(new CustomEvent('bax:scenario-changed'));renderAspectNotice();});
 
     await disableDevelopmentCaches();
     const mapSource=state.project.mapSource;

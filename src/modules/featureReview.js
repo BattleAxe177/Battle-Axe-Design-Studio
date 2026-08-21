@@ -1,4 +1,4 @@
-import { highlightFeature, clearOverlay } from './mapView.js?v=0.5.7.1';
+import { highlightFeature, clearOverlay } from './mapView.js?v=0.5.8.0';
 
 export const RULES = {
   Difficult: 'Move Value is halved for units moving in Difficult terrain.',
@@ -37,7 +37,19 @@ function friendlySource(feature={}){
   if(support.length) message+=` The interpretation is also supported by ${support.join(' and ')}.`;
   return message;
 }
-function grouped(features){const g=new Map();for(const f of features){if(!g.has(f.category))g.set(f.category,[]);g.get(f.category).push(f);}return g;}
+const CLASS_GROUPS={
+  'Open Ground':'Open ground','Elevated Ground':'Topography','Ravine':'Topography',
+  'Dense Wood':'Vegetation','Open Grove':'Vegetation','Orchard':'Agriculture','Vineyard':'Agriculture','Field':'Agriculture',
+  'Wet Ground':'Hydrology','Stream':'Hydrology','Water Body':'Hydrology','Ditch':'Hydrology',
+  'Road':'Roads & tracks','Track':'Roads & tracks','Masonry Wall':'Barriers','Hedge':'Barriers','Fence':'Barriers',
+  'Earthwork':'Fortifications','Fortification':'Fortifications','Breach':'Fortifications',
+  'Bridge':'Crossings & access','Ford':'Crossings & access','Gatehouse':'Crossings & access',
+  'Settlement':'Built environment','Building':'Built environment','Structure':'Built environment','Decorative':'Decorative features'
+};
+const DEFAULT_NAMES={'Elevated Ground':'Hill','Ravine':'Ravine','Dense Wood':'Woods','Open Grove':'Open grove','Orchard':'Orchard','Vineyard':'Vineyard','Field':'Field','Wet Ground':'Wet ground','Stream':'Stream','Water Body':'Water body','Ditch':'Ditch','Road':'Road','Track':'Track','Masonry Wall':'Wall','Hedge':'Hedge','Fence':'Fence','Earthwork':'Earthworks','Fortification':'Fortifications','Bridge':'Bridge','Ford':'Ford','Gatehouse':'Gatehouse','Breach':'Breach','Settlement':'Settlement','Building':'Building','Structure':'Structure','Decorative':'Decorative feature','Open Ground':'Open ground'};
+const isGenericName=name=>/^Unclassified(?: authored)? shape(?: \d+)?$/i.test(String(name||'').trim())||/^Unclassified feature(?: \d+)?$/i.test(String(name||'').trim());
+function categoryForClass(cls,fallback='Unclassified'){return CLASS_GROUPS[cls]||(cls&&cls!=='Unknown'?fallback:'Unclassified');}
+function grouped(features){const g=new Map();for(const f of features){const category=f.category||'Unclassified';if(!g.has(category))g.set(category,[]);g.get(category).push(f);}return g;}
 
 export function setupFeatureReview(state,persist,svg){
   const rows=document.querySelector('#featureRows'), count=document.querySelector('#featureCount'), overlay=document.querySelector('#selectionOverlay');
@@ -51,7 +63,8 @@ export function setupFeatureReview(state,persist,svg){
   };
   const selectedIds=()=>state.selectedFeatureIds||[];
   const selectedFeatures=()=>currentFeatures().filter(f=>selectedIds().includes(f.id));
-  const effective=f=>{const d=state.decisions[f.id];return {...f,cls:d?.cls||f.cls||'Unknown',effects:d?.effects||f.effects||[],note:d?.note||'',status:d?.status||'pending'};};
+  const effective=f=>{const d=state.decisions[f.id],cls=d?.cls||f.cls||'Unknown';return {...f,name:d?.name||f.name,cls,effects:d?.effects||f.effects||[],note:d?.note||'',status:d?.status||'pending',category:categoryForClass(cls,d?.category||f.category||'Unclassified')};};
+  function defaultNameFor(cls,id){const base=DEFAULT_NAMES[cls]||cls||'Feature',same=currentFeatures().map(effective).filter(x=>x.id!==id&&x.cls===cls&&String(x.name||'').toLowerCase().startsWith(base.toLowerCase())).length;return same?`${base} ${same+1}`:base;}
 
   function renderRules(){
     const selected=[...effectList.querySelectorAll('input:checked')].map(x=>x.value);
@@ -73,7 +86,7 @@ export function setupFeatureReview(state,persist,svg){
     const set=new Set(selectedIds()); on?set.add(id):set.delete(id); state.selectedFeatureIds=[...set]; updateBulk(); renderRows(false);
   }
   function renderRows(reselect=true){
-    const savedScroll=rows.scrollTop; rows.innerHTML=''; const features=currentFeatures(); count.textContent=features.length;
+    const savedScroll=rows.scrollTop; rows.innerHTML=''; const features=currentFeatures().map(effective); count.textContent=features.length;
     for(const [category,items] of grouped(features)){
       const section=document.createElement('section');section.className='feature-group';
       const h=document.createElement('h4');h.innerHTML=`<span class="group-select-wrap"><input type="checkbox" class="group-select" aria-label="Select all ${category}"> ${category}</span><span>${items.length}</span>`;section.appendChild(h);
@@ -89,15 +102,15 @@ export function setupFeatureReview(state,persist,svg){
     rows.scrollTop=savedScroll; updateBulk(); if(reselect&&state.selectedFeatureId) select(state.selectedFeatureId,{flash:false});
   }
   function select(id,{flash=true}={}){
-    const feature=currentFeatures().find(f=>f.id===id);if(!feature)return;state.selectedFeatureId=id;
+    const baseFeature=currentFeatures().find(f=>f.id===id);if(!baseFeature)return;const feature=effective(baseFeature);state.selectedFeatureId=id;
     document.querySelectorAll('.feature-row').forEach(r=>r.classList.toggle('selected',r.dataset.id===id));const d=state.decisions[id]||{};
-    document.querySelector('#featureName').textContent=feature.name;
+    document.querySelector('#featureName').textContent=feature.name;document.querySelector('#featureDisplayName').value=feature.name||'';
     document.querySelector('#featureProposal').innerHTML=`<strong>${feature.proposal}</strong><div class="feature-confidence">${confidenceLabel(feature.interpretationConfidence??feature.confidence)}</div><p class="feature-user-note">${friendlySource(feature)}</p><details class="feature-technical-detail"><summary>Technical details</summary><small>Detection ${feature.detectionConfidence??feature.confidence}% · Interpretation ${feature.interpretationConfidence??feature.confidence}%${feature.sourceLabel?` · Source label: ${feature.sourceLabel}`:''}</small><p>${feature.reason||'No additional diagnostic detail.'}</p></details>`;
-    terrainClass.value=d.cls||feature.cls||'Unknown';document.querySelector('#reviewerNote').value=d.note||'';renderEffects(d.effects||feature.effects||[]);highlightFeature(svg,overlay,feature,{flash});
+    terrainClass.value=feature.cls||'Unknown';document.querySelector('#reviewerNote').value=feature.note||'';renderEffects(feature.effects||[]);highlightFeature(svg,overlay,baseFeature,{flash});
   }
-  function saveOne(status){if(!state.selectedFeatureId)return;state.decisions[state.selectedFeatureId]={status,cls:terrainClass.value,effects:[...effectList.querySelectorAll('input:checked')].map(x=>x.value),note:document.querySelector('#reviewerNote').value};persist();renderRows();}
-  function bulkStatus(status){for(const f of selectedFeatures()){const e=effective(f);state.decisions[f.id]={status,cls:e.cls,effects:e.effects,note:e.note};}persist();renderRows();}
-  function bulkApply(){const cls=terrainClass.value,effects=[...effectList.querySelectorAll('input:checked')].map(x=>x.value),note=document.querySelector('#reviewerNote').value;for(const f of selectedFeatures())state.decisions[f.id]={status:'revised',cls,effects,note};persist();renderRows();}
+  function saveOne(status){if(!state.selectedFeatureId)return;const base=currentFeatures().find(f=>f.id===state.selectedFeatureId);if(!base)return;const cls=terrainClass.value;let name=document.querySelector('#featureDisplayName').value.trim()||base.name;if(isGenericName(name)&&cls!=='Unknown')name=defaultNameFor(cls,base.id);state.decisions[state.selectedFeatureId]={...(state.decisions[state.selectedFeatureId]||{}),status,name,cls,category:categoryForClass(cls,base.category),effects:[...effectList.querySelectorAll('input:checked')].map(x=>x.value),note:document.querySelector('#reviewerNote').value};persist();renderRows();select(state.selectedFeatureId,{flash:false});}
+  function bulkStatus(status){for(const f of selectedFeatures()){const e=effective(f);state.decisions[f.id]={...(state.decisions[f.id]||{}),status,name:e.name,cls:e.cls,category:e.category,effects:e.effects,note:e.note};}persist();renderRows();}
+  function bulkApply(){const cls=terrainClass.value,effects=[...effectList.querySelectorAll('input:checked')].map(x=>x.value),note=document.querySelector('#reviewerNote').value;for(const f of selectedFeatures()){const e=effective(f),name=isGenericName(e.name)&&cls!=='Unknown'?defaultNameFor(cls,f.id):e.name;state.decisions[f.id]={...(state.decisions[f.id]||{}),status:'revised',name,cls,category:categoryForClass(cls,f.category),effects,note};}persist();renderRows();}
 
 
   // Manual missing-feature authoring: a deterministic escape hatch when structured source extraction misses geometry.

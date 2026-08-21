@@ -1,4 +1,4 @@
-import { contextTerrainEvidence } from './structuredMapCompiler.js?v=0.5.7.1';
+import { contextTerrainEvidence } from './structuredMapCompiler.js?v=0.5.8.0';
 const COLORS={water:'#69D9E5',wood:'#3B7D23',wall:'#F2AA84',avenue:'#196B24',bridge:'#595959',structure:'#747474',track:'#726530',boundary:'#042433'};
 const norm=v=>(v||'').trim().toUpperCase();
 function parseColor(v){if(!v||v==='none')return null;const h=v.trim().match(/^#([0-9a-f]{6})$/i);if(h){const n=parseInt(h[1],16);return[(n>>16)&255,(n>>8)&255,n&255];}const r=v.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);return r?[+r[1],+r[2],+r[3]]:null;}
