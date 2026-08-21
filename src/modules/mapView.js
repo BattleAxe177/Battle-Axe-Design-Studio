@@ -33,8 +33,8 @@ export function loadInlineMapText(host, text) {
   const parsedRoot=parseSvgDocument(text);
   const svg=document.importNode(parsedRoot,true);
   host.replaceChildren(svg);
-  svg.removeAttribute('width');
-  svg.removeAttribute('height');
+  // Keep source intrinsic dimensions until the authoritative play-area viewBox is applied.
+  // Responsive CSS will scale the SVG without losing its aspect ratio.
   svg.setAttribute('preserveAspectRatio','xMidYMid meet');
   svg.classList.add('battlefield-svg');
   svg.dataset.baLoaded='true';
@@ -54,8 +54,8 @@ export async function loadInlineMap(host, url) {
   const svg = document.importNode(parsedRoot, true);
   host.replaceChildren(svg);
 
-  svg.removeAttribute('width');
-  svg.removeAttribute('height');
+  // Keep source intrinsic dimensions until the authoritative play-area viewBox is applied.
+  // Responsive CSS will scale the SVG without losing its aspect ratio.
   svg.setAttribute('preserveAspectRatio','xMidYMid meet');
   svg.classList.add('battlefield-svg');
   svg.dataset.baLoaded = 'true';

@@ -58,6 +58,6 @@ test('suggested forces are a compact read-only force sketch rather than a second
   const builder=await read('src/modules/scenarioBuilder.js'),css=await read('src/styles/app.css'),html=await read('index.html');
   assert.match(builder,/force-sketch-command/);assert.match(builder,/force-sketch-profile/);assert.match(builder,/<ul>/);
   assert.doesNotMatch(builder,/data-create-plan-command/);
-  assert.match(css,/\.force-plan\{display:grid;grid-template-columns:1fr 1fr/);assert.match(css,/\.force-sketch-commands/);
+  assert.match(css,/\.force-plan\{display:grid/);assert.match(css,/\.force-sketch-commands/);
   assert.match(html,/compact command-tree sketch/i);
 });

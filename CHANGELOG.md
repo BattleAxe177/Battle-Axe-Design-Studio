@@ -1,3 +1,16 @@
+# Battle Axe Design Studio v0.5.6.0 — Shared Battlefield Renderer & UI Polish
+
+- Changed local battlefield persistence to store the original SVG unchanged; the detected tabletop/play-area boundary is now separate render metadata.
+- Added render-only SVG cloning and crop application so source artwork is never destructively rewritten just to create the tabletop view.
+- Added reliable intrinsic width/height to cropped SVG render clones and shared battlefield aspect helpers, fixing the shallow/blank inline-map failure seen with PowerPoint-derived SVGs.
+- Routed Deployment, Geometry Explorer, Playtest/replay, and other image-based battlefield views through the same active-project render crop.
+- Stacked Suggested Force Composition diagrams vertically by side and enlarged army titles, command labels, and formation bullets for legibility.
+- Added AI Review `Accept all remaining`, `Reject all remaining`, pending-count feedback, and an Undo accepted batch action.
+- Refreshed the External AI brief with historical/source formation evidence, uncertainty rules, two-side command guidance, suggested force-composition expectations, canonical profile translation rules, terrain constraints, and plain-English output guidance.
+- Added a site-wide visual polish pass: stronger Battle Axe identity, cartographic/brass accents, module illustrations, richer panel hierarchy, refined navigation and buttons, improved empty states, and more polished AI review/analysis surfaces.
+- Added v0.5.6 regression tests for immutable map source state, render-time cropping/aspect handling, readable force sketches, AI batch review controls, and presentation hooks.
+- Full release verification: 112 tests pass, static production build passes, and GitHub Pages deployment check passes.
+
 # Battle Axe Design Studio v0.5.5.0 — PPTX Geometry Ontology & Compact Force Diagram
 
 - Reworked map compilation so a matching PPTX is the preferred source of gameplay terrain geometry; the SVG supplies rendering, clipping, and visual fallback.

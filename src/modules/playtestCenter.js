@@ -1,11 +1,11 @@
-import { buildRuntimeFromStudio, toPctSnapshot, scenarioConfigFingerprint } from './playtestEngine.js?v=0.5.5.0';
-import { syncBattlefieldImages } from './battlefieldState.js?v=0.5.5.0';
-import { footprintPercent, applyBattlefieldAspect } from './battlefieldScale.js?v=0.5.5.0';
-import { sideLabel } from './scenarioSides.js?v=0.5.5.0';
+import { buildRuntimeFromStudio, toPctSnapshot, scenarioConfigFingerprint } from './playtestEngine.js?v=0.5.6.0';
+import { syncBattlefieldImages } from './battlefieldState.js?v=0.5.6.0';
+import { footprintPercent, applyBattlefieldAspect } from './battlefieldScale.js?v=0.5.6.0';
+import { sideLabel } from './scenarioSides.js?v=0.5.6.0';
 const $=s=>document.querySelector(s);const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function setupPlaytestCenter(state,persist){let currentRun=null,currentBatch=null,replayIndex=0,heatType='movement',playTimer=null,preparedHash=null,logMode='battle';
 const footprint=mm=>footprintPercent(mm,state.project.playSpace||{});const syncAspect=()=>applyBattlefieldAspect($('#playReplayStage'),state.project.playSpace||{});let simulationWorker=null,workerRequest=0;
-function worker(){if(!simulationWorker)simulationWorker=new Worker(new URL('./playtestWorker.js?v=0.5.5.0',import.meta.url),{type:'module'});return simulationWorker;}
+function worker(){if(!simulationWorker)simulationWorker=new Worker(new URL('./playtestWorker.js?v=0.5.6.0',import.meta.url),{type:'module'});return simulationWorker;}
 function setRunBusy(busy,label=''){const a=$('#runSinglePlaytest'),b=$('#runBatchPlaytest'),r=$('#resetPlaytest');if(a)a.disabled=busy||isStale();if(b)b.disabled=busy||isStale();if(r)r.disabled=busy;if(label&&$('#playRunStatus'))$('#playRunStatus').textContent=label;}
 function simulate(kind,opts){return new Promise((resolve,reject)=>{const w=worker(),id=++workerRequest;const onMessage=e=>{const m=e.data||{};if(m.id!==id)return;w.removeEventListener('message',onMessage);w.removeEventListener('error',onError);if(m.ok)resolve(m.result);else{const err=new Error(m.error?.message||'Simulation failed');err.code=m.error?.code;err.diagnostic=m.error?.diagnostic;reject(err);}};const onError=e=>{w.removeEventListener('message',onMessage);w.removeEventListener('error',onError);reject(new Error(e.message||'Playtest worker failed'));};w.addEventListener('message',onMessage);w.addEventListener('error',onError);w.postMessage({id,kind,state,settings:opts});});}
 function simulationFailure(error){console.error(error);const d=error?.diagnostic;$('#playRunStatus').textContent=`Simulation halted safely: ${error?.message||error}${d?` · Turn ${d.turn||'?'} · ${d.side||'unknown'} · ${d.actorName||d.actor||'unknown actor'} · ${d.eventCount||0} events`:''}`;}

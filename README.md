@@ -1,22 +1,21 @@
-# Battle Axe Design Studio v0.5.5.0
+# Battle Axe Design Studio v0.5.6.0
 
 Battle Axe Design Studio is a browser-based workspace for turning historical source material and authored battlefield maps into Battle Axe scenarios, deployments, playtests, analysis, and publishable scenario material.
 
-## Current release: PPTX Geometry Ontology & Compact Force Diagram
+## Current release: Shared Battlefield Renderer & UI Polish
 
-Version 0.5.5.0 changes the map compiler architecture so a structured PowerPoint map is treated as the preferred gameplay-geometry source instead of merely as supporting evidence.
+Version 0.5.6.0 concentrates on making the now-stable Studio workflow more reliable to read and more polished to use while preserving the PPTX-first compiler architecture introduced in v0.5.5.0.
 
-- **PowerPoint-authored geometry is primary when a PPTX and matching SVG are supplied.** Freeforms, rectangles, connectors, shape bounds, and author descriptions are read directly from the PPTX. The SVG remains the rendered/cropped battlefield and visual fallback.
-- **General terrain ontology replaces the short exact-name dictionary.** The compiler recognizes broad families such as relief, hydrology, wet ground, vegetation, agriculture, roads/tracks, walls/barriers, fortifications, crossings, settlements, structures, and military areas using aliases and source wording rather than battle-specific names.
-- **Unknown authored geometry is never silently discarded.** A meaningful PowerPoint shape whose terminology is unfamiliar is retained in Geometry Explorer as an `Unknown` source-authored candidate for human classification.
-- **Source wording is preserved.** The compiler records the user's own label/description alongside the normalized terrain suggestion and confidence.
-- **Freeform geometry is retained.** PowerPoint custom geometry paths, including line and Bézier segments, are converted to battlefield-relative geometry for feature highlighting and game use.
-- **SVG clipping coordinates are stable.** Vector bounding boxes are normalized into root SVG coordinates so changing the battlefield `viewBox` no longer shifts feature coordinates after clipping/reload.
-- **Generic visual fallback remains available.** Maps without a structured PPTX still use SVG/vector/appearance detection and Geometry Explorer rather than failing silently.
-- **Suggested Force Composition is now a compact read-only force sketch.** Each side is presented as an army/command tree with short formation bullets and the suggested canonical Battle Axe profile. It is deliberately visually distinct from the actual drag/drop roster below and no longer acts as a second card editor.
-- **GitHub Pages workflow uses Node-24-generation actions** (`checkout@v5` and `setup-node@v5`) while continuing to run the full verification pipeline before deployment.
+- **Battlefield source SVGs are now immutable project evidence.** Generate Battlefield stores the original SVG text unchanged. The detected tabletop boundary is stored separately and applied as a render-time `viewBox` crop.
+- **Shared cropped renderer fixes the blank/shallow battlefield failure.** Render clones receive explicit intrinsic width/height from the detected play area, so PowerPoint SVG exports retain a reliable aspect ratio in Battlefield Workspace, Geometry Explorer, Deployment, Playtest, replay, and Publisher images.
+- **Downstream battlefield images use the same render crop.** Deployment, Geometry Explorer, and Playtest data-image URLs are produced from the immutable source plus the current play-area boundary rather than from a previously rewritten SVG.
+- **Suggested Force Composition is now stacked vertically by side.** Each army gets the full available width, with larger headings, command labels, and formation bullets for substantially better readability while remaining a compact briefing graphic rather than a second roster editor.
+- **AI Review adds `Accept all remaining`.** Batch acceptance uses the same change application path as individual Accept buttons, preserves rejected decisions, reports the accepted count, and provides an Undo accepted batch action.
+- **External AI brief refreshed.** It now includes read-only source-force evidence, two-side rules, historical uncertainty guidance, the suggested-force planning model, canonical Battle Axe translation principles, map/terrain constraints, and plain-English review expectations.
+- **Visual identity pass.** The Studio now uses stronger typography, brass/cartographic accents, richer panels, module illustrations, refined navigation, clearer empty states, improved AI review styling, and more deliberate interaction states without changing the established workflow.
+- **Regression protection expanded.** v0.5.6 tests verify immutable SVG storage, render-time cropping, battlefield aspect handling, vertically stacked force sketches, batch AI acceptance, and the new visual presentation hooks.
 
-Pavia and Cerignola are regression examples only. The compiler's acceptance tests deliberately include terrain terminology not used by either map (for example bocage, sunken lanes, rice paddies, wadis, redoubts, ravines, and fords).
+**Upgrade note:** projects whose local map was generated under v0.5.5.0 may contain an already-rewritten SVG. Re-import the original PPTX/SVG once under v0.5.6.0 to gain the immutable-source renderer behavior.
 
 ## Development commands
 
