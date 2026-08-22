@@ -20,8 +20,11 @@ test('charge establishes contact then conforms flush to defender edge as a free 
 
 test('movement and LOS rules expose core-rule geometry constraints',async()=>{
   const js=await read();
-  assert.match(js,/clamp\(shortestTurn\(u\.facing\?\?0,desired\),-90,90\)/);
-  assert.match(js,/straightAfterWheel:true/);
+  assert.match(js,/wheelLegality/);
+  assert.match(js,/wheelAroundFrontCorner/);
+  assert.match(js,/sideways-right|sideways-left/);
+  assert.match(js,/halfSpeed/);
+  assert.match(js,/straightAfterWheel:geometryMode==='forward'/);
   assert.match(js,/enemy 1-inch exclusion/);
   assert.match(js,/front-edge line/);
   assert.match(js,/tallEndpoint/);

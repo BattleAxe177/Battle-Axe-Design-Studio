@@ -234,5 +234,5 @@ button:active{transform:translateY(1px)}
 
 @media(max-width:1050px){#tacticalPlanEditor{grid-template-columns:1fr}}
 @media(max-width:650px){.tactical-army>header{grid-template-columns:1fr}.tactical-command{grid-template-columns:1fr 105px}.tactical-command input{grid-column:1/-1}.cue-control{font-size:9px}}
-/* v0.5.7.0 — quiet playtest export surface and longer-lived replay cues */
+/* v0.5.8.0 — quiet playtest export surface and longer-lived replay cues */
 .playtest-export-menu{margin:8px 0 14px;border:1px solid var(--line);border-radius:10px;background:rgba(8,20,34,.5);padding:0 12px}.playtest-export-menu>summary{cursor:pointer;padding:10px 2px;color:var(--muted);font-weight:700}.playtest-export-actions{display:grid;grid-template-columns:minmax(240px,1fr) minmax(240px,1fr);gap:12px;padding:0 0 12px}.playtest-export-actions>div,.playtest-diagnostic-export{border-top:1px solid var(--line);padding-top:10px}.playtest-diagnostic-export{margin:0}.playtest-diagnostic-export>summary{cursor:pointer;color:var(--muted);font-size:.88rem}.replay-cue{animation-duration:1.35s}.replay-cue.destroyed-cue{animation-duration:1.9s}.replay-cue.melee{animation-duration:1.6s}.replay-cue-arrow{animation-duration:1.4s}@media(max-width:800px){.playtest-export-actions{grid-template-columns:1fr}}

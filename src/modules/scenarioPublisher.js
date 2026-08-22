@@ -1,5 +1,5 @@
-import { battlefieldImageUrl } from './battlefieldState.js?v=0.5.7.0';
-import { sideLabel } from './scenarioSides.js?v=0.5.7.0';
+import { battlefieldImageUrl } from './battlefieldState.js?v=0.5.8.0';
+import { sideLabel } from './scenarioSides.js?v=0.5.8.0';
 
 const $=s=>document.querySelector(s);
 const esc=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
