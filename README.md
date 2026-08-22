@@ -1,10 +1,10 @@
-# Battle Axe Design Studio v0.5.6.1
+# Battle Axe Design Studio v0.5.7.0
 
 Battle Axe Design Studio is a browser-based workspace for turning historical source material and authored battlefield maps into Battle Axe scenarios, deployments, playtests, analysis, and publishable scenario material.
 
 ## Current release: Tactical AI, Replay Cues & Interaction Fixes
 
-Version 0.5.6.1 adds the first transparent tactical-behavior layer to browser playtests while keeping zero-input playtesting as the default workflow.
+Version 0.5.7.0 adds rules-audit export, combat conformance corrections, battlefield-render synchronization, inferred initial facing, commander non-overlap, and more readable replay timing while preserving the v0.5.6 tactical AI workflow.
 
 - **Auto tactical planning requires no setup.** Pressing Run Playtest generates broad army postures and command orders from approved Defensive terrain, deployment, and unit roles. Prepared defenders now prefer to retain useful positions instead of automatically advancing toward the nearest enemy.
 - **Optional Playtest-only orders.** Army posture dropdowns (`Auto`, `Offensive`, `Balanced`, `Defensive`, `Delay`) and command orders (`Auto`, `Hold`, `Defend`, `Advance`, `Assault`, `Reserve`, `Screen`, `Maneuver`, `Withdraw`) can override only the parts the user wants to control. These choices do not alter the published scenario or its stale-playtest fingerprint.

@@ -1,3 +1,15 @@
+# Battle Axe Design Studio v0.5.7.0 — Rules Audit Export & Combat Corrections
+
+- Added a low-profile **Export results** disclosure to Playtest. Normal users get a readable HTML report; an Advanced subsection downloads a ZIP diagnostic package containing the report, full event/snapshot timeline, scenario snapshot, engine diagnostics, and optional batch summary.
+- Downstream Deployment, Replay, Publisher and Geometry images now normalize the active SVG to the saved play-area `viewBox` at render time, preventing a raw full-slide authoring SVG from reappearing after compilation.
+- Initial unit facing is inferred from the opposing force geometry when the designer has not explicitly supplied a facing. Removed the old faction-based north/south fallback.
+- Commanders now seek non-overlapping endpoints during normal movement and escape; initially overlapping commanders are corrected to the nearest legal position for the playtest runtime.
+- Corrected Italian Wars **Pikes**: non-charging pike units double melee attacks and treat all facings as Front; removed the unsupported reroll-of-1s behavior; active pikes now suppress flank/rear doubling against them.
+- Tightened Defensive terrain adjudication so both combatants do not receive the same area-defense benefit merely because they occupy the same Defensive polygon.
+- Replay command/combat/destruction cues now dwell longer at normal speed, with event-aware replay timing.
+- Skirmish/Javelin attacks are identified explicitly in the battle log.
+- Current-release test manifest retained; stale repository tests remain ignored.
+
 # Battle Axe Design Studio v0.5.6.1 — Repository Test Isolation Hotfix
 
 - Replaces the broad `tests/*.test.mjs` test glob with a release-owned test manifest.

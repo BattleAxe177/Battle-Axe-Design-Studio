@@ -32,8 +32,8 @@ test('Italian Wars period rules are represented in the browser engine',async()=>
   assert.match(js,/pikeShotTransitAllowed/);
   assert.match(js,/Swiss units may not charge other Swiss units/);
   assert.match(js,/specialAction:'Skirmish'/);
-  assert.match(js,/pikeFrontBonus/);
-  assert.match(js,/rerolls/);
+  assert.match(js,/pikesActive/);
+  assert.doesNotMatch(js,/if\(pike&&r===1\)/);
   assert.match(js,/Pistols before charge contact/);
   assert.match(js,/counterCharge/);
   assert.match(js,/artillery_destroyed_on_contact/);

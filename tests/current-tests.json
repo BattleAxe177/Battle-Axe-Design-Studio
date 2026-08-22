@@ -1,5 +1,5 @@
 {
-  "release": "0.5.6.1",
+  "release": "0.5.7.0",
   "files": [
     "alpha8.test.mjs",
     "alpha9.test.mjs",
@@ -22,6 +22,7 @@
     "v0530_startup_cache.test.mjs",
     "v0540_release.test.mjs",
     "v0550_release.test.mjs",
-    "v0560_tactical_ai_replay.test.mjs"
+    "v0560_tactical_ai_replay.test.mjs",
+    "v0570_rules_audit_export.test.mjs"
   ]
 }

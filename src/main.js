@@ -1,18 +1,18 @@
-import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.6.1';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.6.1';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.5.6.1';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.6.1';
-import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.6.1';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.6.1';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.6.1';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.6.1';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.6.1';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.6.1';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.5.6.1';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.6.1';
-import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.6.1';
+import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.5.7.0';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.5.7.0';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.5.7.0';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.5.7.0';
+import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.5.7.0';
+import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.5.7.0';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.5.7.0';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.5.7.0';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.5.7.0';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.5.7.0';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.5.7.0';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.5.7.0';
+import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.5.7.0';
 
-const VERSION = '0.5.6.1';
+const VERSION = '0.5.7.0';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -220,7 +220,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.5.6.1');
+      const mod=await import('./samples/paviaSample.js?v=0.5.7.0');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}

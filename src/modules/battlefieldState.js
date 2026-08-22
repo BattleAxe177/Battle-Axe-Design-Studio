@@ -9,7 +9,15 @@ export function battlefieldImageUrl(project,{embedLocal=true}={}){
   if(!source)return null;
   if(source.svgText){
     if(!embedLocal)return null;
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source.svgText)}`;
+    let text=source.svgText;
+    if(source.playArea){
+      try{
+        const doc=new DOMParser().parseFromString(text,'image/svg+xml'),svg=doc.documentElement;
+        applyPlayAreaViewBox(svg,source.playArea);
+        text=new XMLSerializer().serializeToString(svg);
+      }catch(error){console.warn('Could not normalize battlefield SVG viewBox for downstream workspace',error);}
+    }
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(text)}`;
   }
   if(source.svg)return new URL(`./${source.svg}`,document.baseURI).href;
   return null;
