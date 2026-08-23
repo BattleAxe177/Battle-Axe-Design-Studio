@@ -1,6 +1,6 @@
-import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.5.8.0';
-import { scenarioConfigFingerprint } from './playtestEngine.js?v=0.5.8.0';
-import { sideForFaction, sideLabel } from './scenarioSides.js?v=0.5.8.0';
+import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.5.9.0';
+import { scenarioConfigFingerprint } from './playtestEngine.js?v=0.5.9.0';
+import { sideForFaction, sideLabel } from './scenarioSides.js?v=0.5.9.0';
 const $=s=>document.querySelector(s);const safe=s=>(s??'').toString();const esc=s=>safe(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function acceptedRules(s){return(s.suggestions||[]).filter(x=>x.status==='accepted');}function allCommands(s){return Object.entries(s.commands||{}).flatMap(([faction,cmds])=>(cmds||[]).map(c=>({faction,...c})));}function approvedTerrain(state){return(state.project.features||[]).map(f=>({f,dec:state.decisions?.[f.id]})).filter(x=>x.dec?.status==='approved');}
 function commandLines(s){const out=[];for(const c of allCommands(s)){out.push(`### ${sideLabel(s,c.faction)} — ${c.name}\nID: ${c.id}\nCommander: ${c.commander||'Unassigned'}`);for(const u of c.units||[])out.push(`- ${u.name} [ID: ${u.id}] | BA profile: ${u.profile} | represents: ${u.represents||'not specified'} | traits: ${(u.traits||[]).join(', ')||'none'} | rationale: ${u.notes||'none'}`);out.push('');}return out;}

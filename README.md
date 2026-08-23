@@ -1,6 +1,6 @@
-# Battle Axe Design Studio v0.5.8.0
+# Battle Axe Design Studio v0.5.9.0
 
-**Movement & Combat Conformance**
+**Scenario Analysis, Movement Search & Deployment**
 
 This release focuses on tabletop-legal physical movement and closer conformity with the Battle Axe core rules and Italian Wars supplement after the Cerignola rules audit.
 
