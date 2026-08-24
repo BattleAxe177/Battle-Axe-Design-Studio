@@ -1,3 +1,14 @@
+# v0.6.1.0 — American Civil War Supplement Plugin
+
+- Adds American Civil War to the Scenario Builder period supplement selector through the existing rules-plugin architecture.
+- Loads the four published ACW unit profiles: Infantry, Sharpshooters, Cavalry, and Cannons.
+- Implements ACW Commander Competency, 5+ rating-assisted Command Tests, generic Union/Confederate rating tables, Break-Test fallback, enfilade fire, Rebel Yell, Refusal to Receive, Muskets, Rifles, and mounted/dismounted cavalry behavior.
+- Adds ACW brigade-composition validation and 1-point commanders to published force totals.
+- Adds an engine-only brigade-centric ACW tactical doctrine for regimental maneuver, fire-before-charge behavior, flank security, screening, artillery preservation, cavalry dismounting, and command friction.
+- Preserves Italian Wars behavior behind supplement capability guards.
+- Does not change unit footprint geometry; proposed 50 × 25 mm ACW bases remain a separate engine improvement.
+- Adds v0.6.1.0 ACW regression coverage and updates release cache/version markers.
+
 # v0.6.0.2 — Battlefield Render Hotfix
 
 - Repairs Battlefield Workspace rendering for SVG sources that provide width/height without an explicit viewBox (common in PowerPoint exports).

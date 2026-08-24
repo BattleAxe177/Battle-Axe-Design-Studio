@@ -1,7 +1,7 @@
-# Battle Axe Design Studio v0.6.0.2 — Design Complete
+# Battle Axe Design Studio v0.6.1.0 — American Civil War Supplement Plugin
 
-This release closes the main design/build phase of Battle Axe Design Studio. It focuses on deployment fidelity, large-base maneuvering, tactical command behavior, replay analysis, publication modes, and regression safeguards.
+This release adds the **American Civil War** as the second selectable Battle Axe period supplement. The ACW module supplies the published unit library and rules modifications, brigade validation, commander ratings, and a brigade-centric tactical AI profile while leaving the Core and Italian Wars rules isolated behind the supplement architecture.
 
-Highlights: exact grab-point deployment dragging; authored deployment facing carried into playtest; rotated-footprint legality; staged/wave activation for congested assaults; latched command-level reserve release; spatial Screen behavior; Defend repositioning; richer replay symbology and status labels; Battle Axe one-page Scenario Sheet export; compact points rosters; and expanded designer diagnostics.
+The prior v0.6.0.x battlefield/deployment fixes remain intact. Rectangular 50 × 25 mm ACW unit footprints are **not** part of this release; this is the requested rules plugin only.
 
-The next development phase is intended to be incremental improvement, beginning with additional period supplements such as American Civil War and Harry's Hussars once their rules are supplied.
+See `docs/RELEASE_0.6.1.0.md` for the implementation summary.

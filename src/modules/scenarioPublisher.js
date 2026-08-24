@@ -1,6 +1,6 @@
-import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.0.2';
-import { battlefieldImageUrl } from './battlefieldState.js?v=0.6.0.2';
-import { sideLabel } from './scenarioSides.js?v=0.6.0.2';
+import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.1.0';
+import { battlefieldImageUrl } from './battlefieldState.js?v=0.6.1.0';
+import { sideLabel } from './scenarioSides.js?v=0.6.1.0';
 
 const $=s=>document.querySelector(s);
 const esc=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -19,8 +19,21 @@ function authoritativeText(v){
   return out.join('\n\n');
 }
 function forceHtml(s,side,{compactRoster=false}={}){
-  const cs=commands(s).filter(c=>c.side===side);if(!cs.length)return'<p>None.</p>';const rs=getEffectiveRuleset(s),profiles=new Map(rs.unitLibrary.map(x=>[x.profile,x]));
-  let armyTotal=0;const blocks=cs.map(c=>{const grouped=new Map();for(const u of c.units||[]){const key=`${u.name}|${u.profile}`,g=grouped.get(key)||{name:u.name,profile:u.profile,count:0,points:Number(profiles.get(u.profile)?.pts||u.points||0)};g.count++;grouped.set(key,g);}const rows=[...grouped.values()],subtotal=rows.reduce((a,r)=>a+r.count*r.points,0);armyTotal+=subtotal;return `<div class="pub-command"><h4>${esc(c.name)}${c.commander?` — ${esc(c.commander)}`:''}${compactRoster?` <span class="points">${subtotal} pts</span>`:''}</h4>${compactRoster?`<table class="roster"><tbody>${rows.map(r=>`<tr><td>${r.count}×</td><td>${esc(r.name===r.profile?r.name:`${r.name} — ${r.profile}`)}</td><td>${r.points?r.count*r.points:'—'}</td></tr>`).join('')}</tbody></table>`:`<ul>${rows.map(r=>`<li>${r.count>1?`${r.count}× `:''}${esc(r.name===r.profile?r.name:`${r.name} — ${r.profile}`)}${r.points?` — ${r.count*r.points} pts`:''}</li>`).join('')}</ul>`}</div>`;});return blocks.join('')+`<p class="army-total"><strong>Army total: ${armyTotal} pts</strong></p>`;
+  const cs=commands(s).filter(c=>c.side===side);if(!cs.length)return'<p>None.</p>';
+  const rs=getEffectiveRuleset(s),profiles=new Map(rs.unitLibrary.map(x=>[x.profile,x]));
+  const commanderCost=Number(rs.supplement.forceStructure?.commanderPointCost||0),hasCommandRatings=rs.supplement.commandRules?.mode==='rating-proximity';
+  let armyTotal=0;
+  const blocks=cs.map(c=>{
+    const grouped=new Map();
+    for(const u of c.units||[]){
+      const key=`${u.name}|${u.profile}`,g=grouped.get(key)||{name:u.name,profile:u.profile,count:0,points:Number(profiles.get(u.profile)?.pts||u.points||0)};g.count++;grouped.set(key,g);
+    }
+    const rows=[...grouped.values()],unitSubtotal=rows.reduce((a,r)=>a+r.count*r.points,0),cmdPoints=c.commander?commanderCost:0,subtotal=unitSubtotal+cmdPoints;armyTotal+=subtotal;
+    const rating=hasCommandRatings&&c.commander?` · CR ${c.commandRating==null?'auto':esc(c.commandRating)}`:'';
+    const commanderRow=compactRoster&&cmdPoints?`<tr><td>1×</td><td>Commander — ${esc(c.commander)}</td><td>${cmdPoints}</td></tr>`:'';
+    return `<div class="pub-command"><h4>${esc(c.name)}${c.commander?` — ${esc(c.commander)}${rating}`:''}${compactRoster?` <span class="points">${subtotal} pts</span>`:''}</h4>${compactRoster?`<table class="roster"><tbody>${rows.map(r=>`<tr><td>${r.count}×</td><td>${esc(r.name===r.profile?r.name:`${r.name} — ${r.profile}`)}</td><td>${r.points?r.count*r.points:'—'}</td></tr>`).join('')}${commanderRow}</tbody></table>`:`<ul>${rows.map(r=>`<li>${r.count>1?`${r.count}× `:''}${esc(r.name===r.profile?r.name:`${r.name} — ${r.profile}`)}${r.points?` — ${r.count*r.points} pts`:''}</li>`).join('')}${cmdPoints?`<li>Commander — ${cmdPoints} pt${cmdPoints===1?'':'s'}</li>`:''}</ul>`}</div>`;
+  });
+  return blocks.join('')+`<p class="army-total"><strong>Army total: ${armyTotal} pts</strong></p>`;
 }
 function conciseText(text,maxWords=110){const words=authoritativeText(text).replace(/\s+/g,' ').trim().split(' ').filter(Boolean);return words.length<=maxWords?words.join(' '):words.slice(0,maxWords).join(' ').replace(/[,:;]$/,'')+'…';}
 function battlefieldBrief(state){const rows=[];for(const f of state.project.features||[]){const d=state.decisions?.[f.id];if(d?.status!=='approved')continue;const effects=d.effects||f.terrainOverride?.effects||[];if(!effects.length)continue;const key=`${d.cls||f.cls||f.name}|${effects.join(',')}`;if(rows.some(x=>x.key===key))continue;rows.push({key,name:d.cls||f.cls||f.name,effects});}return rows.length?rows.slice(0,6).map(x=>`${x.name}: ${x.effects.join(', ')}.`).join(' '):'No game-relevant terrain effects are currently approved.';}
