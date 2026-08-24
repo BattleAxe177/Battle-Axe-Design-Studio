@@ -48,6 +48,7 @@ function findBoundary(svg,playSpace=null){
   if(candidates.length)return candidates.sort((a,b)=>a.score-b.score)[0].b;
   return root;
 }
+export function findBattlefieldBoundary(svg,playSpace=null){return findBoundary(svg,playSpace);}
 function collect(svg,bound,pred,selector='path,rect,line,polyline,polygon,circle,ellipse'){const out=[];for(const el of svg.querySelectorAll(selector)){if(!pred(el))continue;const bbox=geometryBox(el);if(!bbox||!overlap(bbox,bound)||!meaningfulInside(bbox,bound))continue;out.push({el,bbox,id:el.dataset.baGeometryId});}return out;}
 function featureFromGroup(group,opts,bound){const bbox=unionBox(group),box=percentBox(bbox,bound,.7);return{...opts,detectionConfidence:opts.detectionConfidence??99,interpretationConfidence:opts.interpretationConfidence??opts.confidence??80,confidence:opts.interpretationConfidence??opts.confidence??80,box,elementIds:group.map(x=>x.id).filter(Boolean)};}
 function findText(svg,needle){const t=needle.toLowerCase();return[...svg.querySelectorAll('text')].find(x=>(x.textContent||'').trim().toLowerCase().includes(t));}

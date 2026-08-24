@@ -1,6 +1,6 @@
-import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.0.1';
-import { battlefieldImageUrl } from './battlefieldState.js?v=0.6.0.1';
-import { sideLabel } from './scenarioSides.js?v=0.6.0.1';
+import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.0.2';
+import { battlefieldImageUrl } from './battlefieldState.js?v=0.6.0.2';
+import { sideLabel } from './scenarioSides.js?v=0.6.0.2';
 
 const $=s=>document.querySelector(s);
 const esc=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

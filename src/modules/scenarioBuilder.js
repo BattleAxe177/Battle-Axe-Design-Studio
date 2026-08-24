@@ -1,7 +1,7 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.6.0.1';
-import { getEffectiveRuleset, listSupplements, ensureScenarioRuleset, effectiveArmyAssetPolicy } from '../rules/ruleset.js?v=0.6.0.1';
-import { analyzeScenarioText, proposedRosterUnits } from './scenarioAnalyzer.js?v=0.6.0.1';
-import { SIDE_KEYS, registerEvidenceSides, sideForFaction, sideLabel, ensureTwoSideModel } from './scenarioSides.js?v=0.6.0.1';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.6.0.2';
+import { getEffectiveRuleset, listSupplements, ensureScenarioRuleset, effectiveArmyAssetPolicy } from '../rules/ruleset.js?v=0.6.0.2';
+import { analyzeScenarioText, proposedRosterUnits } from './scenarioAnalyzer.js?v=0.6.0.2';
+import { SIDE_KEYS, registerEvidenceSides, sideForFaction, sideLabel, ensureTwoSideModel } from './scenarioSides.js?v=0.6.0.2';
 
 const $=s=>document.querySelector(s);
 const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

@@ -1,4 +1,4 @@
-# v0.6.0.1 — Battlefield Render Hotfix
+# v0.6.0.2 — Battlefield Render Hotfix
 
 - Repairs Battlefield Workspace rendering for SVG sources that provide width/height without an explicit viewBox (common in PowerPoint exports).
 - Normalizes a responsive SVG viewBox before fixed dimensions are removed, preventing the browser 300×150 fallback viewport from producing a blank/white battlefield strip.
@@ -33,7 +33,7 @@
 - Test manifest remains release-owned so stale GitHub test files are ignored.
 - Added v0.5.8 movement/combat regression coverage.
 
-## v0.6.0.1 — Design Complete
+## v0.6.0.2 — Design Complete
 - Deployment drag now preserves the exact cursor grab point throughout the drag; illegal drops return to origin rather than snapping elsewhere.
 - Deployment orientation is stored as starting facing and is no longer replaced by enemy-centroid auto-facing.
 - Added deployment rotate controls and cancel control for deployment-zone authoring.
@@ -50,3 +50,10 @@
 - One-page Scenario Sheet includes deterministic short overview, battlefield effects, deployment brief, points rosters, command subtotals/army totals, rules, victory and deployment map.
 - Playtest results expose designer findings including blocked/shortened movement and reserve release events.
 - Retains scenario-isolation, authoritative battlefield-revision, no-scenario-fallback, and release test-manifest safeguards.
+
+## 0.6.0.2 — Battlefield crop repair
+- Repairs saved battlefields whose play-area crop was accidentally widened to the full authoring SVG canvas.
+- Re-detects the explicit tabletop boundary from the source SVG at startup and treats it as authoritative when a stored crop is missing, full-slide, or materially inconsistent.
+- Re-serializes the canonical battlefield SVG after repair so Battlefield Workspace, Geometry Explorer, Deployment, Playtest, and Publisher all use the same crop.
+- Retains the 0.6.0.1 SVG viewport normalization fix for width/height-only PowerPoint exports.
+- Adds regression coverage for crop repair and authoritative boundary reuse.

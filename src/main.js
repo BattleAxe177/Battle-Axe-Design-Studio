@@ -1,18 +1,18 @@
-import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.6.0.1';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.6.0.1';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.6.0.1';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.6.0.1';
-import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.6.0.1';
-import { detectBattlefieldFeatures } from './modules/battlefieldDetector.js?v=0.6.0.1';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.6.0.1';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.6.0.1';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.6.0.1';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.6.0.1';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.6.0.1';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.6.0.1';
-import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.6.0.1';
+import { loadState, saveState, createInitialState, STORAGE_KEY } from './app/state.js?v=0.6.0.2';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.6.0.2';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.6.0.2';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.6.0.2';
+import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.6.0.2';
+import { detectBattlefieldFeatures, findBattlefieldBoundary } from './modules/battlefieldDetector.js?v=0.6.0.2';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.6.0.2';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.6.0.2';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.6.0.2';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.6.0.2';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.6.0.2';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.6.0.2';
+import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.6.0.2';
 
-const VERSION = '0.6.0.1';
+const VERSION = '0.6.0.2';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -220,7 +220,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.6.0.1');
+      const mod=await import('./samples/paviaSample.js?v=0.6.0.2');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}
@@ -277,7 +277,30 @@ async function startup() {
     if(mapSource?.svgText){
       setText('#diagMap','Loading current battlefield');
       svg=loadInlineMapText($('#battlefieldMapHost'),mapSource.svgText);
-      if(mapSource.playArea)applyPlayAreaViewBox(svg,mapSource.playArea);
+
+      // Repair legacy/corrupted battlefield crops from saved projects. PowerPoint SVG exports
+      // commonly contain the tabletop as an explicitly outlined rectangle inside a larger
+      // authoring slide. The tabletop boundary is authoritative for every workspace. If a
+      // previous release saved the full slide as playArea, re-detect the explicit boundary
+      // and migrate the persisted battlefield back to that crop before rendering/highlighting.
+      const detectedPlayArea=findBattlefieldBoundary(svg,state.project.playSpace);
+      const rootVb=svg.viewBox?.baseVal;
+      const rootBounds=rootVb?.width>0&&rootVb?.height>0?{x:rootVb.x,y:rootVb.y,width:rootVb.width,height:rootVb.height}:null;
+      const stored=mapSource.playArea;
+      const close=(a,b,t=.02)=>a&&b&&Math.abs(a.x-b.x)<=Math.max(1,b.width*t)&&Math.abs(a.y-b.y)<=Math.max(1,b.height*t)&&Math.abs(a.width-b.width)<=Math.max(1,b.width*t)&&Math.abs(a.height-b.height)<=Math.max(1,b.height*t);
+      const area=b=>Math.max(0,Number(b?.width)||0)*Math.max(0,Number(b?.height)||0);
+      const detectedIsUseful=detectedPlayArea?.width>0&&detectedPlayArea?.height>0&&(!rootBounds||area(detectedPlayArea)<area(rootBounds)*.92);
+      const storedLooksRoot=rootBounds&&stored&&close(stored,rootBounds,.015);
+      const storedDiffers=stored&&detectedIsUseful&&!close(stored,detectedPlayArea,.03);
+      if(detectedIsUseful&&(!stored||storedLooksRoot||storedDiffers)){
+        mapSource.playArea={...detectedPlayArea};
+        applyPlayAreaViewBox(svg,mapSource.playArea);
+        mapSource.svgText=serializeBattlefieldSvg(svg,mapSource.playArea);
+        saveState(state);
+        console.info('Repaired battlefield play-area crop from source boundary.',mapSource.playArea);
+      }else if(mapSource.playArea){
+        applyPlayAreaViewBox(svg,mapSource.playArea);
+      }
       mapOkay=true;
       stats=mapSource.compileStats||{};
       // Old local-map saves from pre-v0.5.3 may not contain compiled feature state.
