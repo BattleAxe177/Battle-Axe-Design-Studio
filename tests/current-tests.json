@@ -1,5 +1,5 @@
 {
-  "release": "0.6.0.0",
+  "release": "0.6.0.1",
   "files": [
     "alpha8.test.mjs",
     "alpha9.test.mjs",
@@ -26,6 +26,7 @@
     "v0570_rules_audit_export.test.mjs",
     "v0580_movement_combat.test.mjs",
     "v0590_analysis_movement_deployment.test.mjs",
-    "v0600_design_complete.test.mjs"
+    "v0600_design_complete.test.mjs",
+    "v0601_battlefield_render_hotfix.test.mjs"
   ]
 }

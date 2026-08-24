@@ -1,4 +1,4 @@
-# Battle Axe Design Studio v0.6.0.0 — Design Complete
+# Battle Axe Design Studio v0.6.0.1 — Design Complete
 
 This release closes the main design/build phase of Battle Axe Design Studio. It focuses on deployment fidelity, large-base maneuvering, tactical command behavior, replay analysis, publication modes, and regression safeguards.
 

@@ -1,3 +1,10 @@
+# v0.6.0.1 — Battlefield Render Hotfix
+
+- Repairs Battlefield Workspace rendering for SVG sources that provide width/height without an explicit viewBox (common in PowerPoint exports).
+- Normalizes a responsive SVG viewBox before fixed dimensions are removed, preventing the browser 300×150 fallback viewport from producing a blank/white battlefield strip.
+- Restores feature highlighting to the actual battlefield geometry instead of falling through to an oversized HTML bounding-box overlay when the SVG viewport is missing.
+- Adds a release regression test for width/height-only SVG battlefield sources and current local-map startup.
+
 # Battle Axe Design Studio v0.5.8.0 — Movement & Combat Conformance
 
 ## Rules / engine
@@ -26,7 +33,7 @@
 - Test manifest remains release-owned so stale GitHub test files are ignored.
 - Added v0.5.8 movement/combat regression coverage.
 
-## v0.6.0.0 — Design Complete
+## v0.6.0.1 — Design Complete
 - Deployment drag now preserves the exact cursor grab point throughout the drag; illegal drops return to origin rather than snapping elsewhere.
 - Deployment orientation is stored as starting facing and is no longer replaced by enemy-centroid auto-facing.
 - Added deployment rotate controls and cancel control for deployment-zone authoring.

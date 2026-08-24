@@ -3,6 +3,37 @@ let currentRasterOverlay=null;
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
+function numericSvgLength(value){
+  const m=String(value??'').trim().match(/^([0-9]+(?:\.[0-9]+)?)/);
+  const n=m?Number(m[1]):0;
+  return Number.isFinite(n)&&n>0?n:0;
+}
+
+// A number of PowerPoint SVG exports contain width/height but no viewBox. The Studio
+// intentionally removes fixed dimensions so maps resize responsively; without first
+// creating a viewBox the browser falls back to its 300x150 SVG viewport, which can make
+// the battlefield appear blank and forces feature highlighting into the HTML fallback
+// rectangle. Normalize the viewport before fixed dimensions are removed.
+export function ensureSvgViewport(svg){
+  if(!svg)return svg;
+  const vb=svg.viewBox?.baseVal;
+  if(vb?.width>0&&vb?.height>0)return svg;
+
+  let width=numericSvgLength(svg.getAttribute('width'));
+  let height=numericSvgLength(svg.getAttribute('height'));
+  if(!(width>0&&height>0)){
+    try{
+      const box=svg.getBBox?.();
+      if(box?.width>0&&box?.height>0){
+        svg.setAttribute('viewBox',`${box.x||0} ${box.y||0} ${box.width} ${box.height}`);
+        return svg;
+      }
+    }catch{}
+  }
+  if(width>0&&height>0)svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+  return svg;
+}
+
 function parseSvgDocument(text) {
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, 'image/svg+xml');
@@ -33,6 +64,7 @@ export function loadInlineMapText(host, text) {
   const parsedRoot=parseSvgDocument(text);
   const svg=document.importNode(parsedRoot,true);
   host.replaceChildren(svg);
+  ensureSvgViewport(svg);
   svg.removeAttribute('width');
   svg.removeAttribute('height');
   svg.setAttribute('preserveAspectRatio','xMidYMid meet');
@@ -53,6 +85,7 @@ export async function loadInlineMap(host, url) {
   // source tags such as <ns0:svg> in the HTML namespace, which are not real SVG DOM elements.
   const svg = document.importNode(parsedRoot, true);
   host.replaceChildren(svg);
+  ensureSvgViewport(svg);
 
   svg.removeAttribute('width');
   svg.removeAttribute('height');
