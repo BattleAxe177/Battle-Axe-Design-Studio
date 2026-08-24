@@ -25,3 +25,21 @@
 ## Quality
 - Test manifest remains release-owned so stale GitHub test files are ignored.
 - Added v0.5.8 movement/combat regression coverage.
+
+## v0.6.0.0 — Design Complete
+- Deployment drag now preserves the exact cursor grab point throughout the drag; illegal drops return to origin rather than snapping elsewhere.
+- Deployment orientation is stored as starting facing and is no longer replaced by enemy-centroid auto-facing.
+- Added deployment rotate controls and cancel control for deployment-zone authoring.
+- Strengthened rotated-footprint deployment checks and retained full-footprint playtest collision checks.
+- Added staged first-/second-wave activation ordering for congested offensive commands and alternate movement candidate use.
+- Zero-distance tactical moves are rejected.
+- Explicit Reserve release conditions latch at command level once triggered.
+- Screen orders use spatial screening targets rather than only a score bonus.
+- Defend orders continue to seek nearby approved Defensive terrain before settling into Hold.
+- Charge log distinguishes first contact, conform angle, and completed charge; conform reports zero lateral translation under the Studio convention.
+- Detailed replay legend now documents command flags, smoke, arrows, melee, casualties, retreat/escape, range bubbles, and blocked actions.
+- Detailed replay status labels use plain language instead of DEF/CMD/OUT abbreviations.
+- Added Battle Axe Scenario Sheet, Scenario Booklet, and Design Dossier publication modes.
+- One-page Scenario Sheet includes deterministic short overview, battlefield effects, deployment brief, points rosters, command subtotals/army totals, rules, victory and deployment map.
+- Playtest results expose designer findings including blocked/shortened movement and reserve release events.
+- Retains scenario-isolation, authoritative battlefield-revision, no-scenario-fallback, and release test-manifest safeguards.

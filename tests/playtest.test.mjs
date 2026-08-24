@@ -19,7 +19,7 @@ test('command tests log command bonus provenance when available',()=>{
   // Force an unalerted activation test while the commander is in command range.
   s.project.scenario.suggestions=[{id:'surprise',status:'accepted',title:'Surprise',proposal:'French units begin unalerted'}];
   const r=runPlaytest(s,{seed:11,turns:1,measurementScale:2});
-  const ev=r.events.find(e=>e.type==='command_test'&&e.payload?.bonus===1);
+  const ev=r.events.find(e=>e.type==='command_test'&&e.actor==='f1'&&e.payload?.bonus===1);
   assert.ok(ev);assert.ok(ev.payload.bonusFrom);assert.equal(ev.payload.bonusKind,'command');
 });
 

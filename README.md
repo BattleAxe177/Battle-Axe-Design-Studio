@@ -1,9 +1,7 @@
-# Battle Axe Design Studio v0.5.9.0
+# Battle Axe Design Studio v0.6.0.0 — Design Complete
 
-**Scenario Analysis, Movement Search & Deployment**
+This release closes the main design/build phase of Battle Axe Design Studio. It focuses on deployment fidelity, large-base maneuvering, tactical command behavior, replay analysis, publication modes, and regression safeguards.
 
-This release focuses on tabletop-legal physical movement and closer conformity with the Battle Axe core rules and Italian Wars supplement after the Cerignola rules audit.
+Highlights: exact grab-point deployment dragging; authored deployment facing carried into playtest; rotated-footprint legality; staged/wave activation for congested assaults; latched command-level reserve release; spatial Screen behavior; Defend repositioning; richer replay symbology and status labels; Battle Axe one-page Scenario Sheet export; compact points rosters; and expanded designer diagnostics.
 
-Highlights include true front-corner wheel geometry, half-speed sideways/backward movement, full-footprint battlefield and collision legality, the Pike and Shot Tactics interpenetration exception, minimal-pivot charge conformity, a front-90-degree Studio shooting convention, improved conditional tactical-intent interpretation, and non-overlapping deployment placement.
-
-The playtest diagnostic export introduced in v0.5.7 remains available under the quiet **Export results > Advanced** surface for rules-audit work.
+The next development phase is intended to be incremental improvement, beginning with additional period supplements such as American Civil War and Harry's Hussars once their rules are supplied.

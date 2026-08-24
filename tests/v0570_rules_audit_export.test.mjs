@@ -11,9 +11,10 @@ test('pikes double attacks without unsupported rerolls and suppress flank agains
   assert.doesNotMatch(engine,/if\(pike&&r===1\)/);
   assert.match(engine,/effectiveContactArc\(target,attacker\)/);
 });
-test('initial facing is inferred from enemy geometry instead of faction names',()=>{
-  assert.match(engine,/facingInferred=true/);
-  assert.match(engine,/centroid=\{x:enemies\.reduce/);
+test('initial facing comes from deployment with a neutral legacy fallback',()=>{
+  assert.match(engine,/facingSource='deployment'/);
+  assert.match(engine,/legacy deployment default/);
+  assert.doesNotMatch(engine,/centroid=\{x:enemies\.reduce/);
   assert.doesNotMatch(engine,/faction==='French'\?0:180/);
 });
 test('commanders seek non-overlapping endpoints',()=>{

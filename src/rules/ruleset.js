@@ -1,5 +1,5 @@
-import { CORE_RULESET } from './coreRules.js?v=0.5.9.0';
-import { ITALIAN_WARS_SUPPLEMENT } from './supplements/italianWars.js?v=0.5.9.0';
+import { CORE_RULESET } from './coreRules.js?v=0.6.0.0';
+import { ITALIAN_WARS_SUPPLEMENT } from './supplements/italianWars.js?v=0.6.0.0';
 const SUPPLEMENTS=Object.freeze({[ITALIAN_WARS_SUPPLEMENT.id]:ITALIAN_WARS_SUPPLEMENT});
 export function listSupplements(){return Object.values(SUPPLEMENTS).map(s=>({id:s.id,name:s.name,version:s.version,description:s.description}));}
 export function ensureScenarioRuleset(scenario){if(!scenario)return{core:CORE_RULESET.id,supplement:ITALIAN_WARS_SUPPLEMENT.id,supplementVersion:ITALIAN_WARS_SUPPLEMENT.version};scenario.ruleset||={};scenario.ruleset.core||=CORE_RULESET.id;scenario.ruleset.supplement||=ITALIAN_WARS_SUPPLEMENT.id;const selected=SUPPLEMENTS[scenario.ruleset.supplement]||ITALIAN_WARS_SUPPLEMENT;scenario.ruleset.supplement=selected.id;scenario.ruleset.supplementVersion||=selected.version;return scenario.ruleset;}
