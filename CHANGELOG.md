@@ -1,3 +1,16 @@
+# v0.6.2.0 — Common Engine Hardening + ACW Integration
+
+- Keeps American Civil War as a Period Supplement plugin on the shared Battle Axe engine rather than an ACW fork.
+- Adds shared authoritative footprint geometry for Deployment and Playtest collision/bounds, swept first-contact charge movement, replay sizing and Publisher deployment-map sizing.
+- Adds universal post-action positional-state rollback for illegal overlap/off-table endpoints.
+- Reworks deployed-piece dragging around the exact original grab point and preserves illegal-drop return-to-origin behavior.
+- Adds command-level offensive waves, blocker-first activation sequencing, spatial Screen frontage and permanently latched Reserve release.
+- Enriches charge/combat/Break diagnostics and Detailed replay blocking/tactical-state overlays.
+- Adds in-memory legacy JSON migration before validation, with regression fixtures for multiple earlier shapes.
+- Retains canonical battlefield/crop, scenario-isolation, release-manifest, Publisher and existing ACW/Italian Wars regression safeguards.
+- Automated regression coverage is not treated as proof of live UX correctness: 50 mm collision, drag behavior, congestion, battlefield synchronization and broad legacy-import compatibility remain explicitly flagged for live verification.
+- 50 × 25 mm rectangular ACW bases are not yet exposed/advertised as a finished Studio authoring mode.
+
 # v0.6.1.0 — American Civil War Supplement Plugin
 
 - Adds American Civil War to the Scenario Builder period supplement selector through the existing rules-plugin architecture.

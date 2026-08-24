@@ -1,7 +1,9 @@
-# Battle Axe Design Studio v0.6.1.0 — American Civil War Supplement Plugin
+# Battle Axe Design Studio v0.6.2.0 — Common Engine Hardening + ACW Integration
 
-This release adds the **American Civil War** as the second selectable Battle Axe period supplement. The ACW module supplies the published unit library and rules modifications, brigade validation, commander ratings, and a brigade-centric tactical AI profile while leaving the Core and Italian Wars rules isolated behind the supplement architecture.
+This release keeps the **American Civil War** module on the shared Battle Axe rules/supplement architecture while hardening common movement geometry, deployment dragging, command-level tactical behavior, diagnostics, replay analysis, and legacy project import.
 
-The prior v0.6.0.x battlefield/deployment fixes remain intact. Rectangular 50 × 25 mm ACW unit footprints are **not** part of this release; this is the requested rules plugin only.
+The release is intentionally not an ACW fork. The ACW plugin remains isolated behind the `Period Supplement` selector; common fixes are implemented in shared engine/editor modules so Italian Wars and future supplements can reuse them.
 
-See `docs/RELEASE_0.6.1.0.md` for the implementation summary.
+Important verification note: automated regression coverage is included for the new geometry, drag-lock, command traffic, reserve latch, screening, legacy migration and ACW plugin behavior. Items that still require convincing live-browser/tabletop verification are called out explicitly in the release notes rather than being declared finished merely because automated tests pass.
+
+See `docs/RELEASE_0.6.2.0.md` for the implementation and verification status.

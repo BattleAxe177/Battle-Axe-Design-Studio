@@ -1,6 +1,7 @@
-import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.1.0';
-import { battlefieldImageUrl } from './battlefieldState.js?v=0.6.1.0';
-import { sideLabel } from './scenarioSides.js?v=0.6.1.0';
+import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.2.0';
+import { battlefieldImageUrl } from './battlefieldState.js?v=0.6.2.0';
+import { sideLabel } from './scenarioSides.js?v=0.6.2.0';
+import { footprintPercentFromSpec } from './footprintGeometry.js?v=0.6.2.0';
 
 const $=s=>document.querySelector(s);
 const esc=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -47,14 +48,15 @@ function currentMapHtml(state,cls='map',alt='Battlefield map'){
   return url?`<img class="${cls}" src="${esc(url)}" alt="${esc(alt)}">`:`<div class="map-missing">No battlefield map generated for the current scenario.</div>`;
 }
 function deploymentMapHtml(state){
-  const s=state.project.scenario,items=[];
+  const s=state.project.scenario,items=[],rules=getEffectiveRuleset(s),profiles=new Map(rules.unitLibrary.map(x=>[x.profile,x])),tt=s.tabletop||{};
   for(const c of commands(s)){
     for(const u of c.units||[]){
       const p=s.deployment?.placements?.[u.id];if(!p)continue;
-      items.push(`<div class="dep-piece" style="left:${Number(p.x)}%;top:${Number(p.y)}%;transform:translate(-50%,-50%) rotate(${Number(p.facing||0)}deg);${shade(c.side,c.commandIndex)}"><span style="transform:rotate(${-Number(p.facing||0)}deg)">${esc(u.name)}</span></div>`);
+      const profile=profiles.get(u.profile)||{},defaultMm=Number(profile.asset?profile.baseMm:(tt.unitBaseMm||50)),entity={kind:'unit',baseMm:defaultMm,baseWidthMm:Number(u.baseWidthMm||profile.baseWidthMm||defaultMm),baseDepthMm:Number(u.baseDepthMm||profile.baseDepthMm||defaultMm),baseShape:'rect'},fp=footprintPercentFromSpec(entity,state.project.playSpace||{},{}),facing=Number(p.facing||0);
+      items.push(`<div class="dep-piece" style="left:${Number(p.x)}%;top:${Number(p.y)}%;width:${fp.width}%;height:${fp.height}%;transform:translate(-50%,-50%) rotate(${facing}deg);${shade(c.side,c.commandIndex)}"><span style="transform:rotate(${-facing}deg)">${esc(u.name)}</span></div>`);
     }
     const cp=s.deployment?.commanderPlacements?.[c.id];
-    if(cp&&c.commander)items.push(`<div class="dep-cmd" style="left:${Number(cp.x)}%;top:${Number(cp.y)}%;${shade(c.side,c.commandIndex)}">★</div>`);
+    if(cp&&c.commander){const mm=Number(tt.commanderBaseMm||25),fp=footprintPercentFromSpec({kind:'commander',baseMm:mm,baseShape:'circle'},state.project.playSpace||{},{});items.push(`<div class="dep-cmd" style="left:${Number(cp.x)}%;top:${Number(cp.y)}%;width:${fp.width}%;height:${fp.height}%;${shade(c.side,c.commandIndex)}">★</div>`);}
   }
   const width=Number(state.project.playSpace?.width)||1,height=Number(state.project.playSpace?.height)||1;
   return `<div class="deployment-map" style="aspect-ratio:${width}/${height}">${currentMapHtml(state,'deployment-base','Deployment map')}${items.join('')}</div>`;

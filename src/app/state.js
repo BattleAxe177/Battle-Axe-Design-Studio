@@ -1,5 +1,5 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.6.1.0';
-import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.1.0';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.6.2.0';
+import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.2.0';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 
@@ -21,7 +21,7 @@ export function createInitialState(){
   return{project,playtestWorkspace:{armyOrders:{},commandOrders:{},cueLevel:'standard'},decisions:{},ignoredCandidates:{},importedCandidateIds:[],selectedFeatureId:null,selectedFeatureIds:[],selectedCandidateId:null,selectedCandidateIds:[]};
 }
 
-function migrateScenario(saved){
+export function migrateScenario(saved){
   const blank=createBlankScenario(),s={...blank,...(saved||{})};
   s.ruleset={...blank.ruleset,...(saved?.ruleset||{})};
   s.commands={...(saved?.commands||{})};
@@ -39,32 +39,50 @@ function migrateScenario(saved){
   return s;
 }
 
+function validateMigratedProject(state){
+  const p=state?.project,s=p?.scenario;
+  if(!p||!s||typeof s!=='object')throw new Error('Migrated import is missing a scenario.');
+  if(!p.playSpace||!Number.isFinite(Number(p.playSpace.width))||Number(p.playSpace.width)<=0||!Number.isFinite(Number(p.playSpace.height))||Number(p.playSpace.height)<=0)throw new Error('Migrated import has an invalid battlefield size.');
+  if(!s.commands||typeof s.commands!=='object'||!s.deployment||typeof s.deployment!=='object')throw new Error('Migrated import is missing current command/deployment structures.');
+  return true;
+}
+
+export function migrateImportedProject(input){
+  if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Project JSON must contain an object.');
+  const raw=structuredClone(input),base=createInitialState(),steps=[],warnings=[],sourceVersion=String(raw.version||raw.project?.version||raw.scenario?.version||'legacy/unknown');let projectSource=null,wrapper={};
+  if(raw.format==='battle-axe-studio-project'&&raw.project){projectSource=raw.project;wrapper=raw;steps.push('recognized Battle Axe Studio project export');}
+  else if(raw.project&&typeof raw.project==='object'){projectSource=raw.project;wrapper=raw;steps.push('accepted legacy project wrapper without current format marker');warnings.push('Legacy export had no current format marker; loaded through migration pipeline.');}
+  else if(raw.scenario&&typeof raw.scenario==='object'){projectSource={scenario:raw.scenario,playSpace:raw.playSpace,mapSource:raw.mapSource,features:raw.features,candidates:raw.candidates,manualFeatures:raw.manualFeatures,battlefieldRevision:raw.battlefieldRevision};wrapper=raw;steps.push('wrapped legacy top-level scenario into current project shell');}
+  else if(raw.metadata||raw.commands||raw.rosters||raw.deployment){projectSource={scenario:raw};steps.push('wrapped scenario-only JSON into current project shell');warnings.push('Scenario-only import did not include full Studio battlefield/terrain workspace state.');}
+  else throw new Error('Unrecognized Battle Axe project/scenario JSON. No recoverable project or scenario structure was found.');
+
+  base.project={...base.project,...(projectSource||{})};
+  base.project.playSpace={...createInitialState().project.playSpace,...(projectSource?.playSpace||{})};
+  base.project.features=Array.isArray(projectSource?.features)?projectSource.features:[];
+  base.project.candidates=Array.isArray(projectSource?.candidates)?projectSource.candidates:[];
+  base.project.manualFeatures=Array.isArray(projectSource?.manualFeatures)?projectSource.manualFeatures:[];
+  base.project.mapSource=projectSource?.mapSource||null;
+  base.project.battlefieldRevision=projectSource?.battlefieldRevision||projectSource?.mapSource?.battlefieldRevision||null;
+  base.project.scenario=migrateScenario(projectSource?.scenario||projectSource||{});
+  base.playtestWorkspace={armyOrders:{},commandOrders:{},cueLevel:'standard',...(wrapper.playtestWorkspace||{})};
+  base.playtestWorkspace.armyOrders={...(wrapper.playtestWorkspace?.armyOrders||{})};
+  base.playtestWorkspace.commandOrders={...(wrapper.playtestWorkspace?.commandOrders||{})};
+  base.decisions=wrapper.decisions&&typeof wrapper.decisions==='object'?wrapper.decisions:{};
+  base.ignoredCandidates=wrapper.ignoredCandidates&&typeof wrapper.ignoredCandidates==='object'?wrapper.ignoredCandidates:{};
+  base.importedCandidateIds=Array.isArray(wrapper.importedCandidateIds)?wrapper.importedCandidateIds:[];
+  base.selectedFeatureIds=Array.isArray(wrapper.selectedFeatureIds)?wrapper.selectedFeatureIds:[];
+  steps.push('migrated scenario fields and supplied defaults for current ruleset/deployment/two-side model');
+  validateMigratedProject(base);steps.push('validated migrated project against current minimum structural requirements');
+  return{state:base,migration:{sourceVersion,steps,warnings}};
+}
+
 export function loadState(storage=window.localStorage){
   const base=createInitialState();
   try{
     const raw=storage.getItem(STORAGE_KEY);if(!raw)return{state:base,storageOkay:true};
-    const saved=JSON.parse(raw),p=saved.project||{};
-    base.project={...base.project,...p};
-    base.project.playSpace={...createInitialState().project.playSpace,...(p.playSpace||{})};
-    base.project.historicalContext=typeof p.historicalContext==='string'?p.historicalContext:'';
-    base.project.mapNotes=typeof p.mapNotes==='string'?p.mapNotes:'';
-    base.project.features=Array.isArray(p.features)?p.features:[];
-    base.project.candidates=Array.isArray(p.candidates)?p.candidates:[];
-    base.project.manualFeatures=Array.isArray(p.manualFeatures)?p.manualFeatures:[];
-    base.project.mapSource=p.mapSource||null;
-    base.project.battlefieldRevision=p.battlefieldRevision||p.mapSource?.battlefieldRevision||null;
-    base.project.scenario=migrateScenario(p.scenario);
-    base.playtestWorkspace={armyOrders:{},commandOrders:{},cueLevel:'standard',...(saved.playtestWorkspace||{})};
-    base.playtestWorkspace.armyOrders={...(saved.playtestWorkspace?.armyOrders||{})};
-    base.playtestWorkspace.commandOrders={...(saved.playtestWorkspace?.commandOrders||{})};
-    base.decisions=saved.decisions||{};
-    base.ignoredCandidates=saved.ignoredCandidates||{};
-    base.importedCandidateIds=saved.importedCandidateIds||[];
-    base.selectedFeatureIds=saved.selectedFeatureIds||[];
-    base.selectedCandidateIds=[];
-    base.selectedFeatureId=null;
-    base.selectedCandidateId=null;
-    return{state:base,storageOkay:true};
+    const saved=JSON.parse(raw),migrated=migrateImportedProject(saved),loaded=migrated.state;
+    loaded.selectedCandidateIds=[];loaded.selectedFeatureId=null;loaded.selectedCandidateId=null;
+    return{state:loaded,storageOkay:true,migration:migrated.migration};
   }catch(error){console.warn('Battle Axe state reset after load error',error);return{state:base,storageOkay:false};}
 }
 

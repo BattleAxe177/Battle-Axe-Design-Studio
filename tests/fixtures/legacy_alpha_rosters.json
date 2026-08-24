@@ -1,0 +1,12 @@
+{
+  "version": "alpha-9",
+  "metadata": {"title": "Legacy Alpha Scenario", "gameLength": 6},
+  "rosters": {
+    "French": [{"id": "f1", "name": "Old French Unit", "profile": "Pikemen"}],
+    "Imperial": [{"id": "i1", "name": "Old Imperial Unit", "profile": "Pikemen"}]
+  },
+  "deployment": {
+    "placements": {"f1": {"x": 20, "y": 60}, "i1": {"x": 80, "y": 40}}
+  },
+  "legacyMysteryField": {"preserve": true}
+}

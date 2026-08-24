@@ -1,5 +1,5 @@
 {
-  "release": "0.6.1.0",
+  "release": "0.6.2.0",
   "files": [
     "alpha8.test.mjs",
     "alpha9.test.mjs",
@@ -29,6 +29,7 @@
     "v0600_design_complete.test.mjs",
     "v0601_battlefield_render_hotfix.test.mjs",
     "v0602_battlefield_crop_repair.test.mjs",
-    "v0610_acw_supplement.test.mjs"
+    "v0610_acw_supplement.test.mjs",
+    "v0620_common_engine_hardening.test.mjs"
   ]
 }

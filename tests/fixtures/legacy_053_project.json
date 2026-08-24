@@ -1,0 +1,21 @@
+{
+  "version": "0.5.3.0",
+  "project": {
+    "id": "legacy-053",
+    "name": "Legacy Wrapped Project",
+    "version": "0.5.3.0",
+    "playSpace": {"width": 24, "height": 12, "units": "inches"},
+    "scenario": {
+      "metadata": {"title": "Legacy 0.5.3 Scenario"},
+      "commands": {
+        "French": [{"id":"fa","name":"A","commander":"","units":[]}],
+        "Imperial": [{"id":"ib","name":"B","commander":"","units":[]}]
+      },
+      "deployment": {"placements":{},"zones":[]},
+      "legacyScenarioNote": "keep me"
+    },
+    "mapSource": null,
+    "features": []
+  },
+  "decisions": {"legacy-feature": {"status":"approved"}}
+}
