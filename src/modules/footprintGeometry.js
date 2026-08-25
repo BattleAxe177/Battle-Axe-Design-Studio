@@ -7,10 +7,15 @@ export function rightVec(facing=0){const r=normDeg(facing)*Math.PI/180;return{x:
 
 export function footprintSpec(entity={},defaults={}){
   const kind=entity.kind||defaults.kind||'unit';
-  const defaultMm=kind==='commander'?Number(defaults.commanderBaseMm||25):Number(defaults.unitBaseMm||50);
-  const baseMm=Number(entity.baseMm||defaultMm);
-  const widthMm=Number(entity.baseWidthMm||entity.widthMm||baseMm);
-  const depthMm=Number(entity.baseDepthMm||entity.depthMm||baseMm);
+  const legacyDefault=kind==='commander'?Number(defaults.commanderBaseMm||25):Number(defaults.unitBaseMm||50);
+  const defaultWidth=kind==='commander'?legacyDefault:Number(defaults.unitBaseWidthMm||legacyDefault);
+  const defaultDepth=kind==='commander'?legacyDefault:Number(defaults.unitBaseDepthMm||legacyDefault);
+  const explicitBase=entity.baseMm!=null&&String(entity.baseMm).trim()!==''?Number(entity.baseMm):null;
+  const baseMm=Number.isFinite(explicitBase)&&explicitBase>0?explicitBase:legacyDefault;
+  // A legacy/per-profile baseMm remains an authoritative square footprint unless width/depth are explicit.
+  // This prevents scenario-wide rectangular defaults from silently stretching fixed-size assets or old unit overrides.
+  const widthMm=Number(entity.baseWidthMm||entity.widthMm||(Number.isFinite(explicitBase)&&explicitBase>0?baseMm:defaultWidth));
+  const depthMm=Number(entity.baseDepthMm||entity.depthMm||(Number.isFinite(explicitBase)&&explicitBase>0?baseMm:defaultDepth));
   const shape=entity.baseShape||entity.shape||(kind==='commander'?'circle':'rect');
   return{kind,shape,widthMm,depthMm,width:mmToInches(widthMm),depth:mmToInches(depthMm)};
 }

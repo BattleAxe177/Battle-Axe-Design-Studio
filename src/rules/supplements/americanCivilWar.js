@@ -5,6 +5,8 @@ export const AMERICAN_CIVIL_WAR_SUPPLEMENT = Object.freeze({
   source:'Battle Axe American Civil War Supplement',
   description:'American Civil War rules, brigade organization, command competency, period unit profiles, and ACW tactical AI doctrine layered on top of the Battle Axe core rules.',
 
+  recommendedTabletop:{preset:'acw-regiment',unitBaseWidthMm:50,unitBaseDepthMm:25,commanderBaseMm:25,measurementMultiplier:1,note:'Studio basing preset only; not a printed supplement requirement.'},
+
   capabilities:{
     acwCommandCompetency:true,
     acwBreakFallback:true,
@@ -62,7 +64,12 @@ export const AMERICAN_CIVIL_WAR_SUPPLEMENT = Object.freeze({
     artillerySupport:true,
     artilleryPreservation:true,
     cavalryDismount:true,
-    commanderFrictionByRating:true
+    commanderFrictionByRating:true,
+    frontageSlots:true,
+    successiveWaves:true,
+    reserveDepth:true,
+    progressiveCohesion:true,
+    tacticalStates:['March','Deploy','Probe','Engage','Assault','Hold','Recover','Withdraw','Pursue']
   },
 
   profileMatchers:[

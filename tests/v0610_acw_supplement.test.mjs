@@ -34,7 +34,7 @@ test('ACW supplement is registered in selector architecture with canonical four-
 
 test('ACW command competency uses 5+ and highest rating within one inch',()=>{
   assert.equal(ACW.commandRules.testThreshold,5);assert.equal(ACW.commandRules.influenceRangeInches,1);
-  const u=engineUnit(),near={id:'cmd1',kind:'commander',name:'Brigadier',faction:'French',commandId:'c',x:2.5,y:5,commandRating:2,destroyed:false},far={id:'cmd2',kind:'commander',name:'Distant',faction:'French',commandId:'x',x:4,y:5,commandRating:3,destroyed:false};
+  const u=engineUnit(),near={id:'cmd1',kind:'commander',name:'Brigadier',faction:'French',commandId:'c',x:2.5,y:5,commandRating:2,destroyed:false},far={id:'cmd2',kind:'commander',name:'Distant',faction:'French',commandId:'x',x:5.5,y:5,commandRating:3,destroyed:false};
   const cb=__conformance.commandBonus(u,ctxFor([u],[near,far]));
   assert.equal(cb.bonus,2);assert.equal(cb.commander.id,'cmd1');
 });
@@ -68,7 +68,7 @@ test('ACW cavalry enters the runtime mounted and the module defines dismounted m
 test('blank ACW command rating is generated from the period table at playtest setup',()=>{
   const s=acwScenario();
   s.commands={French:[{id:'c',name:'Infantry Brigade',commander:'Generic Brigadier',commandRating:null,units:[{id:'i',name:'Regiment',profile:'Infantry',traits:['Muskets']}]}],Imperial:[]};
-  s.deployment={placements:{i:{x:50,y:50,facing:0}},commanderPlacements:{c:{x:50,y:45}},zones:[]};
+  s.deployment={placements:{i:{x:50,y:50,facing:0}},commanderPlacements:{c:{x:50,y:35}},zones:[]};
   const state={project:{playSpace:{width:20,height:20,units:'inches'},features:[],scenario:s},decisions:{}};
   const pre=buildRuntimeFromStudio(state,{measurementScale:1});assert.equal(pre.commanders[0].commandRating,null);
   const result=runPlaytest(state,{seed:17,turns:1,measurementScale:1});

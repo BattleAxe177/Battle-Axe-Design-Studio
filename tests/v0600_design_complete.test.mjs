@@ -7,8 +7,8 @@ const center=readFileSync(new URL('../src/modules/playtestCenter.js',import.meta
 const pub=readFileSync(new URL('../src/modules/scenarioPublisher.js',import.meta.url),'utf8');
 const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
 test('v060 deployment drag preserves the grabbed pointer offset and rejects illegal drop without snapping',()=>{
-  assert.match(dep,/dx=pointer\.x-dragPiece\.pointerStart\.x/);
-  assert.match(dep,/p=\{x:dragPiece\.origin\.x\+dx,y:dragPiece\.origin\.y\+dy/);
+  assert.match(dep,/dragCenterFromGrab\(dragPiece\.origin,dragPiece\.pointerStart,pointer\)/);
+  assert.match(dep,/pctFromEvent\(e,dragFrameRect,false\)/);
   assert.match(dep,/placementClear\(dragPiece\.kind,dragPiece\.id,p\)\?p:dragPiece\.origin/);
 });
 test('v060 deployment rotation is authored and playtest preserves it',()=>{

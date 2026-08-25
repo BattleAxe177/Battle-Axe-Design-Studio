@@ -34,7 +34,7 @@ test('zero-feature raster SVG retains an explicit Geometry Explorer diagnostic i
 test('deployment and playtest share calibrated footprint helpers and dynamic battlefield aspect',async()=>{
   const dep=await read('src/modules/deploymentEditor.js'),play=await read('src/modules/playtestCenter.js'),css=await read('src/styles/app.css');
   assert.match(dep,/footprintPercent/);assert.match(play,/footprintPercent/);
-  assert.match(dep,/scenario\(\)\.tabletop\?\.unitBaseMm/);assert.match(play,/u\.baseMm\|\|scenario\(\)\.tabletop\?\.unitBaseMm/);
+  assert.match(dep,/unitBaseWidthMm/);assert.match(dep,/unitBaseDepthMm/);assert.match(play,/unitBaseWidthMm/);assert.match(play,/unitBaseDepthMm/);
   assert.match(css,/max-width:240%/);assert.match(css,/--battlefield-width/);
 });
 
