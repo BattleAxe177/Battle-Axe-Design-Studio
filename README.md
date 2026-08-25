@@ -1,9 +1,15 @@
-# Battle Axe Design Studio v0.6.2.0 — Common Engine Hardening + ACW Integration
+# Battle Axe Design Studio v0.6.0.3
 
-This release keeps the **American Civil War** module on the shared Battle Axe rules/supplement architecture while hardening common movement geometry, deployment dragging, command-level tactical behavior, diagnostics, replay analysis, and legacy project import.
+## Facing, Publisher & Compatibility Hotfix
 
-The release is intentionally not an ACW fork. The ACW plugin remains isolated behind the `Period Supplement` selector; common fixes are implemented in shared engine/editor modules so Italian Wars and future supplements can reuse them.
+This release is a common-Studio handoff build based on v0.6.0.2. It intentionally does **not** merge the separate ACW branch; use it as the common baseline for the ACW conversation.
 
-Important verification note: automated regression coverage is included for the new geometry, drag-lock, command traffic, reserve latch, screening, legacy migration and ACW plugin behavior. Items that still require convincing live-browser/tabletop verification are called out explicitly in the release notes rather than being declared finished merely because automated tests pass.
+### Main fixes
+- Deployment Rotate buttons now change the selected unit's authoritative facing by 15° per click.
+- Square unit bases display an explicit front/facing arrow in Deployment.
+- Playtest continues to consume the exact facing stored by Deployment; there is no faction-specific auto-facing.
+- Publisher deployment unit/commander colors use print-color preservation so browser Print → Save as PDF retains side colors.
+- Open Project accepts current project exports plus older unwrapped project JSON and scenario-only JSON, migrating missing fields in memory.
+- v0.6.0.1 SVG viewport normalization and v0.6.0.2 battlefield crop repair are retained.
 
-See `docs/RELEASE_0.6.2.0.md` for the implementation and verification status.
+Run `npm run verify` for the release-owned test manifest, static build, and GitHub Pages deployment check.

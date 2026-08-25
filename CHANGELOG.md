@@ -1,28 +1,14 @@
-# v0.6.2.0 — Common Engine Hardening + ACW Integration
+# v0.6.0.3 — Facing, Publisher & Compatibility Hotfix
 
-- Keeps American Civil War as a Period Supplement plugin on the shared Battle Axe engine rather than an ACW fork.
-- Adds shared authoritative footprint geometry for Deployment and Playtest collision/bounds, swept first-contact charge movement, replay sizing and Publisher deployment-map sizing.
-- Adds universal post-action positional-state rollback for illegal overlap/off-table endpoints.
-- Reworks deployed-piece dragging around the exact original grab point and preserves illegal-drop return-to-origin behavior.
-- Adds command-level offensive waves, blocker-first activation sequencing, spatial Screen frontage and permanently latched Reserve release.
-- Enriches charge/combat/Break diagnostics and Detailed replay blocking/tactical-state overlays.
-- Adds in-memory legacy JSON migration before validation, with regression fixtures for multiple earlier shapes.
-- Retains canonical battlefield/crop, scenario-isolation, release-manifest, Publisher and existing ACW/Italian Wars regression safeguards.
-- Automated regression coverage is not treated as proof of live UX correctness: 50 mm collision, drag behavior, congestion, battlefield synchronization and broad legacy-import compatibility remain explicitly flagged for live verification.
-- 50 × 25 mm rectangular ACW bases are not yet exposed/advertised as a finished Studio authoring mode.
+- Fixed non-functional Deployment Rotate controls.
+- Added explicit Deployment facing/front arrows for square bases.
+- Preserved Deployment facing as the authoritative Playtest starting facing.
+- Added print/PDF color-preservation rules for Publisher deployment units and commanders.
+- Added tolerant legacy project/scenario JSON import and in-memory migration.
+- Retained v0.6.0.1 SVG viewport and v0.6.0.2 authoritative battlefield-crop repairs.
+- Added v0.6.0.3 release regression tests; current manifest contains 145 passing tests.
 
-# v0.6.1.0 — American Civil War Supplement Plugin
-
-- Adds American Civil War to the Scenario Builder period supplement selector through the existing rules-plugin architecture.
-- Loads the four published ACW unit profiles: Infantry, Sharpshooters, Cavalry, and Cannons.
-- Implements ACW Commander Competency, 5+ rating-assisted Command Tests, generic Union/Confederate rating tables, Break-Test fallback, enfilade fire, Rebel Yell, Refusal to Receive, Muskets, Rifles, and mounted/dismounted cavalry behavior.
-- Adds ACW brigade-composition validation and 1-point commanders to published force totals.
-- Adds an engine-only brigade-centric ACW tactical doctrine for regimental maneuver, fire-before-charge behavior, flank security, screening, artillery preservation, cavalry dismounting, and command friction.
-- Preserves Italian Wars behavior behind supplement capability guards.
-- Does not change unit footprint geometry; proposed 50 × 25 mm ACW bases remain a separate engine improvement.
-- Adds v0.6.1.0 ACW regression coverage and updates release cache/version markers.
-
-# v0.6.0.2 — Battlefield Render Hotfix
+# v0.6.0.3 — Battlefield Render Hotfix
 
 - Repairs Battlefield Workspace rendering for SVG sources that provide width/height without an explicit viewBox (common in PowerPoint exports).
 - Normalizes a responsive SVG viewBox before fixed dimensions are removed, preventing the browser 300×150 fallback viewport from producing a blank/white battlefield strip.
@@ -57,7 +43,7 @@
 - Test manifest remains release-owned so stale GitHub test files are ignored.
 - Added v0.5.8 movement/combat regression coverage.
 
-## v0.6.0.2 — Design Complete
+## v0.6.0.3 — Design Complete
 - Deployment drag now preserves the exact cursor grab point throughout the drag; illegal drops return to origin rather than snapping elsewhere.
 - Deployment orientation is stored as starting facing and is no longer replaced by enemy-centroid auto-facing.
 - Added deployment rotate controls and cancel control for deployment-zone authoring.
@@ -75,7 +61,7 @@
 - Playtest results expose designer findings including blocked/shortened movement and reserve release events.
 - Retains scenario-isolation, authoritative battlefield-revision, no-scenario-fallback, and release test-manifest safeguards.
 
-## 0.6.0.2 — Battlefield crop repair
+## 0.6.0.3 — Battlefield crop repair
 - Repairs saved battlefields whose play-area crop was accidentally widened to the full authoring SVG canvas.
 - Re-detects the explicit tabletop boundary from the source SVG at startup and treats it as authoritative when a stored crop is missing, full-slide, or materially inconsistent.
 - Re-serializes the canonical battlefield SVG after repair so Battlefield Workspace, Geometry Explorer, Deployment, Playtest, and Publisher all use the same crop.
