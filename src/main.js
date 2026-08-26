@@ -1,18 +1,19 @@
-import { loadState, saveState, createInitialState, migrateImportedProject, normalizeImportedState, STORAGE_KEY } from './app/state.js?v=0.6.3.0';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.6.3.0';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.6.3.0';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.6.3.0';
-import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.6.3.0';
-import { detectBattlefieldFeatures, findBattlefieldBoundary } from './modules/battlefieldDetector.js?v=0.6.3.0';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.6.3.0';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.6.3.0';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.6.3.0';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.6.3.0';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.6.3.0';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.6.3.0';
-import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.6.3.0';
+import { loadState, saveState, createInitialState, migrateImportedProject, normalizeImportedState, STORAGE_KEY } from './app/state.js?v=0.6.4.0';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.6.4.0';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.6.4.0';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.6.4.0';
+import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.6.4.0';
+import { detectBattlefieldFeatures, findBattlefieldBoundary } from './modules/battlefieldDetector.js?v=0.6.4.0';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.6.4.0';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.6.4.0';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.6.4.0';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.6.4.0';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.6.4.0';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.6.4.0';
+import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.6.4.0';
+import { authoredBoundaryToSvg } from './modules/battlefieldCrop.js?v=0.6.4.0';
 
-const VERSION = '0.6.3.0';
+const VERSION = '0.6.4.0';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -118,11 +119,14 @@ function setupFiles() {
         try{structured=await compilePptxTerrain(pptxFile,{playSpace});}
         catch(error){console.warn('PPTX geometry compiler fallback:',error);structured=null;}
       }
-      const boundary=detected.boundary;
+      const hasStructured=!!structured&&(structured.features.length||structured.candidates.length);
+      // v0.6.4.0: when PPTX geometry is authoritative, crop the rendered SVG to the same authored black tabletop border.
+      // This keeps the visual map, feature overlays, deployment, simulator, and publisher in one coordinate system.
+      const authoredCrop=hasStructured?authoredBoundaryToSvg(svg,structured):null;
+      const boundary=authoredCrop||detected.boundary;
       applyPlayAreaViewBox(svg,boundary);
       const clippedSvgText=serializeBattlefieldSvg(svg,boundary);
       const revision=newBattlefieldRevision();
-      const hasStructured=!!structured&&(structured.features.length||structured.candidates.length);
       const structuredFeatures=hasStructured?structured.features:[];
       const secondaryVisual=(detected.candidates||[]).filter(c=>c.cls==='Unknown'||c.category==='Generic source geometry'||c.category==='Compiler diagnostic').slice(0,12);
       const finalFeatures=hasStructured?structuredFeatures:(detected.features||[]);
@@ -132,7 +136,7 @@ function setupFiles() {
       state.project.mapSource={
         kind:'local-svg',name:file.name,svgText:clippedSvgText,playArea:boundary,battlefieldRevision:revision,
         compileStats,
-        authoring:{pptx:pptxFile?.name||null,pdf:$('#pdf')?.files?.[0]?.name||null,geometrySource:hasStructured?'pptx':'svg',pptxSummary:structured?.stats?.summary||null}
+        authoring:{pptx:pptxFile?.name||null,pdf:$('#pdf')?.files?.[0]?.name||null,geometrySource:hasStructured?'pptx':'svg',cropSource:authoredCrop?'pptx-boundary':'svg-boundary',pptxSummary:structured?.stats?.summary||null}
       };
       state.project.battlefieldRevision=revision;
       state.project.features=finalFeatures;
@@ -220,7 +224,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.6.3.0');
+      const mod=await import('./samples/paviaSample.js?v=0.6.4.0');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}
@@ -292,7 +296,8 @@ async function startup() {
       const detectedIsUseful=detectedPlayArea?.width>0&&detectedPlayArea?.height>0&&(!rootBounds||area(detectedPlayArea)<area(rootBounds)*.92);
       const storedLooksRoot=rootBounds&&stored&&close(stored,rootBounds,.015);
       const storedDiffers=stored&&detectedIsUseful&&!close(stored,detectedPlayArea,.03);
-      if(detectedIsUseful&&(!stored||storedLooksRoot||storedDiffers)){
+      const authoritativePptCrop=mapSource.authoring?.cropSource==='pptx-boundary';
+      if(!authoritativePptCrop&&detectedIsUseful&&(!stored||storedLooksRoot||storedDiffers)){
         mapSource.playArea={...detectedPlayArea};
         applyPlayAreaViewBox(svg,mapSource.playArea);
         mapSource.svgText=serializeBattlefieldSvg(svg,mapSource.playArea);

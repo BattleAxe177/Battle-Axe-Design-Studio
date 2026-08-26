@@ -1,8 +1,8 @@
-import { buildRuntimeFromStudio, toPctSnapshot, scenarioConfigFingerprint, interpretOrderText } from './playtestEngine.js?v=0.6.3.0';
-import { syncBattlefieldImages } from './battlefieldState.js?v=0.6.3.0';
-import { applyBattlefieldAspect } from './battlefieldScale.js?v=0.6.3.0';
-import { footprintPercentFromSpec } from './footprintGeometry.js?v=0.6.3.0';
-import { sideLabel } from './scenarioSides.js?v=0.6.3.0';
+import { buildRuntimeFromStudio, toPctSnapshot, scenarioConfigFingerprint, interpretOrderText } from './playtestEngine.js?v=0.6.4.0';
+import { syncBattlefieldImages } from './battlefieldState.js?v=0.6.4.0';
+import { applyBattlefieldAspect } from './battlefieldScale.js?v=0.6.4.0';
+import { footprintPercentFromSpec } from './footprintGeometry.js?v=0.6.4.0';
+import { sideLabel } from './scenarioSides.js?v=0.6.4.0';
 const $=s=>document.querySelector(s);
 const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const te=new TextEncoder();
@@ -22,7 +22,7 @@ export function setupPlaytestCenter(state,persist){
   const footprint=entity=>footprintPercentFromSpec(entity,state.project.playSpace||{},{});
   const syncAspect=()=>applyBattlefieldAspect($('#playReplayStage'),state.project.playSpace||{});
   let simulationWorker=null,workerRequest=0;
-  function worker(){if(!simulationWorker)simulationWorker=new Worker(new URL('./playtestWorker.js?v=0.6.3.0',import.meta.url),{type:'module'});return simulationWorker;}
+  function worker(){if(!simulationWorker)simulationWorker=new Worker(new URL('./playtestWorker.js?v=0.6.4.0',import.meta.url),{type:'module'});return simulationWorker;}
   function planSettings(){return{armyOrders:structuredClone(state.playtestWorkspace.armyOrders||{}),commandOrders:structuredClone(state.playtestWorkspace.commandOrders||{})};}
   const settings=()=>({seed:Number($('#playSeed')?.value||42),turns:Number($('#playTurns')?.value||scenario().metadata?.gameLength||6),runs:Number($('#playRuns')?.value||25),measurementScale:Number(scenario().tabletop?.measurementMultiplier||2),garrisonTurn:Number($('#playGarrisonTurn')?.value||2),tacticalPlan:planSettings()});
   const currentHash=()=>scenarioConfigFingerprint(state);const isStale=()=>preparedHash!==currentHash();
