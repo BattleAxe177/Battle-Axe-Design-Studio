@@ -200,9 +200,9 @@ button:active{transform:translateY(1px)}
 .ai-technical-detail{margin:8px 0;color:var(--muted)}.ai-technical-detail summary{cursor:pointer;font-size:11px}.ai-technical-detail pre{max-height:220px;overflow:auto;background:#091522;padding:8px;border-radius:6px}
 
 /* v0.5.6.1 — terrain review actions stay available while the long feature list scrolls. */
-.feature-list>.panel-heading{position:sticky;top:0;z-index:16;margin:-17px -17px 0;padding:14px 17px 10px;background:rgba(17,29,46,.985);border-bottom:1px solid var(--line)}
-.feature-list>.bulk-bar{position:sticky;top:52px;z-index:15;margin:0 -9px 8px;padding:10px 9px;background:rgba(17,29,46,.985);border-bottom:1px solid #3b4e69;box-shadow:0 8px 12px rgba(4,9,16,.25)}
-@media(max-width:760px){.feature-list>.panel-heading{top:0}.feature-list>.bulk-bar{top:52px}}
+.feature-list>.panel-heading{position:sticky;top:74px;z-index:16;margin:-17px -17px 0;padding:14px 17px 10px;background:rgba(17,29,46,.985);border-bottom:1px solid var(--line)}
+.feature-list>.bulk-bar{position:sticky;top:126px;z-index:15;margin:0 -9px 8px;padding:10px 9px;background:rgba(17,29,46,.985);border-bottom:1px solid #3b4e69;box-shadow:0 8px 12px rgba(4,9,16,.25)}
+@media(max-width:760px){.feature-list>.panel-heading{top:60px}.feature-list>.bulk-bar{top:112px}}
 
 /* v0.5.6.1 — optional tactical planning in the Playtest workspace */
 .tactical-plan-panel{margin-bottom:14px}
@@ -251,5 +251,7 @@ button:active{transform:translateY(1px)}
 .deployment-piece.unit .deployment-facing-arrow{display:block;position:absolute;left:50%;top:-23%;width:2px;height:22%;background:#fff;transform:translateX(-50%);pointer-events:none;filter:drop-shadow(0 1px 1px #000);z-index:2}.deployment-piece.unit .deployment-facing-arrow:before{content:"";position:absolute;left:50%;top:-4px;transform:translateX(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:6px solid #fff}
 
 .deployment-piece.illegal-placement{outline:3px solid #ff5d58!important;box-shadow:0 0 0 4px rgba(255,93,88,.2)!important}
-/* v0.6.5.0 — full-width historical command trees in Force Builder */
-.force-sketch-tree{display:grid!important;grid-template-columns:1fr!important;gap:12px!important;padding-top:8px}.force-sketch-tree:before{left:20%;right:20%}.force-tree-node{border:1px solid rgba(145,174,205,.14);border-radius:7px;padding:7px 8px;background:rgba(13,27,44,.46)}.force-tree-node:before{display:none!important}.force-tree-node>.force-sketch-command-title{text-align:left;border-bottom:1px solid rgba(145,174,205,.12);padding-bottom:5px}.force-tree-node>.force-sketch-command-title strong{font-size:12px}.force-sketch-children{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin-top:8px;padding-left:10px;border-left:2px solid rgba(184,203,223,.2)}.force-sketch-children .force-tree-node{background:rgba(8,20,34,.42)}.force-sketch-children .force-sketch-children{grid-template-columns:1fr}.force-tree-node[data-depth="1"]>.force-sketch-command-title strong{font-size:11px}.force-tree-node[data-depth="2"]>.force-sketch-command-title strong{font-size:10.5px}
+
+/* v0.6.6.0 terrain-review bulk controls */
+#featureBulkBar{position:sticky;top:0;z-index:12;margin-top:0;background:var(--panel,#0f1d2d);}
+.feature-list>.panel-heading{margin-bottom:0;}

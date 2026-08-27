@@ -1,5 +1,5 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.6.5.0';
-import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.5.0';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.6.6.0';
+import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.6.0';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 
@@ -69,6 +69,11 @@ export function migrateImportedProject(input){
   base.project.mapSource=projectSource?.mapSource||null;
   base.project.battlefieldRevision=projectSource?.battlefieldRevision||projectSource?.mapSource?.battlefieldRevision||null;
   base.project.scenario=migrateScenario(projectSource?.scenario||projectSource||{});
+  const sm=base.project.scenario?.metadata||{};
+  if((!projectSource?.name||projectSource?.name==='Untitled Scenario')&&sm.title)base.project.name=sm.title;
+  if((!projectSource?.id||projectSource?.id==='untitled')&&sm.title)base.project.id=String(sm.title).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,64)||'imported-scenario';
+  if(!projectSource?.playSpace&&sm.tableSize){const m=String(sm.tableSize).match(/(\d+(?:\.\d+)?)\D+[×xX]\D*(\d+(?:\.\d+)?)/);if(m)base.project.playSpace={...base.project.playSpace,width:Number(m[1]),height:Number(m[2]),units:'inches',origin:'northwest'};}
+
   base.playtestWorkspace={armyOrders:{},commandOrders:{},cueLevel:'standard',...(wrapper.playtestWorkspace||{})};
   base.playtestWorkspace.armyOrders={...(wrapper.playtestWorkspace?.armyOrders||{})};
   base.playtestWorkspace.commandOrders={...(wrapper.playtestWorkspace?.commandOrders||{})};

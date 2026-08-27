@@ -1,4 +1,4 @@
-import { highlightFeature, clearOverlay } from './mapView.js?v=0.6.5.0';
+import { highlightFeature, clearOverlay } from './mapView.js?v=0.6.6.0';
 
 export const RULES = {
   Difficult: 'Move Value is halved for units moving in Difficult terrain.',
@@ -7,19 +7,13 @@ export const RULES = {
   Dangerous: 'A unit moving through Dangerous terrain must make the applicable Danger Test.',
   Impassable: 'Units may not move into or across Impassable terrain except through an approved opening or crossing override.',
   Defensive: 'Units benefiting from Defensive terrain receive the applicable defensive combat benefit.',
-  Road: 'Roads grant no movement bonus. For movement only, a unit with any portion of its base overlapping a Road ignores Difficult or Impassable movement effects from underlying terrain. Line of sight, Obscuring, Defensive, Tall, Dangerous, and other non-movement effects still apply.'
+  Road: 'Roads give no movement bonus. For movement only, any unit base overlapping a Road is treated as moving in Open terrain and ignores underlying Difficult/Impassable movement effects. Other terrain effects still apply.'
 };
 export const CLASSES = ['Open Ground','Elevated Ground','Ravine','Dense Wood','Open Grove','Orchard','Vineyard','Field','Wet Ground','Stream','Water Body','Ditch','Road','Track','Masonry Wall','Hedge','Fence','Earthwork','Fortification','Bridge','Ford','Gatehouse','Breach','Settlement','Building','Structure','Decorative','Unknown'];
 export const EFFECTS = Object.keys(RULES);
 
 const signature=f=>JSON.stringify({cls:f.cls||'Unknown',effects:[...(f.effects||[])].sort()});
-const CATEGORY_FOR_CLASS={
-  'Open Ground':'Ground','Elevated Ground':'Relief & elevation','Ravine':'Relief & elevation','Dense Wood':'Vegetation','Open Grove':'Vegetation','Orchard':'Vegetation','Vineyard':'Agriculture','Field':'Agriculture','Wet Ground':'Wet ground','Stream':'Hydrology','Water Body':'Hydrology','Ditch':'Hydrology','Road':'Routes','Track':'Routes','Masonry Wall':'Walls & barriers','Hedge':'Walls & barriers','Fence':'Walls & barriers','Earthwork':'Fortifications','Fortification':'Fortifications','Bridge':'Crossings','Ford':'Crossings','Gatehouse':'Crossings','Breach':'Fortifications','Settlement':'Built environment','Building':'Built environment','Structure':'Built environment','Decorative':'Decorative / reference','Unknown':'Unclassified source geometry'
-};
-function grouped(features){const g=new Map();for(const f of features){const category=f.category||CATEGORY_FOR_CLASS[f.cls]||'Other';if(!g.has(category))g.set(category,[]);g.get(category).push(f);}return g;}
-export function machineGeneratedName(name){return /^(?:unclassified(?: authored)? shape|source geometry|additional compact structure|possible |rendered map image|powerpoint shape|manual feature|review source geometry)/i.test(String(name||'').trim());}
-export function normalizedEffects(cls,effects=[]){const set=new Set(effects||[]);if(cls==='Road')set.add('Road');else set.delete('Road');return [...set];}
-
+function grouped(features){const g=new Map();for(const f of features){if(!g.has(f.category))g.set(f.category,[]);g.get(f.category).push(f);}return g;}
 
 export function setupFeatureReview(state,persist,svg){
   const rows=document.querySelector('#featureRows'), count=document.querySelector('#featureCount'), overlay=document.querySelector('#selectionOverlay');
@@ -27,23 +21,26 @@ export function setupFeatureReview(state,persist,svg){
   const bulkBar=document.querySelector('#featureBulkBar'), bulkInfo=document.querySelector('#featureBulkInfo');
   if(!terrainClass.options.length) CLASSES.forEach(v=>terrainClass.add(new Option(v,v)));
 
-  const rawFeatures=()=>{
-    const imported=state.project.candidates.filter(c=>state.importedCandidateIds.includes(c.id)).map(c=>({...c,_imported:true,sourceCategory:c.category||'Geometry Explorer',proposal:c.kind||c.proposal||'Imported source geometry',cls:c.cls||'Unknown',effects:c.effects||[],reason:`Imported candidate. ${c.reason}`}));
+  const currentFeatures=()=>{
+    const imported=state.project.candidates.filter(c=>state.importedCandidateIds.includes(c.id)).map(c=>({...c,category:'Imported from Geometry Explorer',proposal:c.kind,cls:c.cls||'Unknown',effects:c.effects||[],reason:`Imported candidate. ${c.reason}`}));
     return [...state.project.features,...(state.project.manualFeatures||[]),...imported];
   };
   const selectedIds=()=>state.selectedFeatureIds||[];
-  const effective=f=>{const d=state.decisions[f.id],cls=d?.cls||f.cls||'Unknown';return {...f,cls,effects:normalizedEffects(cls,d?.effects||f.effects||[]),note:d?.note||'',status:d?.status||'pending'};};
-  const currentFeatures=()=>{const raw=rawFeatures(),ordinals=new Map(),indexById=new Map();for(const f of raw){const e=effective(f),n=(ordinals.get(e.cls)||0)+1;ordinals.set(e.cls,n);indexById.set(f.id,n);}return raw.map(f=>{const e=effective(f),reclassified=!!state.decisions[f.id]&&state.decisions[f.id].cls&&state.decisions[f.id].cls!==(f.cls||'Unknown'),resolved=e.cls!=='Unknown';const normalizeIdentity=resolved&&(f._imported||reclassified||machineGeneratedName(f.name));return {...e,name:normalizeIdentity?`${e.cls} ${indexById.get(f.id)}`:f.name,category:normalizeIdentity?(CATEGORY_FOR_CLASS[e.cls]||f.category):f.category,proposal:normalizeIdentity?e.cls:(f.proposal||e.cls)};});};
   const selectedFeatures=()=>currentFeatures().filter(f=>selectedIds().includes(f.id));
+  const effective=f=>{const d=state.decisions[f.id];return {...f,cls:d?.cls||f.cls||'Unknown',effects:d?.effects||f.effects||[],note:d?.note||'',status:d?.status||'pending'};};
+  const categoryForClass=cls=>({Road:'Routes',Track:'Routes',Fence:'Walls & barriers',Hedge:'Walls & barriers','Masonry Wall':'Walls & barriers','Dense Wood':'Woods & Groves','Open Grove':'Woods & Groves',Field:'Agriculture',Orchard:'Agriculture',Stream:'Hydrology','Water Body':'Hydrology','Wet Ground':'Wet ground',Ditch:'Hydrology',Bridge:'Crossings & Openings',Ford:'Crossings & Openings',Gatehouse:'Crossings & Openings',Building:'Built environment',Structure:'Built environment',Settlement:'Built environment',Earthwork:'Fortifications',Fortification:'Fortifications'}[cls]||'Reviewed terrain');
+  const machineName=n=>/^(?:Unclassified authored shape|Unclassified Shape|Source geometry|Visual map region|Additional compact structure|Possible route|Imported candidate)/i.test(String(n||''));
+  function normalizeResolvedFeature(id,cls){if(!cls||cls==='Unknown')return;const c=state.project.candidates.find(x=>x.id===id),m=(state.project.manualFeatures||[]).find(x=>x.id===id),f=c||m;if(!f)return;if(machineName(f.name)){const existing=currentFeatures().filter(x=>x.id!==id&&(state.decisions[x.id]?.cls||x.cls)===cls).length;f.name=`${cls} ${existing+1}`;}f.category=categoryForClass(cls);f.proposal=cls;if(cls==='Road')f.effects=[...new Set([...(f.effects||[]),'Road'])];}
 
   function renderRules(){
     const selected=[...effectList.querySelectorAll('input:checked')].map(x=>x.value);
     rulesBox.innerHTML=`<strong>Rules context</strong>${selected.length?selected.map(e=>`<div class="rule-entry"><b>${e}</b><p>${RULES[e]}</p></div>`).join(''):'<p>No Battle Axe effects selected.</p>'}`;
   }
-  function renderEffects(selected,cls=terrainClass.value){
-    const normalized=normalizedEffects(cls,selected);effectList.innerHTML='';
-    for(const effect of EFFECTS){const label=document.createElement('label');label.className='effect-row';const input=document.createElement('input');input.type='checkbox';input.value=effect;input.checked=normalized.includes(effect);if(effect==='Road'){input.disabled=true;label.title='Road is assigned automatically when Classification is Road.';}const span=document.createElement('span');span.textContent=effect==='Road'?'Road corridor':effect;label.append(input,span);input.addEventListener('change',renderRules);effectList.appendChild(label);} renderRules();
+  function renderEffects(selected){
+    effectList.innerHTML='';
+    for(const effect of EFFECTS){const label=document.createElement('label');label.className='effect-row';const input=document.createElement('input');input.type='checkbox';input.value=effect;input.checked=selected.includes(effect);const span=document.createElement('span');span.textContent=effect;label.append(input,span);input.addEventListener('change',renderRules);effectList.appendChild(label);} renderRules();
   }
+  terrainClass.addEventListener('change',()=>{const current=[...effectList.querySelectorAll('input:checked')].map(x=>x.value);const next=terrainClass.value==='Road'?[...new Set([...current,'Road'])]:current.filter(x=>x!=='Road');renderEffects(next);});
   function updateBulk(){
     const fs=selectedFeatures().map(effective); const n=fs.length;
     bulkBar.hidden=n<2;
@@ -76,11 +73,11 @@ export function setupFeatureReview(state,persist,svg){
     document.querySelectorAll('.feature-row').forEach(r=>r.classList.toggle('selected',r.dataset.id===id));const d=state.decisions[id]||{};
     document.querySelector('#featureName').textContent=feature.name;
     document.querySelector('#featureProposal').innerHTML=`<strong>${feature.proposal}</strong><br><span class="confidence-line">Detection ${feature.detectionConfidence??feature.confidence}% · Interpretation ${feature.interpretationConfidence??feature.confidence}%</span><br><small>${feature.reason||''}</small>`;
-    terrainClass.value=d.cls||feature.cls||'Unknown';document.querySelector('#reviewerNote').value=d.note||'';renderEffects(d.effects||feature.effects||[],terrainClass.value);highlightFeature(svg,overlay,feature,{flash});
+    terrainClass.value=d.cls||feature.cls||'Unknown';document.querySelector('#reviewerNote').value=d.note||'';renderEffects(d.effects||feature.effects||[]);highlightFeature(svg,overlay,feature,{flash});
   }
-  function saveOne(status){if(!state.selectedFeatureId)return;state.decisions[state.selectedFeatureId]={status,cls:terrainClass.value,effects:[...effectList.querySelectorAll('input:checked')].map(x=>x.value),note:document.querySelector('#reviewerNote').value};persist();renderRows();}
+  function saveOne(status){if(!state.selectedFeatureId)return;const cls=terrainClass.value,effects=[...effectList.querySelectorAll('input:checked')].map(x=>x.value);state.decisions[state.selectedFeatureId]={status,cls,effects,note:document.querySelector('#reviewerNote').value};normalizeResolvedFeature(state.selectedFeatureId,cls);persist();renderRows();}
   function bulkStatus(status){for(const f of selectedFeatures()){const e=effective(f);state.decisions[f.id]={status,cls:e.cls,effects:e.effects,note:e.note};}persist();renderRows();}
-  function bulkApply(){const cls=terrainClass.value,effects=[...effectList.querySelectorAll('input:checked')].map(x=>x.value),note=document.querySelector('#reviewerNote').value;for(const f of selectedFeatures())state.decisions[f.id]={status:'revised',cls,effects,note};persist();renderRows();}
+  function bulkApply(){const cls=terrainClass.value,effects=[...effectList.querySelectorAll('input:checked')].map(x=>x.value),note=document.querySelector('#reviewerNote').value;for(const f of selectedFeatures()){state.decisions[f.id]={status:'revised',cls,effects,note};normalizeResolvedFeature(f.id,cls);}persist();renderRows();}
 
 
   // Manual missing-feature authoring: a deterministic escape hatch when structured source extraction misses geometry.
@@ -95,7 +92,6 @@ export function setupFeatureReview(state,persist,svg){
   mapHost?.addEventListener('click',evt=>{if(!manualDraw)return;evt.preventDefault();evt.stopPropagation();manualDraw.points.push(mapPoint(evt));drawManualPreview();if(manualDraw.type==='point')completeManual();});
   document.querySelector('#addMissingFeature')?.addEventListener('click',beginManual);finishManual?.addEventListener('click',completeManual);cancelManual?.addEventListener('click',stopManual);
 
-    terrainClass.addEventListener('change',()=>renderEffects([...effectList.querySelectorAll('input:checked')].map(x=>x.value),terrainClass.value));
     document.querySelector('#approveButton').addEventListener('click',()=>saveOne('approved'));document.querySelector('#reviseButton').addEventListener('click',()=>saveOne('revised'));document.querySelector('#rejectButton').addEventListener('click',()=>saveOne('rejected'));document.querySelector('#clearSelection').addEventListener('click',()=>clearOverlay(overlay));
   document.querySelector('#bulkApproveFeatures').addEventListener('click',()=>bulkStatus('approved'));document.querySelector('#bulkRejectFeatures').addEventListener('click',()=>bulkStatus('rejected'));document.querySelector('#bulkApplyFeatures').addEventListener('click',bulkApply);document.querySelector('#clearFeatureSelection').addEventListener('click',()=>{state.selectedFeatureIds=[];renderRows(false);});
   renderRows(); const first=currentFeatures()[0];if(first)select(first.id);
