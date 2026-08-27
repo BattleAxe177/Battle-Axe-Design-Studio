@@ -1,8 +1,8 @@
-import { syncBattlefieldImages } from './battlefieldState.js?v=0.6.4.0';
-import { applyBattlefieldAspect } from './battlefieldScale.js?v=0.6.4.0';
-import { SIDE_KEYS, sideLabel, sideForFaction } from './scenarioSides.js?v=0.6.4.0';
-import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.4.0';
-import { footprintsPenetrate, footprintInsideBattlefield, footprintPercentFromSpec } from './footprintGeometry.js?v=0.6.4.0';
+import { syncBattlefieldImages } from './battlefieldState.js?v=0.6.5.0';
+import { applyBattlefieldAspect } from './battlefieldScale.js?v=0.6.5.0';
+import { SIDE_KEYS, sideLabel, sideForFaction } from './scenarioSides.js?v=0.6.5.0';
+import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.5.0';
+import { footprintsPenetrate, footprintInsideBattlefield, footprintPercentFromSpec } from './footprintGeometry.js?v=0.6.5.0';
 const $=s=>document.querySelector(s);
 const safe=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=p=>`${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`;

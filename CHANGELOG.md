@@ -1,3 +1,17 @@
+# v0.6.5.0 — Map Authoring & ACW OOB Reliability
+
+- Applies PowerPoint DrawingML rotation, flip, group, and nested-group transforms before authored terrain geometry is normalized.
+- Adds parent-group alt-text inheritance with child-metadata precedence and auditable metadata-conflict notes.
+- Adds conservative no-alt-text visual/style inference for woodland, watercourse, fence, and road candidates.
+- Cross-checks transformed PPT feature footprints against SVG detector geometry; PDF remains a registered appearance reference rather than an automated geometry authority.
+- Normalizes promoted Geometry Explorer items into canonical terrain names/categories while preserving meaningful designer/source names.
+- Makes Road a first-class Terrain Review rule role and keeps generic Track separate.
+- Moves sticky multi-feature Terrain Review controls flush to the top of the review pane.
+- Re-analyzes retained scenario source when the period supplement changes, eliminating stale Italian Wars interpretation after switching to ACW.
+- Renders proposed forces as a hierarchical command tree and retains unresolved brigades without fabricating regiments.
+- Preserves v0.6.4.0 crop synchronization, source scenario rules, ACW rectangular bases, command bulk rotation, road movement policy, and Italian Wars isolation.
+- Release verification: 188 automated tests plus static build/deployment checks.
+
 # v0.6.3.0 — ACW & Custom Base Geometry
 
 - Completes the ACW period plugin with the published four-unit Army Builder library, brigade validation, commander competency, ACW combat rules, mounted/dismounted cavalry, artillery, and brigade-centric playtest doctrine.

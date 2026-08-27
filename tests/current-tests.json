@@ -1,5 +1,5 @@
 {
-  "release": "0.6.4.0",
+  "release": "0.6.5.0",
   "files": [
     "alpha8.test.mjs",
     "alpha9.test.mjs",
@@ -33,6 +33,7 @@
     "v0620_common_engine_hardening.test.mjs",
     "v0603_facing_publisher_compat.test.mjs",
     "v0630_acw_custom_bases.test.mjs",
-    "v0640_acw_workflow_fixes.test.mjs"
+    "v0640_acw_workflow_fixes.test.mjs",
+    "v0650_map_authoring_hierarchy.test.mjs"
   ]
 }

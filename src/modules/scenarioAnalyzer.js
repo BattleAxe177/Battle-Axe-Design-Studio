@@ -1,4 +1,4 @@
-import { getEffectiveRuleset, profileForText } from '../rules/ruleset.js?v=0.6.4.0';
+import { getEffectiveRuleset, profileForText } from '../rules/ruleset.js?v=0.6.5.0';
 
 const cleanInline=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
 const cleanBlock=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n[ \t]+/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
@@ -140,6 +140,7 @@ export function detectForceHierarchy(text,ruleset=getEffectiveRuleset(null)){
     const assoc=associatedCommander(trimmed);if(assoc){if(!currentCommand)currentCommand=addCommand({name:`${faction} attached command`,sourceText:trimmed});currentCommand.associatedCommander=assoc;continue;}
 
     const depth=headingDepth(original),plain=stripMarkup(trimmed),kind=commandKind(plain),pair=splitNameCommander(trimmed),rank=rankName(trimmed);
+    if(isGenericHeading(trimmed)&&/^supporting .* commands?$/i.test(plain)){currentCommand=currentDivision=currentHigherCommand=null;continue;}
     if(isGenericHeading(trimmed)&&/^(?:initial assault|later assault|additional brigade engaged earlier)$/i.test(plain)){currentCommand=currentDivision||currentHigherCommand||currentCommand;continue;}
 
     // Markdown command headings such as "### McCall's Division — Pennsylvania Reserves".

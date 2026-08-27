@@ -1,5 +1,5 @@
 /**
- * v0.6.4.0: keep authored PowerPoint geometry and rendered SVG in one coordinate frame.
+ * v0.6.5.0: keep authored PowerPoint geometry and rendered SVG in one coordinate frame.
  * The authored tabletop border is authoritative when available.  The helper accepts several
  * compiler metadata shapes and falls back to a visible black/no-fill SVG rectangle so it does
  * not depend on one test fixture or one compiler serialization spelling.

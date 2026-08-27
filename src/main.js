@@ -1,19 +1,19 @@
-import { loadState, saveState, createInitialState, migrateImportedProject, normalizeImportedState, STORAGE_KEY } from './app/state.js?v=0.6.4.0';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.6.4.0';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.6.4.0';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.6.4.0';
-import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.6.4.0';
-import { detectBattlefieldFeatures, findBattlefieldBoundary } from './modules/battlefieldDetector.js?v=0.6.4.0';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.6.4.0';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.6.4.0';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.6.4.0';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.6.4.0';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.6.4.0';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.6.4.0';
-import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.6.4.0';
-import { authoredBoundaryToSvg } from './modules/battlefieldCrop.js?v=0.6.4.0';
+import { loadState, saveState, createInitialState, migrateImportedProject, normalizeImportedState, STORAGE_KEY } from './app/state.js?v=0.6.5.0';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.6.5.0';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.6.5.0';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.6.5.0';
+import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.6.5.0';
+import { detectBattlefieldFeatures, findBattlefieldBoundary } from './modules/battlefieldDetector.js?v=0.6.5.0';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.6.5.0';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.6.5.0';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.6.5.0';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.6.5.0';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.6.5.0';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.6.5.0';
+import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.6.5.0';
+import { authoredBoundaryToSvg } from './modules/battlefieldCrop.js?v=0.6.5.0';
 
-const VERSION = '0.6.4.0';
+const VERSION = '0.6.5.0';
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
 
@@ -23,6 +23,18 @@ const $ = selector => document.querySelector(selector);
 function setText(selector, value) {
   const el = $(selector);
   if (el) el.textContent = value;
+}
+
+function pctBoxToAbsolute(box,bound){if(!box||!bound)return null;const [x,y,w,h]=box.map(Number);if(![x,y,w,h,bound.x,bound.y,bound.width,bound.height].every(Number.isFinite))return null;return{x:bound.x+x/100*bound.width,y:bound.y+y/100*bound.height,width:w/100*bound.width,height:h/100*bound.height};}
+function absoluteBoxToPct(rect,bound){if(!rect||!bound?.width||!bound?.height)return null;return[(rect.x-bound.x)/bound.width*100,(rect.y-bound.y)/bound.height*100,rect.width/bound.width*100,rect.height/bound.height*100];}
+function boxIou(a,b){if(!a||!b)return 0;const [ax,ay,aw,ah]=a,[bx,by,bw,bh]=b,x=Math.max(ax,bx),y=Math.max(ay,by),x2=Math.min(ax+aw,bx+bw),y2=Math.min(ay+ah,by+bh),inter=Math.max(0,x2-x)*Math.max(0,y2-y),union=Math.max(.0001,aw*ah+bw*bh-inter);return inter/union;}
+function boxCenterDistance(a,b){if(!a||!b)return Infinity;return Math.hypot(a[0]+a[2]/2-(b[0]+b[2]/2),a[1]+a[3]/2-(b[1]+b[3]/2));}
+function reconcileStructuredWithSvg(features,detected,authoredCrop){
+  const raw=[...(detected?.features||[]),...(detected?.candidates||[])].filter(v=>Array.isArray(v.box)&&v.id!=='visual-source-unresolved');
+  const visuals=raw.map(v=>{if(!authoredCrop||!detected?.boundary)return v;const abs=pctBoxToAbsolute(v.box,detected.boundary),box=absoluteBoxToPct(abs,authoredCrop);return{...v,box};}).filter(v=>Array.isArray(v.box)&&v.box.every(Number.isFinite));
+  let corroborated=0;
+  const reconciled=(features||[]).map(f=>{let best=null;for(const v of visuals){const iou=boxIou(f.box,v.box),distance=boxCenterDistance(f.box,v.box);if(!best||iou>best.iou||(iou===best.iou&&distance<best.distance))best={id:v.id,iou,distance};}const matched=!!best&&(best.iou>=.12||best.distance<=3.5);if(matched)corroborated++;return{...f,visualValidation:{source:'svg',status:matched?'corroborated':'unverified',overlap:Number((best?.iou||0).toFixed(3)),centerDistance:Number((best?.distance??999).toFixed(2)),matchedId:matched?best.id:null}};});
+  return{features:reconciled,corroborated,unverified:Math.max(0,reconciled.length-corroborated),visualCandidates:visuals.length};
 }
 
 function showRuntimeError(error, stage='startup') {
@@ -120,23 +132,24 @@ function setupFiles() {
         catch(error){console.warn('PPTX geometry compiler fallback:',error);structured=null;}
       }
       const hasStructured=!!structured&&(structured.features.length||structured.candidates.length);
-      // v0.6.4.0: when PPTX geometry is authoritative, crop the rendered SVG to the same authored black tabletop border.
+      // v0.6.5.0: when PPTX geometry is authoritative, crop the rendered SVG to the same authored black tabletop border.
       // This keeps the visual map, feature overlays, deployment, simulator, and publisher in one coordinate system.
       const authoredCrop=hasStructured?authoredBoundaryToSvg(svg,structured):null;
       const boundary=authoredCrop||detected.boundary;
       applyPlayAreaViewBox(svg,boundary);
       const clippedSvgText=serializeBattlefieldSvg(svg,boundary);
       const revision=newBattlefieldRevision();
-      const structuredFeatures=hasStructured?structured.features:[];
+      const visualCheck=hasStructured?reconcileStructuredWithSvg(structured.features,detected,authoredCrop):null;
+      const structuredFeatures=hasStructured?(visualCheck?.features||structured.features):[];
       const secondaryVisual=(detected.candidates||[]).filter(c=>c.cls==='Unknown'||c.category==='Generic source geometry'||c.category==='Compiler diagnostic').slice(0,12);
       const finalFeatures=hasStructured?structuredFeatures:(detected.features||[]);
       const finalCandidates=hasStructured?[...(structured.candidates||[]),...secondaryVisual]:(detected.candidates||[]);
-      const compileStats=hasStructured?{...structured.stats,visualPromoted:detected.features?.length||0,visualExplorer:detected.candidates?.length||0,explorer:finalCandidates.length,promoted:finalFeatures.length}:detected.stats||{};
+      const compileStats=hasStructured?{...structured.stats,visualPromoted:detected.features?.length||0,visualExplorer:detected.candidates?.length||0,svgCorroborated:visualCheck?.corroborated||0,svgUnverified:visualCheck?.unverified||0,explorer:finalCandidates.length,promoted:finalFeatures.length}:detected.stats||{};
 
       state.project.mapSource={
         kind:'local-svg',name:file.name,svgText:clippedSvgText,playArea:boundary,battlefieldRevision:revision,
         compileStats,
-        authoring:{pptx:pptxFile?.name||null,pdf:$('#pdf')?.files?.[0]?.name||null,geometrySource:hasStructured?'pptx':'svg',cropSource:authoredCrop?'pptx-boundary':'svg-boundary',pptxSummary:structured?.stats?.summary||null}
+        authoring:{pptx:pptxFile?.name||null,pdf:$('#pdf')?.files?.[0]?.name||null,geometrySource:hasStructured?'pptx':'svg',cropSource:authoredCrop?'pptx-boundary':'svg-boundary',pptxSummary:structured?.stats?.summary||null,svgValidation:hasStructured?`${visualCheck?.corroborated||0}/${structuredFeatures.length} authored features geometrically corroborated by SVG detector candidates`:'not applicable',pdfValidation:$('#pdf')?.files?.[0]?'appearance reference registered (not geometry-authoritative)':'not supplied'}
       };
       state.project.battlefieldRevision=revision;
       state.project.features=finalFeatures;
@@ -224,7 +237,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.6.4.0');
+      const mod=await import('./samples/paviaSample.js?v=0.6.5.0');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}

@@ -1,18 +1,20 @@
-# Battle Axe Design Studio v0.6.3.0 — ACW & Custom Base Geometry
+# Battle Axe Design Studio v0.6.5.0 — Map Authoring & ACW OOB Reliability
 
-This release makes the **American Civil War** period supplement usable through the normal Studio supplement selector and extends the shared engine to support arbitrary rectangular unit footprints, including the current **50 × 25 mm ACW regiment** concept.
+This release hardens the PowerPoint-first battlefield compiler and improves the ACW scenario workflow exposed by the Glendale test case.
 
 Highlights:
 
-- published ACW Infantry, Sharpshooters, Cavalry, and Cannons library;
-- ACW command competency, brigade structure, combat traits, mounted/dismounted cavalry, artillery, and period rules;
-- brigade-centric ACW playtest doctrine: **fight the brigade; maneuver the regiments**;
-- scenario-wide custom width/depth plus per-unit overrides;
-- optional 50 × 25 mm ACW preset without silently rescaling printed Battle Axe distances;
-- shared rectangular footprint geometry across Deployment, movement, collision, charges, replay, and Publisher;
-- illegal deployments created by a base-size change are detected and block playtest until corrected;
-- current facing/Publisher/legacy-import hotfixes and common-engine hardening remain preserved.
+- PowerPoint freeform rotation, flip, and grouped transforms are applied before terrain geometry is normalized;
+- PowerPoint group alt text can supply semantic terrain metadata to child geometry, while explicit child metadata wins conflicts;
+- authored PPT geometry is geometrically cross-checked against SVG detector output; an uploaded PDF remains a registered appearance reference rather than a competing geometry source;
+- no-alt-text terrain can fall back to reviewable visual/style inference, including the Glendale woodland layer;
+- grouped fences and creeks can inherit their parent semantic metadata instead of falling into Geometry Explorer solely because child segments have no alt text;
+- promoted/reclassified Geometry Explorer objects receive canonical terrain names/categories while meaningful designer/source names are preserved;
+- Road is now a first-class Terrain Review rule role, with no movement bonus and movement-only bypass of underlying Difficult/Impassable terrain;
+- switching the Scenario Builder period supplement re-analyzes source evidence so an ACW OOB does not remain stuck with stale Italian Wars interpretation;
+- the proposed-force display is a full historical command tree and preserves unresolved brigades rather than hiding or inventing their regiments;
+- Terrain Review multi-feature controls remain sticky and now sit flush at the top of the review pane.
 
-The 50 × 25 mm preset is a Studio basing convention, not printed ACW RAW.
+The ACW supplement remains a plugin on the shared Battle Axe engine. Existing deployment-facing authority, rectangular base geometry, command-level bulk rotation, battlefield crop synchronization, scenario-rule ingestion, Publisher behavior, and Italian Wars isolation are preserved.
 
-See `docs/RELEASE_0.6.3.0.md` and `docs/VERIFICATION_0.6.3.0.md`.
+See `docs/RELEASE_0.6.5.0.md` and `docs/VERIFICATION_0.6.5.0.md`.
