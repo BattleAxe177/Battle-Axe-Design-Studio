@@ -97,6 +97,7 @@ export function createBlankScenario(){
     sourceForces:[],sourceCommands:[],
     sideLabels:{French:'Side A',Imperial:'Side B'},sideAliases:{},
     commands:{French:[],Imperial:[]},
+    structuredRules:{turnOneInitiative:''},
     unresolved:[],lastAnalysis:null,
     deployment:{placements:{},commanderPlacements:{},zones:[],battlefieldRevision:null}
   };

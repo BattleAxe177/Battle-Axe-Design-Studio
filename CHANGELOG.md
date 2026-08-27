@@ -1,3 +1,19 @@
+# v0.6.7.0 — Command, ACW AI & Scenario Portability
+
+- Reworks historical OOB interpretation around a generic nested command tree before Battle Axe leaf-profile mapping; the full Glendale fixture resolves to 82 explicit leaf units across 27 command nodes without narrative-unit leakage.
+- Preserves formation names separately from commanders, including historical/scenario commander overrides, ratings, statuses, roles, parent commands, and unresolved commands with no invented units.
+- Adds generic hierarchical Command Authority so commanders affect only their own command and descendant commands; ACW brigade/division/corps/army and Italian Wars shallower command structures use the same mechanism.
+- Applies command authority to ACW command-test modifier selection, commander coverage, and commander movement AI.
+- Improves ACW brigade cohesion and order-driven formation behavior: Defend favors useful frontage, Advance balances line and depth, Assault preserves follow-on echelons, Reserve stays compact, and Screen favors broad coverage.
+- Improves commander positioning toward the useful rear-center of authorized formations while discouraging movement-lane obstruction and pointless coverage chasing.
+- Fixes core LOS action legality so intervening friendly units and commanders can block fire; stores tested LOS rays/blockers for audit and includes the Glendale event-328 friendly-cannon case as a regression test.
+- Adds structured off-table reserve deployment by point, edge, edge segment, or polygon zone at the end of the owning side's turn, with commander-first placement, temporary deployment command unit fallback, normal command-distance placement, partial-entry retention, and no action on the entry turn.
+- Adds structured Turn-1 initiative override support while preserving normal initiative thereafter.
+- Introduces schema-versioned, self-contained full-project JSON export/import retaining compiled map SVG, approved terrain/features and decisions, hierarchy/OOB, deployment/facing, reserve data, rules, tactical state, and compatibility metadata.
+- Adds legacy project/scenario migration, safe defaults, unknown-field preservation where practical, stable command normalization, and visible post-import migration/warning feedback.
+- Preserves the v0.6.5.0 battlefield/compiler functional baseline; release-version/cache references are the only intentional changes in that protected pipeline.
+- Release verification: 199 automated tests plus static build/deployment checks and normalized battlefield-pipeline preservation comparison.
+
 # v0.6.5.0 — Map Authoring & ACW OOB Reliability
 
 - Applies PowerPoint DrawingML rotation, flip, group, and nested-group transforms before authored terrain geometry is normalized.

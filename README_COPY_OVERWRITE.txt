@@ -1,8 +1,8 @@
-BATTLE AXE DESIGN STUDIO v0.6.5.0
+BATTLE AXE DESIGN STUDIO v0.6.7.0
 COPY-AND-OVERWRITE RELEASE
 
 1. Extract this ZIP.
-2. Open the extracted Battle_Axe_Design_Studio_v0.6.5.0_Copy_Overwrite folder.
+2. Open the extracted Battle_Axe_Design_Studio_v0.6.7.0_Copy_Overwrite folder.
 3. Select all files and folders INSIDE it.
 4. Copy them into your existing Battle-Axe-Design-Studio repository folder.
 5. Choose Replace/overwrite matching files when Windows asks.
@@ -12,18 +12,17 @@ Do not copy the enclosing release folder itself into the repository. Copy its CO
 No Node updater or terminal command is required for installation.
 
 Release focus:
-- PowerPoint rotation/flip/group-transform correctness for authored terrain geometry.
-- Parent-group alt-text inheritance with child-metadata precedence.
-- SVG geometry corroboration of transformed PPT features; PDF retained as appearance reference.
-- Reviewable no-alt-text woodland/style inference.
-- Improved grouped fence/creek recognition.
-- Canonical rename/regroup after Geometry Explorer promotion/classification.
-- Road as a first-class terrain rule role in Terrain Review and bulk editing.
-- ACW source re-analysis when the selected period supplement changes.
-- Full hierarchical proposed OOB with unresolved brigades retained.
-- Sticky multi-feature Terrain Review controls flush to the top of the pane.
+- Historical OOB command-tree parsing with Glendale 82-unit regression fixture.
+- Generic hierarchical Command Authority for ACW and other period supplements.
+- Improved ACW command cohesion, commander placement, and order-based formation behavior.
+- Core LOS blocker correction and auditable LOS diagnostics.
+- Structured reserve/reinforcement entry framework.
+- Turn-1 initiative override for scenario design.
+- Complete, schema-versioned scenario/project JSON with legacy migration protections.
+- Preservation of the v0.6.5.0 battlefield/compiler functional baseline.
 
 Verification before packaging:
-- Full current repository test manifest: 188/188 passed.
+- Full current repository test manifest: 199/199 passed.
 - Static site build passed.
 - Static deployment check passed.
+- Battlefield/compiler preservation comparison passed after normalizing release cache/version references.

@@ -1,4 +1,4 @@
-import { getEffectiveRuleset, profileForText } from '../rules/ruleset.js?v=0.6.5.0';
+import { getEffectiveRuleset, profileForText } from '../rules/ruleset.js?v=0.6.7.0';
 
 const cleanInline=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
 const cleanBlock=s=>(s||'').replace(/\r/g,'').replace(/[ \t]+\n/g,'\n').replace(/\n[ \t]+/g,'\n').replace(/\n{3,}/g,'\n\n').trim();
@@ -61,9 +61,14 @@ function factionFor(text,current='Unknown'){
   if(!m)return current;const x=m[1].toLowerCase();if(x==='federal')return'Union';return x[0].toUpperCase()+x.slice(1);
 }
 function strengthFrom(text){const m=String(text||'').match(/\b(?:approximately|about|roughly|c\.?|circa)?\s*(\d{1,3}(?:,\d{3})+|\d{3,5})\b/i);return m?m[1]:'';}
-function explicitCommander(line){const m=stripMarkup(line).match(/^Commander\s*:\s*(.+)$/i);return m?cleanInline(m[1]).trim():'';}
-function armyCommander(line){const m=stripMarkup(line).match(/^(?:Commander[- ]in[- ]Chief|Commander in Chief|Army Commander|Overall Commander)\s*:\s*(.+)$/i);return m?cleanInline(m[1]).trim():'';}
+function explicitCommander(line){const m=stripMarkup(line).match(/^(?:Commander for scenario purposes|Commander for [^:]+|Division Commander|Brigade Commander|Commander)\s*:?\s+(.+)$/i);return m?cleanInline(m[1]).trim():'';}
+function armyCommander(line){const m=stripMarkup(line).match(/^(?:Commander[- ]in[- ]Chief|Commander in Chief|Army Commander|Overall Commander|Overall (?:Union|Confederate|French|Imperial)?\s*Tactical Commander)\s*:?\s+(.+)$/i);return m?cleanInline(m[1]).trim():'';}
 function associatedCommander(line){const m=stripMarkup(line).match(/^(?:Associated Commander|Attached Commander)\s*:\s*(.+)$/i);return m?cleanInline(m[1]).trim():'';}
+function commandRatingField(line){const m=stripMarkup(line).match(/^(?:Command Rating|CR)\s*:?\s*(\d+)$/i);return m?Number(m[1]):null;}
+function statusField(line){const m=stripMarkup(line).match(/^Status\s*:\s*(.+)$/i);return m?cleanInline(m[1]):'';}
+function roleField(line){const m=stripMarkup(line).match(/^Role\s*:\s*(.+)$/i);return m?cleanInline(m[1]):'';}
+function unitsField(line){return /^Units\s*:?\s*$/i.test(stripMarkup(line));}
+function overallCommanderHeading(line){return /^(?:Overall (?:Union|Confederate|French|Imperial)?\s*Tactical Commander|Commander[- ]in[- ]Chief|Commander in Chief|Army Commander|Overall Commander)\s*:?$/i.test(stripMarkup(line));}
 const RANK_RE=/(?:(?:Maj\.?|Brig\.?)\s+Gen\.|Gen\.|Col\.|Lt\.?\s+Col\.|Maj\.|Capt\.)/i;
 function rankName(text){
   const s=stripMarkup(deList(text));
@@ -83,13 +88,16 @@ function confidenceContext(line,current=86){const s=stripMarkup(line).toLowerCas
 function isConfidenceHeading(line){return /confidence|reasonably supported|provisional|tentative|assignment/i.test(stripMarkup(line))&&!/commander/i.test(stripMarkup(line));}
 function isGenericHeading(line){const s=stripMarkup(line).toLowerCase();return !!headingKey(line)||!!armyHeadingLabel(line)||/^(?:command structure|order of battle|higher[- ]confidence command assignments|reasonably supported assignments|provisional command assignments|command assignments|formations|troops|composition|notes?|initial assault|later assault|additional brigade engaged earlier|supporting .* commands?)$/i.test(s);}
 function commandKind(s){
-  s=stripMarkup(s);
-  if(/\bdivision\b/i.test(s))return'division';if(/\bbrigade\b/i.test(s))return'brigade';if(/\b(command|reserve|centre|center|wing|vanguard|rearguard|rear guard|garrison|battle|column|contingent|guard)\b/i.test(s))return'command';if(/^artillery$/i.test(s))return'artillery';return'';
+  // Classify the formation being named, not a parent formation mentioned after an em dash.
+  // Example: "Robinson's Brigade — Kearny's Division" is a brigade whose parent is a division.
+  s=stripMarkup(s).split(/\s+[—–]\s+|\s+-\s+/)[0];
+  if(/\bdivision\b/i.test(s))return'division';if(/\bbrigade\b/i.test(s))return'brigade';if(/\bartillery\b/i.test(s))return'artillery';if(/\b(command|reserve|centre|center|wing|vanguard|rearguard|rear guard|garrison|battle|column|contingent|guard)\b/i.test(s))return'command';return'';
 }
 function looksNarrative(s){
   const raw=cleanInline(deList(s)).replace(/\*\*/g,''),x=stripMarkup(raw);
   if(x.length>170)return true;
-  if(/[.!?]$/.test(raw)&&/\b(?:was|were|had|made|moved|attacked|identified|fielded|begins|supports|included|therefore|does|should|may)\b/i.test(x))return true;
+  if(/^(?:note|historically|historical note|no explicit|no verified)\b/i.test(x))return true;
+  if(/[.!?]$/.test(raw)&&/\b(?:was|were|had|made|moved|attacked|identified|fielded|begins|supports|included|therefore|does|should|may|represented|carried|commanded|wounded|held|directed|exercised)\b/i.test(x))return true;
   return false;
 }
 function likelyFormationProfile(raw,ruleset){
@@ -106,84 +114,203 @@ function likelyFormationProfile(raw,ruleset){
  * structurally: division/brigade commanders are commands; explicitly listed regiments/batteries
  * are formations. Incomplete brigades remain empty source commands rather than fabricated units.
  */
+function splitExplicitUnitLine(raw,ruleset){
+  const text=stripMarkup(deList(raw));
+  if(!text)return[];
+  const dash=text.match(/^(.*?)\s+[—–-]\s+(Infantry|Cannons?|Cannon|Sharpshooters?|Cavalry)\s*$/i);
+  let body=dash?cleanInline(dash[1]):text,explicitType=dash?dash[2]:'';
+  const profile=explicitType?profileForText(explicitType,ruleset):likelyFormationProfile(raw,ruleset);
+  if(!profile)return[];
+  // Explicitly enumerated regiments/battalions may share the state/formation suffix on the final item.
+  // Expand "1st, 2nd, 5th Pennsylvania Reserves" and "8th, 18th, 19th, 28th Virginia Infantry".
+  if(body.includes(',')){
+    const parts=body.split(',').map(cleanInline).filter(Boolean);
+    const last=parts.at(-1)||'';
+    const ordinalPrefix=/^\d+(?:st|nd|rd|th)\b/i;
+    if(parts.length>1&&parts.every(x=>ordinalPrefix.test(x))){
+      const lastMatch=last.match(/^(\d+(?:st|nd|rd|th))\s+(.+)$/i);
+      if(lastMatch){
+        const suffix=lastMatch[2];
+        return parts.map((part,i)=>{
+          const m=part.match(/^(\d+(?:st|nd|rd|th))(?:\s+(.+))?$/i);
+          if(!m)return null;
+          const ownSuffix=m[2]||suffix;
+          return{name:`${m[1]} ${ownSuffix}`,profile};
+        }).filter(Boolean);
+      }
+    }
+  }
+  // Semicolon-separated lists are always explicit unit lists when each member has a period formation marker.
+  if(body.includes(';')){
+    const parts=body.split(';').map(cleanInline).filter(Boolean);
+    if(parts.length>1){const out=[];for(const part of parts){const nested=splitExplicitUnitLine(`${part} — ${profile}`,ruleset);if(nested.length)out.push(...nested);else out.push({name:part,profile:profileForText(part,ruleset)||profile});}return out;}
+  }
+  return[{name:body,profile}];
+}
+
+/**
+ * Parse historical force evidence into a command tree before mapping leaf formations to Battle Axe profiles.
+ * Heading depth is intentionally not authoritative: period vocabulary (Division, Brigade, Battle, Wing, etc.)
+ * and explicit field labels determine the hierarchy. Narrative prose remains command notes and is never
+ * promoted to a playable unit merely because it contains words such as battery, cannon, or infantry.
+ */
 export function detectForceHierarchy(text,ruleset=getEffectiveRuleset(null)){
   const raw=text.replace(/\r/g,'').split('\n'),forces=[],commands=[],armyCommanders=new Map();
-  let faction='Unknown',currentCommand=null,currentDivision=null,currentHigherCommand=null,assignmentConfidence=88,inForces=false;
-  const addCommand=({name,commander='',sourceText,parent=null,kind=''})=>{
-    const cleanName=stripMarkup(name)||'Command',key=`${faction}|${parent?.id||'root'}|${cleanName}|${commander}`;
-    let c=commands.find(x=>x._key===key);if(c)return c;
-    c={_key:key,id:stableId('cmd-evidence',`${key}-${commands.length}`),faction,name:cleanName,commander:cleanInline(commander),armyCommander:armyCommanders.get(faction)||'',associatedCommander:'',formations:[],parentCommandId:parent?.id||null,parentCommandName:parent?.name||'',hierarchyLevel:kind||commandKind(cleanName)||'command',provenance:'SOURCE',confidence:assignmentConfidence,sourceText:stripMarkup(sourceText||name)};
+  let faction='Unknown',currentCommand=null,currentDivision=null,currentHigherCommand=null,assignmentConfidence=88,inForces=false,unitListOpen=false,pendingOverall=false;
+  const addCommand=({name,commander='',sourceText,parent=null,kind='',historicalCommander='',scenarioCommander=''})=>{
+    const cleanName=stripMarkup(name)||'Command',key=`${faction}|${parent?.id||'root'}|${cleanName}`;
+    let c=commands.find(x=>x._key===key);
+    if(c){if(commander&&!c.commander)c.commander=cleanInline(commander);return c;}
+    c={_key:key,id:stableId('cmd-evidence',`${key}-${commands.length}`),faction,name:cleanName,commander:cleanInline(commander),historicalCommander:cleanInline(historicalCommander),scenarioCommander:cleanInline(scenarioCommander),commandRating:null,status:'',role:'',notes:[],armyCommander:armyCommanders.get(faction)||'',associatedCommander:'',formations:[],parentCommandId:parent?.id||null,parentCommandName:parent?.name||'',hierarchyLevel:kind||commandKind(cleanName)||'command',provenance:'SOURCE',confidence:assignmentConfidence,sourceText:stripMarkup(sourceText||name)};
     commands.push(c);return c;
   };
-  const addFormation=(original,profile,command=currentCommand)=>{
-    const clean=stripMarkup(deList(original)),lineFaction=factionFor(clean,faction),name=evidenceName(clean,profile),key=`${lineFaction}|${command?.id||'unassigned'}|${name}|${profile}`;
+  const ensureDivision=(name)=>{
+    const clean=stripMarkup(name),existing=commands.find(c=>c.faction===faction&&c.hierarchyLevel==='division'&&c.name.toLowerCase()===clean.toLowerCase());
+    return existing||addCommand({name:clean,sourceText:clean,kind:'division'});
+  };
+  const addFormation=(name,profile,original,command=currentCommand)=>{
+    const clean=stripMarkup(name),lineFaction=factionFor(clean,faction),key=`${lineFaction}|${command?.id||'unassigned'}|${clean}|${profile}`;
     if(forces.some(x=>x.key===key))return;
-    const id=stableId('src',key),force={key,id,faction:lineFaction,name,profileHint:profile,strength:strengthFrom(clean),sourceText:clean,section:`army:${lineFaction}`,confidence:isListLike(original)?Math.min(98,assignmentConfidence+5):Math.min(84,assignmentConfidence),provenance:'SOURCE',translationStatus:'unresolved',forceRole:/\bgarrison\b|\bdefenders? of\b/i.test(clean)?'garrison':(/\bbattery\b/i.test(clean)?'artillery':null),commandId:command?.id||null,commandName:command?.name||'',commander:command?.commander||'',armyCommander:armyCommanders.get(lineFaction)||command?.armyCommander||''};
+    const id=stableId('src',key),force={key,id,faction:lineFaction,name:clean,profileHint:profile,strength:strengthFrom(clean),sourceText:stripMarkup(deList(original||clean)),section:`army:${lineFaction}`,confidence:isListLike(original)?Math.min(98,assignmentConfidence+5):Math.min(90,assignmentConfidence),provenance:'SOURCE',translationStatus:'unresolved',forceRole:/\bgarrison\b|\bdefenders? of\b/i.test(clean)?'garrison':(/\bbattery\b/i.test(clean)?'artillery':null),commandId:command?.id||null,commandName:command?.name||'',commander:command?.commander||'',armyCommander:armyCommanders.get(lineFaction)||command?.armyCommander||''};
     forces.push(force);if(command)command.formations.push(id);
   };
+  const addNote=(line)=>{if(currentCommand){const note=stripMarkup(deList(line));if(note&&!currentCommand.notes.includes(note))currentCommand.notes.push(note);}};
+  const setFaction=(value)=>{faction=value;inForces=true;currentCommand=currentDivision=currentHigherCommand=null;unitListOpen=false;pendingOverall=false;};
 
   for(let i=0;i<raw.length;i++){
     const original=raw[i],trimmed=original.trim();if(!trimmed)continue;
     const key=headingKey(trimmed),army=armyHeadingLabel(trimmed);
-    if(key==='forces'){inForces=true;currentCommand=currentDivision=currentHigherCommand=null;continue;}
-    if(key==='union'){faction='Union';inForces=true;currentCommand=currentDivision=currentHigherCommand=null;continue;}
-    if(key==='confederate'){faction='Confederate';inForces=true;currentCommand=currentDivision=currentHigherCommand=null;continue;}
-    if(key==='french'){faction='French';inForces=true;currentCommand=currentDivision=currentHigherCommand=null;continue;}
-    if(key==='imperial'){faction='Imperial';inForces=true;currentCommand=currentDivision=currentHigherCommand=null;continue;}
-    if(army){faction=army;inForces=true;currentCommand=currentDivision=currentHigherCommand=null;continue;}
-    if(key&&key!=='forces'){if(key==='deployment'||key==='rules'||key==='victory'||key==='designer'||key==='sources'||key==='objectives'){inForces=false;currentCommand=currentDivision=currentHigherCommand=null;}continue;}
+    if(key==='forces'){inForces=true;currentCommand=currentDivision=currentHigherCommand=null;unitListOpen=false;continue;}
+    if(key==='union'){setFaction('Union');continue;}if(key==='confederate'){setFaction('Confederate');continue;}if(key==='french'){setFaction('French');continue;}if(key==='imperial'){setFaction('Imperial');continue;}if(army){setFaction(army);continue;}
+    if(key&&key!=='forces'){if(['deployment','rules','victory','designer','sources','objectives'].includes(key)){inForces=false;currentCommand=currentDivision=currentHigherCommand=null;unitListOpen=false;}continue;}
     if(!inForces)continue;
 
-    assignmentConfidence=confidenceContext(trimmed,assignmentConfidence);if(isConfidenceHeading(trimmed)){currentCommand=null;continue;}
-    const chief=armyCommander(trimmed);if(chief){armyCommanders.set(faction,chief);for(const c of commands.filter(x=>x.faction===faction&&!x.armyCommander))c.armyCommander=chief;continue;}
-    const explicit=explicitCommander(trimmed);if(explicit){if(!currentCommand)currentCommand=addCommand({name:`${faction} command`,sourceText:trimmed});currentCommand.commander=explicit;continue;}
+    assignmentConfidence=confidenceContext(trimmed,assignmentConfidence);if(isConfidenceHeading(trimmed)){unitListOpen=false;continue;}
+    const plain=stripMarkup(trimmed),kind=commandKind(plain),depth=headingDepth(original),pair=splitNameCommander(trimmed),rank=rankName(trimmed);
+
+    if(overallCommanderHeading(trimmed)){
+      currentDivision=currentHigherCommand=null;unitListOpen=false;pendingOverall=true;
+      currentCommand=addCommand({name:`${faction} Army Command`,sourceText:trimmed,kind:'army'});continue;
+    }
+    const chief=armyCommander(trimmed);if(chief){
+      armyCommanders.set(faction,chief);currentCommand=addCommand({name:`${faction} Army Command`,commander:chief,sourceText:trimmed,kind:'army'});currentHigherCommand=currentCommand;pendingOverall=false;
+      for(const c of commands.filter(x=>x.faction===faction&&!x.armyCommander))c.armyCommander=chief;continue;
+    }
+    if(pendingOverall&&isListLike(original)&&rank){
+      const commander=`${rank.rank} ${rank.name}`;currentCommand.commander=commander;armyCommanders.set(faction,commander);currentCommand.armyCommander=commander;pendingOverall=false;continue;
+    }
+
+    const explicit=explicitCommander(trimmed);if(explicit){
+      if(!currentCommand)currentCommand=addCommand({name:`${faction} command`,sourceText:trimmed});
+      const historical=currentCommand.commander;
+      currentCommand.commander=explicit;
+      if(/scenario purposes|for Glendale/i.test(plain)){currentCommand.scenarioCommander=explicit;if(historical&&historical!==explicit)currentCommand.historicalCommander=historical;}
+      unitListOpen=false;continue;
+    }
     const assoc=associatedCommander(trimmed);if(assoc){if(!currentCommand)currentCommand=addCommand({name:`${faction} attached command`,sourceText:trimmed});currentCommand.associatedCommander=assoc;continue;}
+    const rating=commandRatingField(trimmed);if(rating!=null&&currentCommand){currentCommand.commandRating=rating;continue;}
+    const status=statusField(trimmed);if(status&&currentCommand){currentCommand.status=status;continue;}
+    const role=roleField(trimmed);if(role&&currentCommand){currentCommand.role=role;continue;}
+    if(unitsField(trimmed)){unitListOpen=true;continue;}
 
-    const depth=headingDepth(original),plain=stripMarkup(trimmed),kind=commandKind(plain),pair=splitNameCommander(trimmed),rank=rankName(trimmed);
-    if(isGenericHeading(trimmed)&&/^supporting .* commands?$/i.test(plain)){currentCommand=currentDivision=currentHigherCommand=null;continue;}
-    if(isGenericHeading(trimmed)&&/^(?:initial assault|later assault|additional brigade engaged earlier)$/i.test(plain)){currentCommand=currentDivision||currentHigherCommand||currentCommand;continue;}
+    if(isGenericHeading(trimmed)&&/^supporting .* commands?$/i.test(plain)){currentCommand=currentDivision=currentHigherCommand=null;unitListOpen=false;continue;}
+    if(isGenericHeading(trimmed)&&/^(?:initial assault|later assault|additional brigade engaged earlier)$/i.test(plain)){unitListOpen=false;continue;}
 
-    // Markdown command headings such as "### McCall's Division — Pennsylvania Reserves".
-    if(depth>=3&&kind){
-      let name=plain,commander='';if(pair){name=pair.name;commander=pair.commander;}
-      const parent=(kind==='brigade'||kind==='artillery')?(currentDivision||currentHigherCommand):null;
-      currentCommand=addCommand({name,commander,sourceText:trimmed,parent,kind});if(kind==='division'){currentDivision=currentCommand;currentHigherCommand=currentCommand;}else if(kind==='command'){currentDivision=null;currentHigherCommand=currentCommand;}continue;
+    // Compact force tables use "Formation — Profile — description". Recognize the explicit profile
+    // before command vocabulary such as Battle, Vanguard, Reserve, or Garrison can misclassify the row.
+    if(!isListLike(original)&&/\s+[—–]\s+|\s+-\s+/.test(plain)){
+      const parts=plain.split(/\s+[—–]\s+|\s+-\s+/).map(cleanInline).filter(Boolean);
+      if(parts.length>=2){const exact=ruleset.unitLibrary.find(u=>u.profile.toLowerCase()===parts[1].toLowerCase())?.profile||null,inferred=!exact&&!/\b(?:brigade|division|command)\b/i.test(parts[0])?profileForText(parts[0],ruleset):null,profile=exact||inferred;if(profile){addFormation(parts[0],profile,original,currentCommand);continue;}}
     }
 
-    // Bold command headings, including "First Brigade — Col. ..." and "Kearny's Division — Brig. Gen. ...".
-    if(isBoldOnly(trimmed)&&kind){
-      let name=plain,commander='';if(pair){name=pair.name;commander=pair.commander;}
-      const parent=(kind==='brigade'||kind==='artillery')?(currentDivision||currentHigherCommand):null;
-      currentCommand=addCommand({name,commander,sourceText:trimmed,parent,kind});if(kind==='division'){currentDivision=currentCommand;currentHigherCommand=currentCommand;}else if(kind==='command'){currentDivision=null;currentHigherCommand=currentCommand;}continue;
-    }
-
-    // A bold rank-only line immediately following a command heading is that command's commander.
-    if(isBoldOnly(trimmed)&&rank&&!rank.tail){if(currentCommand){currentCommand.commander=`${rank.rank} ${rank.name}`;currentCommand.sourceText=`${currentCommand.sourceText}\n${plain}`;}continue;}
-
-    // ACW subordinate brigade bullets are commands, never troop profiles. This specifically prevents
-    // surnames such as Archer from being misread as the canonical "Archers" profile.
-    if(isListLike(original)&&rank){
-      let brigadeName='';
-      if(rank.tail&&/\bbrigade\b/i.test(rank.tail))brigadeName=rank.tail;
-      else if(currentDivision||/\bdivision\b/i.test(currentCommand?.name||''))brigadeName=`${rank.name.split(/\s+/).at(-1)}'s Brigade`;
-      if(brigadeName){const parent=currentDivision||currentHigherCommand||currentCommand;currentCommand=addCommand({name:brigadeName,commander:`${rank.rank} ${rank.name}`,sourceText:trimmed,parent,kind:'brigade'});continue;}
+    // Any clear period command heading is structural regardless of Markdown depth.
+    if(kind&&(depth>0||isBoldOnly(trimmed)||(!isListLike(original)&&/\b(?:division|brigade|artillery|wing|battle|vanguard|reserve|garrison|command)\b/i.test(plain)))){
+      let name=plain,commander='',parent=null;
+      if(pair&&RANK_RE.test(pair.commander)){name=pair.name;commander=pair.commander;}
+      else {
+        // Formation headings such as "Robinson's Brigade — Kearny's Division" carry parent context, not a commander.
+        const parts=plain.split(/\s+[—–]\s+|\s+-\s+/).map(cleanInline).filter(Boolean);
+        if(parts.length>=2&&commandKind(parts[0])&&/\bdivision\b/i.test(parts[1])){name=parts[0];currentDivision=ensureDivision(parts[1]);currentHigherCommand=currentDivision;parent=currentDivision;}
+      }
+      if(!parent)parent=(kind==='brigade'||kind==='artillery')?(currentDivision||currentHigherCommand):kind==='division'?(commands.find(c=>c.faction===faction&&c.hierarchyLevel==='army')||null):null;
+      currentCommand=addCommand({name,commander,sourceText:trimmed,parent,kind});unitListOpen=false;pendingOverall=false;
+      if(kind==='division'){currentDivision=currentCommand;currentHigherCommand=currentCommand;}else if(kind==='army'){currentDivision=null;currentHigherCommand=currentCommand;}else if(kind==='command'&&!parent){currentDivision=null;currentHigherCommand=currentCommand;}
       continue;
     }
-    if(isListLike(original)&&/\bbrigade\b/i.test(plain)){
-      const name=plain.split(/\s+[—–-]\s+/)[0],parent=currentDivision||currentHigherCommand||(/\bdivision\b/i.test(currentCommand?.name||'')?currentCommand:null);
-      currentCommand=addCommand({name,sourceText:trimmed,parent,kind:'brigade'});continue;
+
+    // Bulleted compact force rows use the same "Formation — Profile — note" convention.
+    if(isListLike(original)&&!unitListOpen&&/\s+[—–]\s+|\s+-\s+/.test(stripMarkup(deList(original)))){
+      const compact=stripMarkup(deList(original)),parts=compact.split(/\s+[—–]\s+|\s+-\s+/).map(cleanInline).filter(Boolean);
+      if(parts.length>=2){const exact=ruleset.unitLibrary.find(u=>u.profile.toLowerCase()===parts[1].toLowerCase())?.profile||null,inferred=!/\b(?:brigade|division|command)\b/i.test(parts[0])?profileForText(parts[0],ruleset):null,profile=exact||inferred;if(profile){addFormation(parts[0],profile,original,currentCommand);continue;}}
     }
 
-    // Generic old-style command headings are retained for Italian Wars material.
-    if(!isListLike(original)&&!isGenericHeading(original)&&kind&&(isBoldOnly(trimmed)||depth>=3)){
-      const parent=(kind==='brigade'||kind==='artillery')?(currentDivision||currentHigherCommand):null;currentCommand=addCommand({name:plain,sourceText:trimmed,parent,kind});if(kind==='division'){currentDivision=currentCommand;currentHigherCommand=currentCommand;}else if(kind==='command'){currentDivision=null;currentHigherCommand=currentCommand;}continue;
+    // List-like command headings are common in historical OOBs (for example "1. Simmons's First Brigade"
+    // or "Robinson's Brigade — supports the right"). Treat the command name as structure and the tail as a note.
+    const listPlain=isListLike(original)?stripMarkup(deList(original)):'';
+    const listParts=listPlain?listPlain.split(/\s+[—–]\s+|\s+-\s+/).map(cleanInline).filter(Boolean):[];
+    const listName=listParts[0]||listPlain;
+    const listKind=listName?commandKind(listName):'';
+    // A narrative tail does not make an otherwise explicit command label into prose.
+    // Accept "Robinson's Brigade — supports the right", but require the first segment itself
+    // to end with a recognized command-echelon label so ordinary prose mentioning a brigade
+    // cannot silently become a command node.
+    const explicitListCommandName=/\b(?:division|brigade|artillery|wing|battle|vanguard|reserve|garrison|command)\s*$/i.test(listName);
+    if(isListLike(original)&&listKind&&explicitListCommandName&&!rank&&!/^(?:commands?|directs?|holds?|begins?|supports?|role)\b/i.test(listPlain)){unitListOpen=false;
+      const parts=listParts,name=listName;
+      let parent=(listKind==='brigade'||listKind==='artillery')?(currentDivision||currentHigherCommand||currentCommand):listKind==='division'?(commands.find(c=>c.faction===faction&&c.hierarchyLevel==='army')||null):null;
+      if((listKind==='brigade'||listKind==='artillery')&&parts.length>1&&/\bdivision\b/i.test(parts[1])){currentDivision=ensureDivision(parts[1]);currentHigherCommand=currentDivision;parent=currentDivision;}
+      currentCommand=addCommand({name,sourceText:trimmed,parent,kind:listKind});
+      if(parts.length>1&&!/\bdivision\b/i.test(parts[1]))currentCommand.notes.push(parts.slice(1).join(' — '));
+      if(listKind==='division'){currentDivision=currentCommand;currentHigherCommand=currentCommand;}
+      continue;
     }
 
-    const profile=likelyFormationProfile(original,ruleset);if(profile&&(isListLike(original)||(!looksNarrative(original)&&faction!=='Unknown')))addFormation(original,profile,currentCommand);
+    // Rank bullets under a higher formation create subordinate brigades. This deliberately runs before
+    // the generic "rank supplies current commander" rule so Hill's listed brigadiers do not overwrite Hill.
+    if(isListLike(original)&&rank&&!unitListOpen&&(rank.tail&&/\bbrigade\b/i.test(rank.tail)||currentDivision||currentHigherCommand)){
+      const parent=currentDivision||currentHigherCommand||currentCommand,brigadeName=rank.tail&&/\bbrigade\b/i.test(rank.tail)?rank.tail:`${rank.name.split(/\s+/).at(-1)}'s Brigade`;
+      currentCommand=addCommand({name:brigadeName,commander:`${rank.rank} ${rank.name}`,sourceText:trimmed,parent,kind:'brigade'});continue;
+    }
+
+    // A standalone ranked name immediately under a command/division supplies that command's commander.
+    if(!isListLike(original)&&rank&&!rank.tail&&currentCommand&&!unitListOpen){
+      if(!currentCommand.commander)currentCommand.commander=`${rank.rank} ${rank.name}`;continue;
+    }
+    if(isListLike(original)&&rank&&!rank.tail&&currentCommand&&!unitListOpen){
+      currentCommand.commander=`${rank.rank} ${rank.name}`;continue;
+    }
+
+    // Unit creation is deliberately strict. After an explicit Units: label, only bullets are units.
+    // Outside that state, a bullet must itself look like an enumerated historical formation.
+    if(isListLike(original)){
+      const parsed=splitExplicitUnitLine(original,ruleset);
+      const explicitFormation=parsed.length&&parsed.every(x=>/\b(?:infantry|reserves?|rifles?|sharpshooters?|battalion|battery|cavalry|regiment|militia|zouave|guards?|lands?knechts?|gendarmes?|men-at-arms|pikemen|arquebusiers?|crossbowmen|stradiots?|ginetes?)\b/i.test(x.name)||/\d+(?:st|nd|rd|th)\b/i.test(x.name));
+      if(parsed.length&&(unitListOpen||explicitFormation)&&!looksNarrative(original)){
+        for(const u of parsed)addFormation(u.name,u.profile,original,currentCommand);
+        continue;
+      }
+    }
+
+    // Legacy/Italian-Wars source tables often express a formation as "Name — Battle Axe Profile — note"
+    // without bullets or an explicit Units: label. Preserve that compact, explicit format while still
+    // refusing ordinary narrative prose.
+    if(!isListLike(original)&&!kind&&!RANK_RE.test(plain)&&/\s+[—–]\s+|\s+-\s+/.test(plain)&&!looksNarrative(original)){
+      const parts=plain.split(/\s+[—–]\s+|\s+-\s+/).map(cleanInline).filter(Boolean);
+      if(parts.length>=2){const profile=profileForText(parts[1],ruleset);if(profile){addFormation(parts[0],profile,original,currentCommand);continue;}}
+    }
+
+    // Non-list prose following a Units block closes the unit-list state. It remains a note.
+    if(unitListOpen&&!isListLike(original))unitListOpen=false;
+    if(currentCommand&&!isGenericHeading(original))addNote(original);
   }
 
-  for(const c of commands){if(!c.armyCommander)c.armyCommander=armyCommanders.get(c.faction)||'';c.formations=[...new Set(c.formations)];delete c._key;}
-  return{forces:forces.slice(0,180),commands:commands.slice(0,100),armyCommanders:Object.fromEntries(armyCommanders)};
+  for(const c of commands){
+    if(!c.armyCommander)c.armyCommander=armyCommanders.get(c.faction)||'';
+    c.formations=[...new Set(c.formations)];c.notes=[...new Set(c.notes||[])];
+    if(c.scenarioCommander&&!c.historicalCommander&&c.associatedCommander)c.historicalCommander=c.associatedCommander;
+    delete c._key;
+  }
+  return{forces:forces.slice(0,240),commands:commands.slice(0,160),armyCommanders:Object.fromEntries(armyCommanders)};
 }
 
 function detectHistoricalFormations(text,sections={},ruleset=getEffectiveRuleset(null)){

@@ -1,13 +1,17 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.6.5.0';
-import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.5.0';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.6.7.0';
+import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.7.0';
+import { normalizeCommandHierarchy } from '../modules/commandHierarchy.js?v=0.6.7.0';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
+export const PROJECT_FORMAT='battle-axe-studio-project';
+export const PROJECT_SCHEMA_VERSION='1.0.0';
 
 export function createInitialState(){
   const project={
     id:'untitled',
     name:'Untitled Scenario',
     version:'studio-project',
+    schemaVersion:PROJECT_SCHEMA_VERSION,
     playSpace:{width:48,height:48,units:'inches',origin:'northwest'},
     historicalContext:'',
     mapNotes:'',
@@ -24,6 +28,7 @@ export function createInitialState(){
 export function migrateScenario(saved){
   const blank=createBlankScenario(),s={...blank,...(saved||{})};
   s.ruleset={...blank.ruleset,...(saved?.ruleset||{})};
+  s.structuredRules={...blank.structuredRules,...(saved?.structuredRules||{})};
   const legacyBase=Number(saved?.tabletop?.unitBaseMm||blank.tabletop.unitBaseMm||50);
   s.tabletop={...blank.tabletop,...(saved?.tabletop||{})};
   s.tabletop.unitBaseWidthMm=Number(saved?.tabletop?.unitBaseWidthMm||legacyBase);
@@ -40,6 +45,7 @@ export function migrateScenario(saved){
   }
   registerEvidenceSides(s,s.sourceForces||[],s.sourceCommands||[]);
   ensureTwoSideModel(s);
+  normalizeCommandHierarchy(s);
   s.deployment={...blank.deployment,...(saved?.deployment||{}),placements:{...(saved?.deployment?.placements||{})},commanderPlacements:{...(saved?.deployment?.commanderPlacements||{})},zones:[...(saved?.deployment?.zones||[])]};
   return s;
 }
@@ -54,14 +60,14 @@ function validateMigratedProject(state){
 
 export function migrateImportedProject(input){
   if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Project JSON must contain an object.');
-  const raw=structuredClone(input),base=createInitialState(),steps=[],warnings=[],sourceVersion=String(raw.version||raw.project?.version||raw.scenario?.version||'legacy/unknown');let projectSource=null,wrapper={};
-  if(raw.format==='battle-axe-studio-project'&&raw.project){projectSource=raw.project;wrapper=raw;steps.push('recognized Battle Axe Studio project export');}
+  const raw=structuredClone(input),base=createInitialState(),steps=[],warnings=[],sourceVersion=String(raw.schemaVersion||raw.version||raw.project?.schemaVersion||raw.project?.version||raw.scenario?.version||'legacy/unknown');let projectSource=null,wrapper={};
+  if(raw.format===PROJECT_FORMAT&&raw.project){projectSource=raw.project;wrapper=raw;steps.push(`recognized Battle Axe Studio project export schema ${raw.schemaVersion||'legacy'}`);}
   else if(raw.project&&typeof raw.project==='object'){projectSource=raw.project;wrapper=raw;steps.push('accepted legacy project wrapper without current format marker');warnings.push('Legacy export had no current format marker; loaded through migration pipeline.');}
   else if(raw.scenario&&typeof raw.scenario==='object'){projectSource={scenario:raw.scenario,playSpace:raw.playSpace,mapSource:raw.mapSource,features:raw.features,candidates:raw.candidates,manualFeatures:raw.manualFeatures,battlefieldRevision:raw.battlefieldRevision};wrapper=raw;steps.push('wrapped legacy top-level scenario into current project shell');}
   else if(raw.metadata||raw.commands||raw.rosters||raw.deployment){projectSource={scenario:raw};steps.push('wrapped scenario-only JSON into current project shell');warnings.push('Scenario-only import did not include full Studio battlefield/terrain workspace state.');}
   else throw new Error('Unrecognized Battle Axe project/scenario JSON. No recoverable project or scenario structure was found.');
 
-  base.project={...base.project,...(projectSource||{})};
+  base.project={...base.project,...(projectSource||{}),schemaVersion:PROJECT_SCHEMA_VERSION};
   base.project.playSpace={...createInitialState().project.playSpace,...(projectSource?.playSpace||{})};
   base.project.features=Array.isArray(projectSource?.features)?projectSource.features:[];
   base.project.candidates=Array.isArray(projectSource?.candidates)?projectSource.candidates:[];
@@ -76,9 +82,33 @@ export function migrateImportedProject(input){
   base.ignoredCandidates=wrapper.ignoredCandidates&&typeof wrapper.ignoredCandidates==='object'?wrapper.ignoredCandidates:{};
   base.importedCandidateIds=Array.isArray(wrapper.importedCandidateIds)?wrapper.importedCandidateIds:[];
   base.selectedFeatureIds=Array.isArray(wrapper.selectedFeatureIds)?wrapper.selectedFeatureIds:[];
+  // Preserve unrecognized wrapper fields so a load/save cycle does not silently destroy
+  // extension/plugin data from another Studio generation.
+  const knownWrapper=new Set(['format','schemaVersion','studioVersion','version','exportedAt','project','playtestWorkspace','decisions','ignoredCandidates','importedCandidateIds','selectedFeatureIds']);
+  const unknownWrapper=Object.fromEntries(Object.entries(wrapper||{}).filter(([k])=>!knownWrapper.has(k)));
+  if(Object.keys(unknownWrapper).length)base.compatibility={...(base.compatibility||{}),preservedEnvelope:unknownWrapper};
+  if(sourceVersion!==PROJECT_SCHEMA_VERSION)steps.push(`migrated project schema ${sourceVersion} → ${PROJECT_SCHEMA_VERSION}`);
   steps.push('migrated scenario fields and supplied defaults for current ruleset/deployment/two-side model');
   validateMigratedProject(base);steps.push('validated migrated project against current minimum structural requirements');
   return{state:base,migration:{sourceVersion,steps,warnings}};
+}
+
+export function createProjectExportPayload(state,{studioVersion='unknown',exportedAt=new Date().toISOString()}={}){
+  const preserved=state?.compatibility?.preservedEnvelope&&typeof state.compatibility.preservedEnvelope==='object'?state.compatibility.preservedEnvelope:{};
+  return{
+    ...structuredClone(preserved),
+    format:PROJECT_FORMAT,
+    schemaVersion:PROJECT_SCHEMA_VERSION,
+    studioVersion,
+    version:studioVersion, // legacy readers used version
+    exportedAt,
+    project:structuredClone(state.project),
+    playtestWorkspace:structuredClone(state.playtestWorkspace||{armyOrders:{},commandOrders:{},cueLevel:'standard'}),
+    decisions:structuredClone(state.decisions||{}),
+    ignoredCandidates:structuredClone(state.ignoredCandidates||{}),
+    importedCandidateIds:[...(state.importedCandidateIds||[])],
+    selectedFeatureIds:[...(state.selectedFeatureIds||[])]
+  };
 }
 
 // Compatibility facade retained for the v0.6.0.3 importer contract. All paths still use the
@@ -102,12 +132,7 @@ export function loadState(storage=window.localStorage){
 }
 
 export function saveState(state,storage=window.localStorage){
-  storage.setItem(STORAGE_KEY,JSON.stringify({
-    project:state.project,
-    playtestWorkspace:state.playtestWorkspace||{armyOrders:{},commandOrders:{},cueLevel:'standard'},
-    decisions:state.decisions||{},
-    ignoredCandidates:state.ignoredCandidates||{},
-    importedCandidateIds:state.importedCandidateIds||[],
-    selectedFeatureIds:state.selectedFeatureIds||[]
-  }));
+  const payload=createProjectExportPayload(state,{studioVersion:'local-storage'});
+  delete payload.exportedAt;
+  storage.setItem(STORAGE_KEY,JSON.stringify(payload));
 }
