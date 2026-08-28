@@ -1,7 +1,7 @@
-import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.7.0';
-import { battlefieldImageUrl } from './battlefieldState.js?v=0.6.7.0';
-import { sideLabel } from './scenarioSides.js?v=0.6.7.0';
-import { footprintPercentFromSpec } from './footprintGeometry.js?v=0.6.7.0';
+import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.8.0';
+import { battlefieldImageUrl } from './battlefieldState.js?v=0.6.8.0';
+import { sideLabel } from './scenarioSides.js?v=0.6.8.0';
+import { footprintPercentFromSpec } from './footprintGeometry.js?v=0.6.8.0';
 
 const $=s=>document.querySelector(s);
 const esc=s=>(s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

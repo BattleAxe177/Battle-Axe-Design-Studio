@@ -1,3 +1,26 @@
+# v0.6.8.0 — Hierarchy Authoring, AI Apply-All & Visual Reserve Entry
+
+- Extends the external AI Bridge changeset schema to first-class hierarchical commands with stable command IDs, generic `commandType`, `parentCommandId`, commander/rating metadata, reserve status, and unit command assignment/reassignment.
+- Replaces line-by-line external AI acceptance with a concise grouped preview and one validated **Apply All Changes** transaction, plus Cancel and **Undo AI Apply**.
+- Makes Force Builder command hierarchy directly editable by drag and drop: drop a subordinate command onto its parent, or onto the side root to make it top-level; cross-side drops and circular hierarchies are rejected.
+- Adds visible Delete controls for commands and units. Safe command deletion promotes subordinate commands rather than orphaning them, while directly assigned units are removed only after confirmation.
+- Adds Force Builder Undo/Redo for command creation/deletion, hierarchy changes, unit creation/deletion/editing, and unit reassignment.
+- Reworks reserve/reinforcement entry authoring into visual Deployment Editor tools: click a point, select a table edge, drag an edge portion, or draw a polygon zone directly on the battlefield map.
+- Displays persistent reserve entry markers/lines/zones on the deployment map and stores their actual geometry in scenario deployment/reserve data.
+- Adds Deployment Undo/Redo and keeps explicit Cancel/Escape paths for drawing/editing tools.
+- Advances project schema to 1.1.0 while retaining legacy `echelon` compatibility and migrating it to generic `commandType` without losing parent IDs.
+- Preserves the v0.6.5.0 battlefield/compiler functional baseline; normalized comparison confirms no protected battlefield/compiler logic changes.
+- Release verification: 208/208 automated tests, static site build, deployment check, and protected battlefield/compiler preservation comparison passed.
+
+# v0.6.7.1 — Legacy Map Import Safety Hotfix
+
+- Legacy scenario-only JSON files are now explicitly detected as lacking a battlefield workspace.
+- Opening such a file while a battlefield is already loaded offers to retain the current authoritative map, approved terrain, crop, and battlefield revision instead of silently replacing them with an empty project shell.
+- When the legacy scenario title matches the current project and the legacy file contains no deployment, the current deployment is retained with that battlefield.
+- Every project import now creates an automatic pre-import recovery copy in browser storage.
+- Added **Restore Previous Project** beside Open Project so a destructive or mistaken import can be undone.
+- Full v0.6.7.x Studio Project exports remain self-contained and include the compiled map, approved features, command/OOB state, and deployment.
+
 # v0.6.7.0 — Command, ACW AI & Scenario Portability
 
 - Reworks historical OOB interpretation around a generic nested command tree before Battle Axe leaf-profile mapping; the full Glendale fixture resolves to 82 explicit leaf units across 27 command nodes without narrative-unit leakage.

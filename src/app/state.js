@@ -1,10 +1,11 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.6.7.0';
-import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.7.0';
-import { normalizeCommandHierarchy } from '../modules/commandHierarchy.js?v=0.6.7.0';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.6.8.0';
+import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.8.0';
+import { normalizeCommandHierarchy } from '../modules/commandHierarchy.js?v=0.6.8.0';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
+export const IMPORT_BACKUP_KEY='battle-axe-design-studio-pre-import-backup';
 export const PROJECT_FORMAT='battle-axe-studio-project';
-export const PROJECT_SCHEMA_VERSION='1.0.0';
+export const PROJECT_SCHEMA_VERSION='1.1.0';
 
 export function createInitialState(){
   const project={
@@ -90,7 +91,58 @@ export function migrateImportedProject(input){
   if(sourceVersion!==PROJECT_SCHEMA_VERSION)steps.push(`migrated project schema ${sourceVersion} → ${PROJECT_SCHEMA_VERSION}`);
   steps.push('migrated scenario fields and supplied defaults for current ruleset/deployment/two-side model');
   validateMigratedProject(base);steps.push('validated migrated project against current minimum structural requirements');
-  return{state:base,migration:{sourceVersion,steps,warnings}};
+  const capabilities={
+    containsBattlefield:!!projectSource?.mapSource,
+    containsCompiledTerrain:Array.isArray(projectSource?.features)&&projectSource.features.length>0,
+    containsDeployment:!!projectSource?.scenario?.deployment||!!raw?.deployment,
+    scenarioOnly:!(raw.format===PROJECT_FORMAT&&raw.project)&&!(raw.project&&typeof raw.project==='object')
+  };
+  return{state:base,migration:{sourceVersion,steps,warnings,capabilities}};
+}
+
+function titleKey(state){return String(state?.project?.scenario?.metadata?.title||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,' ');}
+function deploymentHasPlacements(deployment){return Object.keys(deployment?.placements||{}).length>0||Object.keys(deployment?.commanderPlacements||{}).length>0||(deployment?.zones||[]).length>0;}
+
+// Legacy scenario-only exports from older Studio releases did not contain the compiled battlefield.
+// If the designer elects to keep the current battlefield, preserve the entire authoritative battlefield
+// workspace rather than silently replacing it with an empty 48x48 shell. When the imported scenario
+// has the same title and contains no placements, preserve the current deployment as well: it is the only
+// recoverable copy and is already tied to the retained battlefield revision.
+export function mergeImportedScenarioWithCurrentBattlefield(imported,current,{preserveDeploymentWhenSafe=true}={}){
+  if(!imported?.project||!current?.project?.mapSource)return imported;
+  const out=structuredClone(imported),cur=current;
+  out.project.playSpace=structuredClone(cur.project.playSpace);
+  out.project.mapSource=structuredClone(cur.project.mapSource);
+  out.project.battlefieldRevision=cur.project.battlefieldRevision||cur.project.mapSource?.battlefieldRevision||null;
+  out.project.features=structuredClone(cur.project.features||[]);
+  out.project.candidates=structuredClone(cur.project.candidates||[]);
+  out.project.manualFeatures=structuredClone(cur.project.manualFeatures||[]);
+  out.project.mapNotes=cur.project.mapNotes||out.project.mapNotes||'';
+  out.decisions=structuredClone(cur.decisions||{});
+  out.ignoredCandidates=structuredClone(cur.ignoredCandidates||{});
+  out.importedCandidateIds=[...(cur.importedCandidateIds||[])];
+  out.selectedFeatureIds=[];
+  const sameScenario=!!titleKey(out)&&titleKey(out)===titleKey(cur);
+  const importedDeployment=out.project.scenario?.deployment;
+  const currentDeployment=cur.project.scenario?.deployment;
+  if(preserveDeploymentWhenSafe&&sameScenario&&!deploymentHasPlacements(importedDeployment)&&deploymentHasPlacements(currentDeployment)){
+    out.project.scenario.deployment=structuredClone(currentDeployment);
+  }else if(out.project.scenario?.deployment){
+    out.project.scenario.deployment.battlefieldRevision=out.project.battlefieldRevision;
+  }
+  return out;
+}
+
+export function savePreImportBackup(state,storage=window.localStorage,{studioVersion='unknown'}={}){
+  if(!state?.project)return false;
+  storage.setItem(IMPORT_BACKUP_KEY,JSON.stringify(createProjectExportPayload(state,{studioVersion})));
+  return true;
+}
+
+export function loadPreImportBackup(storage=window.localStorage){
+  const raw=storage.getItem(IMPORT_BACKUP_KEY);
+  if(!raw)return null;
+  return migrateImportedProject(JSON.parse(raw)).state;
 }
 
 export function createProjectExportPayload(state,{studioVersion='unknown',exportedAt=new Date().toISOString()}={}){

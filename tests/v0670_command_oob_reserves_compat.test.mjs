@@ -10,7 +10,7 @@ import { __conformance, buildRuntimeFromStudio, runPlaytest } from '../src/modul
 import { createInitialState, createProjectExportPayload, migrateImportedProject, PROJECT_SCHEMA_VERSION } from '../src/app/state.js';
 
 const HERE=path.dirname(fileURLToPath(import.meta.url));
-const fullFixture=fs.readFileSync(path.join(HERE,'fixtures','Glendale_ACW_Full_v0.6.7.0.md'),'utf8');
+const fullFixture=fs.readFileSync(path.join(HERE,'fixtures','Glendale_ACW_Full_v0.6.7.1.md'),'utf8');
 const acwRuleset=getEffectiveRuleset({ruleset:{core:'battle-axe-core',supplement:'american-civil-war',supplementVersion:'0.1'}});
 
 function unit(id,faction,x,y,{commandId='cmd',profile='Infantry',traits=['Muskets'],width=50,depth=25,facing=0}={}){
@@ -20,7 +20,7 @@ function commander(id,faction,x,y,commandId='cmd'){
   return{id,name:id,kind:'commander',faction,commandId,x,y,facing:0,baseMm:25,baseWidthMm:25,baseDepthMm:25,baseShape:'circle',traits:[],destroyed:false,inactive:false,commandRating:2};
 }
 
-test('v0.6.7.0 full Glendale OOB parses 82 explicit leaves into the historical hierarchy without prose leakage',()=>{
+test('v0.6.7.1 full Glendale OOB parses 82 explicit leaves into the historical hierarchy without prose leakage',()=>{
   const a=analyzeScenarioText(fullFixture,{sourceName:'Glendale v0.6.7 regression fixture',ruleset:acwRuleset});
   assert.equal(a.forces.length,82);
   assert.equal(a.forces.filter(x=>x.faction==='Union').length,30);
@@ -102,9 +102,37 @@ test('structured Turn-1 initiative override changes only the opening side order'
 
 test('full scenario JSON round-trip preserves compiled map, approved terrain, hierarchy, deployment, reserves and unknown extension data',()=>{
   const st=minimalStudioState();st.project.customFutureProjectField={keep:'project-extension'};st.futureEnvelope={keep:'not exported directly'};st.project.features=[{id:'feat-1',name:'Woods',cls:'Woods',geometry:{parts:[{closed:true,points:[[10,10],[20,10],[20,20],[10,20]]}]},terrainOverride:null}];st.decisions={'feat-1':{status:'approved',cls:'Woods',effects:['Difficult','Obscuring']}};st.project.scenario.commands={French:[{id:'army',name:'Army',commander:'General',echelon:'Army',units:[]},{id:'brig',name:'Brigade',commander:'Brigadier',echelon:'Brigade',parentCommandId:'army',commandRating:2,reserve:{enabled:true,deploymentTurn:3,entry:{type:'zone',zoneId:'zone-r'}},units:[{id:'regt',name:'Regiment',profile:'Infantry'}]}],Imperial:[]};st.project.scenario.deployment={placements:{regt:{x:35,y:40,facing:123}},commanderPlacements:{brig:{x:34,y:42}},zones:[{id:'zone-r',name:'Reserve Entry',points:[{x:10,y:5},{x:20,y:5},{x:20,y:15},{x:10,y:15}]}],battlefieldRevision:'rev-test',futureDeploymentField:'keep-me'};st.project.scenario.structuredRules={turnOneInitiative:'French',futureRule:'keep'};st.project.scenario.futureScenarioField={plugin:'keep'};
-  const payload=createProjectExportPayload(st,{studioVersion:'0.6.7.0',exportedAt:'2026-08-27T12:00:00Z'});assert.equal(payload.schemaVersion,PROJECT_SCHEMA_VERSION);assert.equal(payload.project.mapSource.svgText,st.project.mapSource.svgText);const migrated=migrateImportedProject(payload);const out=migrated.state;assert.equal(out.project.mapSource.svgText,st.project.mapSource.svgText);assert.deepEqual(out.decisions,st.decisions);assert.equal(out.project.scenario.commands.French[1].parentCommandId,'army');assert.equal(out.project.scenario.commands.French[1].reserve.entry.zoneId,'zone-r');assert.equal(out.project.scenario.deployment.placements.regt.facing,123);assert.equal(out.project.scenario.deployment.futureDeploymentField,'keep-me');assert.deepEqual(out.project.scenario.futureScenarioField,{plugin:'keep'});assert.deepEqual(out.project.customFutureProjectField,{keep:'project-extension'});assert.ok(migrated.migration.steps.some(x=>/validated migrated project/i.test(x)));
+  const payload=createProjectExportPayload(st,{studioVersion:'0.6.7.1',exportedAt:'2026-08-27T12:00:00Z'});assert.equal(payload.schemaVersion,PROJECT_SCHEMA_VERSION);assert.equal(payload.project.mapSource.svgText,st.project.mapSource.svgText);const migrated=migrateImportedProject(payload);const out=migrated.state;assert.equal(out.project.mapSource.svgText,st.project.mapSource.svgText);assert.deepEqual(out.decisions,st.decisions);assert.equal(out.project.scenario.commands.French[1].parentCommandId,'army');assert.equal(out.project.scenario.commands.French[1].reserve.entry.zoneId,'zone-r');assert.equal(out.project.scenario.deployment.placements.regt.facing,123);assert.equal(out.project.scenario.deployment.futureDeploymentField,'keep-me');assert.deepEqual(out.project.scenario.futureScenarioField,{plugin:'keep'});assert.deepEqual(out.project.customFutureProjectField,{keep:'project-extension'});assert.ok(migrated.migration.steps.some(x=>/validated migrated project/i.test(x)));
 });
 
 test('legacy scenario-only JSON migrates forward with safe defaults instead of being rejected',()=>{
   const legacy={metadata:{title:'Old Scenario'},rosters:{French:[{id:'old-u',name:'Old Unit',profile:'Infantry'}]},deployment:{placements:{'old-u':{x:20,y:30,facing:90}}},legacyCustom:{keep:true}};const {state,migration}=migrateImportedProject(legacy);assert.equal(state.project.scenario.metadata.title,'Old Scenario');assert.equal(state.project.schemaVersion,PROJECT_SCHEMA_VERSION);assert.equal(state.project.scenario.commands.French[0].units[0].id,'old-u');assert.deepEqual(state.project.scenario.legacyCustom,{keep:true});assert.ok(migration.warnings.length>0);
+});
+
+test('legacy scenario-only import can retain the current authoritative battlefield and same-scenario deployment',async()=>{
+  const {mergeImportedScenarioWithCurrentBattlefield}=await import('../src/app/state.js');
+  const current=minimalStudioState();
+  current.project.scenario.metadata.title='Battle of Glendale / Frayser’s Farm';
+  current.project.features=[{id:'woods',name:'Woods',cls:'Woods'}];
+  current.decisions={woods:{status:'approved',cls:'Woods',effects:['Difficult']}};
+  current.project.scenario.deployment={placements:{u1:{x:20,y:30,facing:90}},commanderPlacements:{},zones:[],battlefieldRevision:'rev-test'};
+  const legacy={metadata:{title:'Battle of Glendale / Frayser’s Farm'},commands:{French:[],Imperial:[]},deployment:{placements:{},commanderPlacements:{},zones:[],battlefieldRevision:'old-rev'}};
+  const migrated=migrateImportedProject(legacy);
+  assert.equal(migrated.migration.capabilities.containsBattlefield,false);
+  const merged=mergeImportedScenarioWithCurrentBattlefield(migrated.state,current);
+  assert.equal(merged.project.mapSource.svgText,current.project.mapSource.svgText);
+  assert.deepEqual(merged.project.features,current.project.features);
+  assert.deepEqual(merged.decisions,current.decisions);
+  assert.deepEqual(merged.project.playSpace,current.project.playSpace);
+  assert.deepEqual(merged.project.scenario.deployment,current.project.scenario.deployment,'same-scenario current deployment is recoverable when legacy file has none');
+});
+
+test('legacy import battlefield retention does not copy deployment from a different scenario',async()=>{
+  const {mergeImportedScenarioWithCurrentBattlefield}=await import('../src/app/state.js');
+  const current=minimalStudioState();current.project.scenario.metadata.title='Scenario A';current.project.scenario.deployment={placements:{a:{x:10,y:10,facing:0}},commanderPlacements:{},zones:[],battlefieldRevision:'rev-test'};
+  const legacy={metadata:{title:'Scenario B'},commands:{French:[],Imperial:[]},deployment:{placements:{},commanderPlacements:{},zones:[]}};
+  const merged=mergeImportedScenarioWithCurrentBattlefield(migrateImportedProject(legacy).state,current);
+  assert.equal(merged.project.mapSource.svgText,current.project.mapSource.svgText,'designer explicitly chose to keep the current map');
+  assert.equal(Object.keys(merged.project.scenario.deployment.placements).length,0,'deployment from another scenario must not leak across');
+  assert.equal(merged.project.scenario.deployment.battlefieldRevision,'rev-test');
 });

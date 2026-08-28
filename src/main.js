@@ -1,19 +1,19 @@
-import { loadState, saveState, createInitialState, migrateImportedProject, normalizeImportedState, createProjectExportPayload, STORAGE_KEY } from './app/state.js?v=0.6.7.0';
-import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.6.7.0';
-import { setupFeatureReview } from './modules/featureReview.js?v=0.6.7.0';
-import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.6.7.0';
-import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.6.7.0';
-import { detectBattlefieldFeatures, findBattlefieldBoundary } from './modules/battlefieldDetector.js?v=0.6.7.0';
-import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.6.7.0';
-import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.6.7.0';
-import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.6.7.0';
-import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.6.7.0';
-import { setupAiBridge } from './modules/aiBridge.js?v=0.6.7.0';
-import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.6.7.0';
-import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.6.7.0';
-import { authoredBoundaryToSvg } from './modules/battlefieldCrop.js?v=0.6.7.0';
+import { loadState, saveState, createInitialState, migrateImportedProject, normalizeImportedState, createProjectExportPayload, mergeImportedScenarioWithCurrentBattlefield, savePreImportBackup, loadPreImportBackup, STORAGE_KEY, IMPORT_BACKUP_KEY } from './app/state.js?v=0.6.8.0';
+import { setupNavigation, setupBattlefieldSubnav } from './modules/navigation.js?v=0.6.8.0';
+import { setupFeatureReview } from './modules/featureReview.js?v=0.6.8.0';
+import { setupGeometryExplorer } from './modules/geometryExplorer.js?v=0.6.8.0';
+import { loadInlineMap, loadInlineMapText } from './modules/mapView.js?v=0.6.8.0';
+import { detectBattlefieldFeatures, findBattlefieldBoundary } from './modules/battlefieldDetector.js?v=0.6.8.0';
+import { loadStructuredTerrainManifest, inspectPptxAuthoring, compilePptxTerrain, manifestStats, classSummary } from './modules/structuredMapCompiler.js?v=0.6.8.0';
+import { setupScenarioBuilder } from './modules/scenarioBuilder.js?v=0.6.8.0';
+import { setupDeploymentEditor } from './modules/deploymentEditor.js?v=0.6.8.0';
+import { setupPlaytestCenter } from './modules/playtestCenter.js?v=0.6.8.0';
+import { setupAiBridge } from './modules/aiBridge.js?v=0.6.8.0';
+import { setupScenarioPublisher } from './modules/scenarioPublisher.js?v=0.6.8.0';
+import { newBattlefieldRevision, applyPlayAreaViewBox, serializeBattlefieldSvg, invalidateBattlefieldDependents, syncBattlefieldImages } from './modules/battlefieldState.js?v=0.6.8.0';
+import { authoredBoundaryToSvg } from './modules/battlefieldCrop.js?v=0.6.8.0';
 
-const VERSION = '0.6.7.0';
+const VERSION = '0.6.8.0';
 const PROJECT_FORMAT_MARKER = 'battle-axe-studio-project'; // retained for legacy/static import contracts
 window.__BAX_MAIN_STARTED__ = true;
 window.__BAX_VERSION__ = VERSION;
@@ -228,7 +228,7 @@ function downloadCurrentProject(){
 function setupSampleProjectLoader(){
   $('#loadPaviaSample')?.addEventListener('click',async()=>{
     try{
-      const mod=await import('./samples/paviaSample.js?v=0.6.7.0');
+      const mod=await import('./samples/paviaSample.js?v=0.6.8.0');
       const sampleState=createInitialState();sampleState.project=mod.createPaviaSampleProject();saveState(sampleState);
       window.location.reload();
     }catch(error){alert(`Could not load Pavia sample: ${error.message}`);}
@@ -238,7 +238,31 @@ function setupSampleProjectLoader(){
 function setupHelpAndProjectImport(){
   const help=$('#helpDialog');$('#openHelpBtn')?.addEventListener('click',()=>help?.showModal());$('#closeHelpBtn')?.addEventListener('click',()=>help?.close());
   $('#openProjectBtn')?.addEventListener('click',()=>$('#openProjectFile')?.click());
-  $('#openProjectFile')?.addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{const data=JSON.parse(await file.text()),restored=normalizeImportedState(data),{migration}=migrateImportedProject(data);saveState(restored);if(migration?.steps?.length||migration?.warnings?.length)sessionStorage.setItem('bax-import-migration-note',`Imported ${file.name} through schema migration (${migration.sourceVersion}). ${[...(migration.steps||[]),...(migration.warnings||[])].join(' ')}`);window.location.reload();}catch(error){alert(`Could not open project: ${error.message}`);}finally{e.target.value='';}});
+  $('#openProjectFile')?.addEventListener('change',async e=>{
+    const file=e.target.files?.[0];if(!file)return;
+    try{
+      const data=JSON.parse(await file.text()),restoredBase=normalizeImportedState(data),migrated=migrateImportedProject(data),migration=migrated.migration;
+      let restored=restoredBase;
+      // Always keep one automatic pre-import recovery point. This protects the designer even
+      // when an old scenario-only JSON cannot possibly contain map/deployment information.
+      try{savePreImportBackup(state,window.localStorage,{studioVersion:VERSION});}catch(error){console.warn('Could not save pre-import backup',error);}
+      if(!migration?.capabilities?.containsBattlefield&&state.project?.mapSource){
+        const keep=window.confirm(`This legacy scenario file does not contain a battlefield map or approved terrain.\n\nPress OK to keep the currently loaded battlefield and approved terrain while importing the scenario.\nPress Cancel to open the legacy scenario without a map.`);
+        if(keep){
+          restored=mergeImportedScenarioWithCurrentBattlefield(restored,state);
+          migration.warnings.push('Legacy scenario contained no battlefield; retained the currently loaded authoritative battlefield/terrain workspace.');
+        }
+      }
+      saveState(restored);
+      if(migration?.steps?.length||migration?.warnings?.length)sessionStorage.setItem('bax-import-migration-note',`Imported ${file.name} through schema migration (${migration.sourceVersion}). ${[...(migration.steps||[]),...(migration.warnings||[])].join(' ')}`);
+      window.location.reload();
+    }catch(error){alert(`Could not open project: ${error.message}`);}finally{e.target.value='';}
+  });
+  $('#restorePreImportBtn')?.addEventListener('click',()=>{
+    try{const restored=loadPreImportBackup(window.localStorage);if(!restored){alert('No pre-import recovery copy is available in this browser.');return;}saveState(restored);sessionStorage.setItem('bax-import-migration-note','Restored the automatic pre-import recovery copy.');window.location.reload();}
+    catch(error){alert(`Could not restore the pre-import recovery copy: ${error.message}`);}
+  });
+  const recover=$('#restorePreImportBtn');if(recover)recover.disabled=!window.localStorage.getItem(IMPORT_BACKUP_KEY);
 }
 
 function setupNewScenario(){
