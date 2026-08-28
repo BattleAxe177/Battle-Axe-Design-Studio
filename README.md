@@ -1,9 +1,10 @@
-# Battle Axe Design Studio v0.6.8.0 — Hierarchy Authoring & Reserve Entry UX
+# Battle Axe Design Studio v0.6.8.1 — Deployment Map Label & Polygon UX Hotfix
 
 This release builds on v0.6.7.1 and keeps the v0.6.5.0 battlefield/compiler as the protected functional baseline. It concentrates on authoring the command hierarchy, using the external AI Bridge efficiently, and making reserve entry setup visual and reversible.
 
 Highlights:
 
+- **v0.6.8.1 hotfix:** compact historical map labels sit outside unit bases; reserve entry labels are smaller and anchored inside the battlefield; polygon/reserve-zone drawing can be finished by first-vertex click, double-click, Enter, or Finish, with Undo vertex and Cancel/Escape available.
 - Force Builder now treats command parentage as a real drag-and-drop tree: create commands, drag subordinate commands onto parents, drag them back to the side root to unparent, and drag units between commands.
 - Commands carry generic command types/echelons and structural parent IDs, supporting ACW Army/Corps/Division/Brigade structures and shallower Italian Wars Battle/Wing/Vanguard structures without hard-coding one period hierarchy.
 - Commands and units have visible Delete controls, with safe hierarchy handling, plus Force Builder Undo/Redo.
@@ -15,4 +16,4 @@ Highlights:
 
 The PowerPoint/SVG battlefield compiler, crop logic, terrain detection, Terrain Review, Geometry Explorer, and map rendering modules remain functionally identical to the v0.6.5.0 baseline after normalizing cache-version references.
 
-See `docs/RELEASE_0.6.8.0.md` and `docs/VERIFICATION_0.6.8.0.md`.
+See `docs/RELEASE_0.6.8.1.md` and `docs/VERIFICATION_0.6.8.1.md`.

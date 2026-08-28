@@ -1,6 +1,6 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.6.8.0';
-import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.8.0';
-import { normalizeCommandHierarchy } from '../modules/commandHierarchy.js?v=0.6.8.0';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.6.8.1';
+import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.8.1';
+import { normalizeCommandHierarchy } from '../modules/commandHierarchy.js?v=0.6.8.1';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 export const IMPORT_BACKUP_KEY='battle-axe-design-studio-pre-import-backup';

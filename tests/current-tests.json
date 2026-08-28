@@ -1,5 +1,5 @@
 {
-  "release": "0.6.8.0",
+  "release": "0.6.8.1",
   "files": [
     "alpha8.test.mjs",
     "alpha9.test.mjs",
@@ -36,6 +36,7 @@
     "v0640_acw_workflow_fixes.test.mjs",
     "v0650_map_authoring_hierarchy.test.mjs",
     "v0670_command_oob_reserves_compat.test.mjs",
-    "v0680_authoring_bridge_ui.test.mjs"
+    "v0680_authoring_bridge_ui.test.mjs",
+    "v0681_map_label_polygon_hotfix.test.mjs"
   ]
 }

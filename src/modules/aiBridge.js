@@ -1,7 +1,7 @@
-import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.8.0';
-import { scenarioConfigFingerprint } from './playtestEngine.js?v=0.6.8.0';
-import { sideForFaction, sideLabel } from './scenarioSides.js?v=0.6.8.0';
-import { normalizeCommandHierarchy, removeCommand, validateCommandHierarchy, wouldCreateCommandCycle } from './commandHierarchy.js?v=0.6.8.0';
+import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.8.1';
+import { scenarioConfigFingerprint } from './playtestEngine.js?v=0.6.8.1';
+import { sideForFaction, sideLabel } from './scenarioSides.js?v=0.6.8.1';
+import { normalizeCommandHierarchy, removeCommand, validateCommandHierarchy, wouldCreateCommandCycle } from './commandHierarchy.js?v=0.6.8.1';
 const $=s=>document.querySelector(s);const safe=s=>(s??'').toString();const esc=s=>safe(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=p=>`${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,7)}`;
 function acceptedRules(s){return(s.suggestions||[]).filter(x=>x.status==='accepted');}

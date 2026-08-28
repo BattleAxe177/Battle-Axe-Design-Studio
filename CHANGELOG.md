@@ -1,3 +1,11 @@
+# v0.6.8.1 — Deployment Map Label & Polygon UX Hotfix
+
+- Compact historical unit labels now sit outside unit bases in Deployment Editor and replay, while full names remain in tooltips/rosters.
+- Reserve point/edge/edge-portion/zone labels are smaller, abbreviated, and anchored inside the battlefield so edge labels do not clip.
+- Polygon and reserve-zone drawing can be completed by clicking the first vertex, double-clicking the last vertex, pressing Enter, or using Finish.
+- Active polygon drawing now exposes Undo vertex; Backspace/Delete removes the last vertex; Esc/Cancel abandons the drawing.
+- No battlefield compiler/detection logic changes.
+
 # v0.6.8.0 — Hierarchy Authoring, AI Apply-All & Visual Reserve Entry
 
 - Extends the external AI Bridge changeset schema to first-class hierarchical commands with stable command IDs, generic `commandType`, `parentCommandId`, commander/rating metadata, reserve status, and unit command assignment/reassignment.
