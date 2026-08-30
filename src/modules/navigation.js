@@ -1,3 +1,5 @@
+import './release690.js?v=0.6.9.0';
+
 export function setupNavigation() {
   const sidebar = document.querySelector('#sidebar');
   const showView = (name) => {
@@ -13,7 +15,6 @@ export function setupNavigation() {
   if (hash && document.querySelector(`#view-${hash}`)) showView(hash);
   return { showView };
 }
-
 
 export function setupBattlefieldSubnav(){
   const buttons=[...document.querySelectorAll('[data-battlefield-view]')];
