@@ -1,17 +1,24 @@
-BATTLE AXE DESIGN STUDIO v0.6.9.0 — COPY / OVERWRITE PACKAGE
+BATTLE AXE DESIGN STUDIO v0.6.9.1 — COPY / OVERWRITE PACKAGE
 
-Starting point: v0.6.8.1
+Starting point: v0.6.8.1 or the failed v0.6.9.0 overlay
 
 INSTALL
-1. Make sure your repository is currently on the v0.6.8.1 baseline.
-2. Extract this ZIP directly into the root of your Battle-Axe-Design-Studio repository.
-3. Choose Copy/Replace/Overwrite when prompted.
-4. Commit the changed/new files and push normally.
+1. Extract this ZIP directly into the root of your Battle-Axe-Design-Studio repository.
+2. Choose Copy/Replace/Overwrite when prompted.
+3. Commit the changed/new files and push normally.
+4. GitHub Actions should run Verify, Build and Deploy.
 5. After GitHub Pages deploys, hard-refresh the site once.
 
-This is an overlay package. Files not included here are intentionally inherited from v0.6.8.1.
+This package includes the complete v0.6.9.x feature overlay, so it can be applied directly over v0.6.8.1 or over the failed v0.6.9.0 commit.
 
-Primary additions in v0.6.9.0:
+v0.6.9.1 deployment hotfix:
+- fixes the GitHub Actions Verify failure caused by VERSION advancing while index.html still carried the previous hard-coded runtime/main-module version;
+- makes VERSION the authoritative release marker for the deployed site by injecting it during build;
+- copies scenarios/ into dist so the new Scenario Library actually exists on GitHub Pages;
+- adds deployment checks for runtime version, main-module cache key and Scenario Library catalog;
+- guards the v0.6.9.x browser bootstrap from non-browser Node test imports.
+
+The v0.6.9.x functional additions remain:
 - Scenario Library infrastructure.
 - Visible fail-closed Tactical Plan interpretation.
 - Executable formation-relative left/right flank targeting.
@@ -21,4 +28,4 @@ Primary additions in v0.6.9.0:
 - One-file External AI ZIP exchange for scenario design and playtest planning.
 - Charge-through-unit regression coverage.
 
-See RELEASE_0.6.9.0.md for details.
+See RELEASE_0.6.9.1.md for details.

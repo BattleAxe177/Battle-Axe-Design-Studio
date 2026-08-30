@@ -1,7 +1,7 @@
-export const PLAYTEST_ENGINE_690_PATCH_VERSION='0.6.9.0';
+export const PLAYTEST_ENGINE_690_PATCH_VERSION='0.6.9.1';
 
 function replaceRequired(source,needle,replacement,label){
-  if(!source.includes(needle))throw new Error(`Battle Axe v0.6.9.0 engine patch could not find ${label}; refusing to run against an unexpected baseline.`);
+  if(!source.includes(needle))throw new Error(`Battle Axe v0.6.9.1 engine patch could not find ${label}; refusing to run against an unexpected baseline.`);
   return source.replace(needle,replacement);
 }
 
@@ -32,7 +32,7 @@ function terrainReleaseState690(commandId,ownSide,ctx,mods={}){const ids=(mods.r
 
 export function applyPlaytestEngine690Patch(source,{baseUrl=null}={}){
   let s=String(source||'');
-  if(!s.includes("import { getEffectiveRuleset }"))throw new Error('Battle Axe v0.6.9.0 engine patch expected the v0.6.8.1 playtest engine source.');
+  if(!s.includes("import { getEffectiveRuleset }"))throw new Error('Battle Axe v0.6.9.1 engine patch expected the v0.6.8.1 playtest engine source.');
 
   const mergeNeedle="function mergeModifiers(a,b){return{raw:[a?.raw,b?.raw].filter(Boolean).join(' / '),preservePosition:Math.max(a?.preservePosition||0,b?.preservePosition||0),preferShoot:Math.max(a?.preferShoot||0,b?.preferShoot||0),counterattack:!!(a?.counterattack||b?.counterattack),noPursuit:!!(a?.noPursuit||b?.noPursuit),aggression:(a?.aggression||0)+(b?.aggression||0),preservation:Math.max(a?.preservation||0,b?.preservation||0),holdUntilEnemyClose:!!(a?.holdUntilEnemyClose||b?.holdUntilEnemyClose),screenFlank:!!(a?.screenFlank||b?.screenFlank),releaseOnLineBreached:!!(a?.releaseOnLineBreached||b?.releaseOnLineBreached),releaseOnFriendlyLineLeaves:!!(a?.releaseOnFriendlyLineLeaves||b?.releaseOnFriendlyLineLeaves),releaseOnEnemyVulnerable:!!(a?.releaseOnEnemyVulnerable||b?.releaseOnEnemyVulnerable),conditionalAdvance:!!(a?.conditionalAdvance||b?.conditionalAdvance),unparsedConditional:!!(a?.unparsedConditional||b?.unparsedConditional),summary:[...(a?.summary||[]),...(b?.summary||[])]};}";
   s=replaceRequired(s,mergeNeedle,mergeNeedle+HELPERS_690,'tactical modifier merge hook');

@@ -1,9 +1,9 @@
 import { loadState } from '../app/state.js?v=0.6.8.1';
-import { setupScenarioLibrary } from './scenarioLibrary.js?v=0.6.9.0';
-import { setupExternalAiExchange } from './externalAiExchange.js?v=0.6.9.0';
-import { generateAutoTacticalPlan690, interpretSemanticOrder690, validateTacticalPlanWorkspace690 } from './tacticalPlanner690.js?v=0.6.9.0';
+import { setupScenarioLibrary } from './scenarioLibrary.js?v=0.6.9.1';
+import { setupExternalAiExchange } from './externalAiExchange.js?v=0.6.9.1';
+import { generateAutoTacticalPlan690, interpretSemanticOrder690, validateTacticalPlanWorkspace690 } from './tacticalPlanner690.js?v=0.6.9.1';
 
-const VERSION='0.6.9.0';
+const VERSION='0.6.9.1';
 const AUTO_KEYS='bax-690-auto-keys';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const freshState=()=>loadState().state;
@@ -33,6 +33,6 @@ function setupTacticalUi(){const panel=document.querySelector('.tactical-plan-pa
   const single=document.querySelector('#runSinglePlaytest'),batch=document.querySelector('#runBatchPlaytest');if(single&&!single.dataset.bax690Bound){single.dataset.bax690Bound='1';single.addEventListener('click',beforeRun,true);}if(batch&&!batch.dataset.bax690Bound){batch.dataset.bax690Bound='1';batch.addEventListener('click',beforeRun,true);}return true;
 }
 
-function boot(){if(window.__BAX_RELEASE_690_SETUP__)return;const ready=document.querySelector('#openProjectBtn')&&document.querySelector('#aiBridgeDialog')&&document.querySelector('.tactical-plan-panel');if(!ready){setTimeout(boot,80);return;}window.__BAX_RELEASE_690_SETUP__=true;installStyles();patchVersionLabel();patchPlaytestWorkerCacheBust();setupScenarioLibrary({studioVersion:VERSION});setupExternalAiExchange({studioVersion:VERSION});setupTacticalUi();setTimeout(patchVersionLabel,700);setTimeout(patchVersionLabel,2500);}
-setTimeout(boot,0);
-export function setupRelease690(){boot();}
+function boot(){if(typeof window==='undefined'||typeof document==='undefined')return;if(window.__BAX_RELEASE_690_SETUP__)return;const ready=document.querySelector('#openProjectBtn')&&document.querySelector('#aiBridgeDialog')&&document.querySelector('.tactical-plan-panel');if(!ready){setTimeout(boot,80);return;}window.__BAX_RELEASE_690_SETUP__=true;installStyles();patchVersionLabel();patchPlaytestWorkerCacheBust();setupScenarioLibrary({studioVersion:VERSION});setupExternalAiExchange({studioVersion:VERSION});setupTacticalUi();setTimeout(patchVersionLabel,700);setTimeout(patchVersionLabel,2500);}
+if(typeof window!=='undefined'&&typeof document!=='undefined')setTimeout(boot,0);
+export function setupRelease690(){if(typeof window!=='undefined'&&typeof document!=='undefined')boot();}

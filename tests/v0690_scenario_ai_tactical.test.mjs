@@ -94,7 +94,7 @@ test('combined reserve / terrain / post-release flank order resolves the enemy r
 
 test('Auto Tactical Planner creates a command-level plan rather than leaving every command independent',()=>{
   const plan=generateAutoTacticalPlan690(semanticState());
-  assert.equal(plan.version,'0.6.9.0');
+  assert.equal(plan.version,'0.6.9.1');
   assert.ok(plan.armies.French);
   assert.ok(plan.armies.Imperial);
   assert.ok(plan.commands.simmons);
@@ -112,7 +112,7 @@ test('AI exchange ZIP is one user-facing package containing one JSON payload',as
   assert.equal(out.json.format,'battle-axe-ai-response');
 });
 
-test('v0.6.9.0 tactical engine patch applies cleanly to the v0.6.8.1 baseline and installs executable flank/terrain semantics',()=>{
+test('v0.6.9.1 tactical engine patch applies cleanly to the v0.6.8.1 baseline and installs executable flank/terrain semantics',()=>{
   const baseline=read('src/modules/playtestEngine.js');
   const patched=applyPlaytestEngine690Patch(baseline,{baseUrl:'https://example.invalid/src/modules/playtestEngine.js'});
   assert.match(patched,/function formationFlankAnchor690/);
@@ -123,9 +123,9 @@ test('v0.6.9.0 tactical engine patch applies cleanly to the v0.6.8.1 baseline an
   assert.match(patched,/explicitReserveTrigger/);
 });
 
-test('v0.6.9.0 overlay contains Scenario Library, fail-closed interpretation, Auto Plan and one-file AI exchange wiring',()=>{
+test('v0.6.9.1 overlay contains Scenario Library, fail-closed interpretation, Auto Plan and one-file AI exchange wiring',()=>{
   const nav=read('src/modules/navigation.js'),release=read('src/modules/release690.js'),library=read('src/modules/scenarioLibrary.js'),external=read('src/modules/externalAiExchange.js'),patch=read('src/modules/playtestEngine690Patch.js'),worker=read('src/modules/playtestWorker.js');
-  assert.match(nav,/release690\.js\?v=0\.6\.9\.0/);
+  assert.match(nav,/release690\.js\?v=0\.6\.9\.1/);
   assert.match(release,/validateTacticalPlanWorkspace690/);
   assert.match(release,/Playtest not started/);
   assert.match(release,/Preview Auto Plan/);
@@ -136,7 +136,7 @@ test('v0.6.9.0 overlay contains Scenario Library, fail-closed interpretation, Au
   assert.match(patch,/releaseTerrainIds/);
   assert.match(patch,/postReleaseOrder/);
   assert.match(patch,/namedCandidate\.id!==command\?\.id/);
-  assert.match(worker,/playtestEngine690\.js\?v=0\.6\.9\.0/);
+  assert.match(worker,/playtestEngine690\.js\?v=0\.6\.9\.1/);
   assert.match(library,/scenarios\/index\.json/);
   assert.match(library,/migrateImportedProject/);
   assert.match(external,/Download AI Package \(\.zip\)/);

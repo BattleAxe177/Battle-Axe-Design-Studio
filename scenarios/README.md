@@ -1,6 +1,6 @@
 # Battle Axe Scenario Library
 
-`index.json` is the catalog read by Battle Axe Design Studio v0.6.9.0 and later.
+`index.json` is the catalog read by Battle Axe Design Studio v0.6.9.1 and later.
 
 The library is intentionally data-driven. To publish a scenario:
 
@@ -27,4 +27,4 @@ Example catalog entry:
 }
 ```
 
-The first v0.6.9.0 catalog ships empty on purpose: no development/test fixture is silently promoted to a published scenario. Existing local JSON import remains available through **Open Project**.
+The first v0.6.9.1 catalog ships empty on purpose: no development/test fixture is silently promoted to a published scenario. Existing local JSON import remains available through **Open Project**.

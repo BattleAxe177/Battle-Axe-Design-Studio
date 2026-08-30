@@ -1,15 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { injectReleaseVersion } from '../scripts/release-version.mjs';
 
 const VERSION=(await readFile(new URL('../VERSION', import.meta.url),'utf8')).trim().match(/^\d+\.\d+\.\d+\.\d+/)?.[0];
 
-test('runtime release exposes uncached versioned main module', async () => {
-  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+test('runtime release exposes an uncached versioned main module in the deployed build', async () => {
+  const sourceHtml = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+  const html=injectReleaseVersion(sourceHtml,VERSION);
   assert.ok(VERSION);
   assert.match(html, new RegExp(`main\\.js\\?v=${VERSION.replaceAll('.','\\.')}`));
+  assert.match(html, new RegExp(`id="runtimeVersion">v${VERSION.replaceAll('.','\\.')}`));
   assert.match(html, /Scenario Workspace/);
   assert.match(html, /runtimeError/);
+});
+
+test('build derives deployed release markers from VERSION instead of requiring hand-edited index version strings', async()=>{
+  const build=await readFile(new URL('../scripts/build.mjs',import.meta.url),'utf8');
+  assert.match(build,/release-version\.mjs/);
+  assert.match(build,/injectReleaseVersion/);
+  assert.match(build,/path\.join\(root,'VERSION'\)/);
+  assert.match(build,/path\.join\(root,'scenarios'\)/);
 });
 
 test('runtime release disables stale service worker caching during alpha stabilization', async () => {

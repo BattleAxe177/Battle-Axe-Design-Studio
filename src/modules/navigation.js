@@ -1,4 +1,4 @@
-import './release690.js?v=0.6.9.0';
+import './release690.js?v=0.6.9.1';
 
 export function setupNavigation() {
   const sidebar = document.querySelector('#sidebar');

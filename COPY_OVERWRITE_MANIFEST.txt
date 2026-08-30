@@ -1,14 +1,17 @@
-BATTLE AXE DESIGN STUDIO v0.6.9.0 — COPY/OVERWRITE MANIFEST
-Baseline: v0.6.8.1
+BATTLE AXE DESIGN STUDIO v0.6.9.1 — COPY/OVERWRITE MANIFEST
+Baseline: v0.6.8.1 (also safe over failed v0.6.9.0)
 Package type: repository-root overlay
 
 FILES
 VERSION
 COPY_OVERWRITE_README.txt
 COPY_OVERWRITE_MANIFEST.txt
-RELEASE_0.6.9.0.md
+RELEASE_0.6.9.1.md
 scenarios/README.md
 scenarios/index.json
+scripts/build.mjs
+scripts/check.mjs
+scripts/release-version.mjs
 src/modules/externalAiExchange.js
 src/modules/navigation.js
 src/modules/playtestEngine690.js
@@ -19,16 +22,22 @@ src/modules/scenarioLibrary.js
 src/modules/tacticalPlanner690.js
 src/modules/zipExchange.js
 tests/current-tests.json
+tests/runtime.test.mjs
 tests/v0690_scenario_ai_tactical.test.mjs
+tests/v0691_deploy_hotfix.test.mjs
+
+DEPLOYMENT HOTFIX
+- VERSION is now the single authoritative deployed release marker.
+- scripts/build.mjs injects VERSION into dist/index.html runtime text and main.js cache key.
+- scripts/build.mjs now copies scenarios/ into dist for the Scenario Library.
+- scripts/check.mjs validates deployed version/cache key and scenarios/index.json.
+- release690 browser bootstrap is guarded from Node/non-DOM imports.
 
 PRE-PACKAGE VERIFICATION
-- All staged JavaScript/MJS files passed Node ESM syntax checks.
-- v0.6.9.0 source transformer applied successfully to a fixture built from the verified v0.6.8.1 engine hook signatures.
-- Dynamic formation-relative left/right flank calculations passed runtime checks, including target rotation/wheeling.
-- Exact named-terrain Reserve release passed runtime contact/no-contact checks.
-- Combined receiving-command + named enemy command resolution passed runtime checks.
-- Tactical parser checks passed for Confederate left flank, Willis Church Road Reserve release, and post-release Assault.
-- Charge-through-unit behavior remains protected by release-owned regression tests for friendly and unintended-enemy blockers.
+- All staged JavaScript/MJS files pass Node syntax checks.
+- release-version injection converts the inherited v0.6.8.1 index markers to v0.6.9.1.
+- v0.6.9.x tactical parser/Auto Plan/ZIP tests pass in the staged release harness.
+- Charge-through-unit regressions remain release-owned.
 
 NOTE
-This package deliberately does not contain v0.6.8.1 files that are unchanged. Extract at the repository root and overwrite matching files.
+This package deliberately does not contain unchanged v0.6.8.1 files. Extract at repository root and overwrite matching files.

@@ -1,5 +1,5 @@
 {
-  "release": "0.6.9.0",
+  "release": "0.6.9.1",
   "files": [
     "alpha8.test.mjs",
     "alpha9.test.mjs",
@@ -38,6 +38,7 @@
     "v0670_command_oob_reserves_compat.test.mjs",
     "v0680_authoring_bridge_ui.test.mjs",
     "v0681_map_label_polygon_hotfix.test.mjs",
-    "v0690_scenario_ai_tactical.test.mjs"
+    "v0690_scenario_ai_tactical.test.mjs",
+    "v0691_deploy_hotfix.test.mjs"
   ]
 }

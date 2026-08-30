@@ -1,12 +1,17 @@
 import { readFile, access } from 'node:fs/promises';
-const files=['dist/index.html','dist/src/main.js','dist/src/modules/battlefieldDetector.js','dist/src/modules/deploymentEditor.js','dist/src/modules/playtestEngine.js','dist/src/modules/playtestCenter.js','dist/src/modules/aiBridge.js','dist/projects/pavia/battlefield.svg','dist/.nojekyll'];
+const files=['dist/index.html','dist/src/main.js','dist/src/modules/battlefieldDetector.js','dist/src/modules/deploymentEditor.js','dist/src/modules/playtestEngine.js','dist/src/modules/playtestCenter.js','dist/src/modules/aiBridge.js','dist/projects/pavia/battlefield.svg','dist/scenarios/index.json','dist/.nojekyll'];
 for(const f of files) await access(new URL(`../${f}`,import.meta.url));
 const detector=await readFile(new URL('../dist/src/modules/battlefieldDetector.js',import.meta.url),'utf8');
 for(const token of ['#69D9E5','#F2AA84','syntheticOpening','rasterClassifiers','meaningfulInside','getCTM','rasterWall','rasterWood']) if(!detector.includes(token)) throw new Error(`Detector check failed: missing ${token}`);
 const css=await readFile(new URL('../dist/src/styles/app.css',import.meta.url),'utf8');
 for(const token of ['.map-panel{position:sticky','.deployment-layout','.deployment-zone-poly','.playtest-main','.ai-bridge']) if(!css.includes(token)) throw new Error(`CSS check failed: missing ${token}`);
 const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+const version=(await readFile(new URL('../VERSION',import.meta.url),'utf8')).trim().match(/^\d+\.\d+\.\d+\.\d+/)?.[0];
 for(const token of ['ruleEditorDialog','deploymentMapFrame','addPolygonZone','playReplayFrame','runBatchPlaytest','aiBridgeDialog','data-add-command="French"','addMissingFeature','scenarioChecklist']) if(!html.includes(token)) throw new Error(`UI check failed: missing ${token}`);
+if(!version||!html.includes(`id="runtimeVersion">v${version}</span>`))throw new Error(`UI check failed: deployed runtime version does not match VERSION (${version||'invalid'})`);
+if(!html.includes(`./src/main.js?v=${version}`))throw new Error(`UI check failed: deployed main-module cache key does not match VERSION (${version})`);
+const scenarios=JSON.parse(await readFile(new URL('../dist/scenarios/index.json',import.meta.url),'utf8'));
+if(!Array.isArray(scenarios.scenarios))throw new Error('Scenario Library check failed: scenarios/index.json must expose a scenarios array');
 const engine=await readFile(new URL('../dist/src/modules/playtestEngine.js',import.meta.url),'utf8');
 for(const token of ['runPlaytest','runBatch','commandTest','Artillery','surprise','garrisonTurn']) if(!engine.includes(token)) throw new Error(`Playtest adapter check failed: missing ${token}`);
 console.log('Static deployment check passed.');
