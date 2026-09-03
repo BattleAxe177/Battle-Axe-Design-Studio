@@ -32,7 +32,7 @@ export const AMERICAN_CIVIL_WAR_SUPPLEMENT = Object.freeze({
     }
   },
 
-  sideDefaults:{French:'Union',Imperial:'Confederate'},
+  sideDefaults:{sideA:'Union',sideB:'Confederate'},
 
   factionIdentities:[
     {id:'Union',match:/\b(union|federal|federals|u\.?s\.?|united states|army of the (?:tennessee|potomac|cumberland|ohio))\b/i},

@@ -15,6 +15,14 @@ test('v0.6.9.1 build injects VERSION into runtime label, bootstrap messages and 
   assert.doesNotMatch(built,/Battle Axe v0\.6\.8\.1/);
 });
 
+test('bootstrap reports the failed module and gives local-file launches actionable guidance',async()=>{
+  const html=await read('index.html');
+  assert.match(html,/await import\(mainEntry\)/);
+  assert.match(html,/__BAX_MAIN_IMPORT_FAILED__/);
+  assert.match(html,/Entry: \$\{entryUrl\}/);
+  assert.match(html,/must be opened through its web server or deployed site/);
+});
+
 test('v0.6.9.1 build deploys the Scenario Library catalog',async()=>{
   const build=await read('scripts/build.mjs');
   const check=await read('scripts/check.mjs');

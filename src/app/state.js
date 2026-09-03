@@ -1,11 +1,11 @@
-import { createBlankScenario } from '../data/scenarioData.js?v=0.6.8.1';
-import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.8.1';
-import { normalizeCommandHierarchy } from '../modules/commandHierarchy.js?v=0.6.8.1';
+import { createBlankScenario } from '../data/scenarioData.js?v=0.6.9.1';
+import { ensureTwoSideModel, registerEvidenceSides } from '../modules/scenarioSides.js?v=0.6.9.1';
+import { normalizeCommandHierarchy } from '../modules/commandHierarchy.js?v=0.6.9.1';
 
 export const STORAGE_KEY='battle-axe-design-studio-v040a3';
 export const IMPORT_BACKUP_KEY='battle-axe-design-studio-pre-import-backup';
 export const PROJECT_FORMAT='battle-axe-studio-project';
-export const PROJECT_SCHEMA_VERSION='1.1.0';
+export const PROJECT_SCHEMA_VERSION='1.2.0';
 
 export function createInitialState(){
   const project={
@@ -30,6 +30,9 @@ export function migrateScenario(saved){
   const blank=createBlankScenario(),s={...blank,...(saved||{})};
   s.ruleset={...blank.ruleset,...(saved?.ruleset||{})};
   s.structuredRules={...blank.structuredRules,...(saved?.structuredRules||{})};
+  s.publication={...blank.publication,...(saved?.publication||{}),historical:{...blank.publication.historical,...(saved?.publication?.historical||{})},battlefield:{...blank.publication.battlefield,...(saved?.publication?.battlefield||{})}};
+  s.proposals={...blank.proposals,...(saved?.proposals||{})};for(const key of Object.keys(blank.proposals))s.proposals[key]=Array.isArray(saved?.proposals?.[key])?[...saved.proposals[key]]:[];
+  s.scenarioRules=Array.isArray(saved?.scenarioRules)?[...saved.scenarioRules]:(saved?.suggestions||[]).filter(x=>x.status==='accepted').map(x=>({id:x.id,title:x.title||'Scenario rule',text:x.proposal||'',engineStatus:x.engineStatus||'tabletop',engineText:x.engineText||'',overrides:x.overrides||'',status:'active',provenance:x.provenance||'legacy',evidence:x.evidence||''}));
   const legacyBase=Number(saved?.tabletop?.unitBaseMm||blank.tabletop.unitBaseMm||50);
   s.tabletop={...blank.tabletop,...(saved?.tabletop||{})};
   s.tabletop.unitBaseWidthMm=Number(saved?.tabletop?.unitBaseWidthMm||legacyBase);
@@ -77,7 +80,8 @@ export function migrateImportedProject(input){
   base.project.battlefieldRevision=projectSource?.battlefieldRevision||projectSource?.mapSource?.battlefieldRevision||null;
   base.project.scenario=migrateScenario(projectSource?.scenario||projectSource||{});
   base.playtestWorkspace={armyOrders:{},commandOrders:{},cueLevel:'standard',...(wrapper.playtestWorkspace||{})};
-  base.playtestWorkspace.armyOrders={...(wrapper.playtestWorkspace?.armyOrders||{})};
+  const legacyArmyOrders=wrapper.playtestWorkspace?.armyOrders||{};
+  base.playtestWorkspace.armyOrders={...(legacyArmyOrders.sideA?{sideA:legacyArmyOrders.sideA}:legacyArmyOrders.French?{sideA:legacyArmyOrders.French}:{}),...(legacyArmyOrders.sideB?{sideB:legacyArmyOrders.sideB}:legacyArmyOrders.Imperial?{sideB:legacyArmyOrders.Imperial}:{})};
   base.playtestWorkspace.commandOrders={...(wrapper.playtestWorkspace?.commandOrders||{})};
   base.decisions=wrapper.decisions&&typeof wrapper.decisions==='object'?wrapper.decisions:{};
   base.ignoredCandidates=wrapper.ignoredCandidates&&typeof wrapper.ignoredCandidates==='object'?wrapper.ignoredCandidates:{};

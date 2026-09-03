@@ -6,7 +6,7 @@ import { CORE_RULESET } from '../src/rules/coreRules.js';
 
 const read=async()=>fs.readFile(new URL('../src/modules/playtestEngine.js',import.meta.url),'utf8');
 
-function commanderScenario(){return{project:{playSpace:{width:48,height:48,units:'inches'},features:[],scenario:{ruleset:{core:'battle-axe-core',supplement:'italian-wars',supplementVersion:'1'},metadata:{title:'Commander test',gameLength:1},suggestions:[],sourceCommands:[],sourceForces:[],unresolved:[],victoryText:'',historicalSituation:'',commands:{French:[{id:'cf',name:'French Royal',commander:'Francis I',isGeneral:true,units:[{id:'f1',name:'French Pike',profile:'Pikemen',traits:['Pikes']}]}],Imperial:[{id:'ci',name:'Imperial Cavalry',commander:'Lannoy',isGeneral:true,units:[{id:'i1',name:'Imperial Knights',profile:'Knights',traits:['Shock Cavalry']}]}],Garrison:[]},deployment:{placements:{f1:{x:10,y:50,faction:'French',commandId:'cf',facing:90},i1:{x:58,y:50,faction:'Imperial',commandId:'ci',facing:270}},commanderPlacements:{cf:{x:50,y:50,faction:'French'},ci:{x:90,y:80,faction:'Imperial'}},zones:[]}}},decisions:{}};}
+function commanderScenario(){return{project:{playSpace:{width:48,height:48,units:'inches'},features:[],scenario:{ruleset:{core:'battle-axe-core',supplement:'italian-wars',supplementVersion:'1'},metadata:{title:'Commander test',gameLength:1},suggestions:[],sourceCommands:[],sourceForces:[],unresolved:[],victoryText:'',historicalSituation:'',commands:{sideA:[{id:'cf',name:'French Royal',commander:'Francis I',isGeneral:true,units:[{id:'f1',name:'French Pike',profile:'Pikemen',traits:['Pikes']}]}],sideB:[{id:'ci',name:'Imperial Cavalry',commander:'Lannoy',isGeneral:true,units:[{id:'i1',name:'Imperial Knights',profile:'Knights',traits:['Shock Cavalry']}]}],Garrison:[]},deployment:{placements:{f1:{x:10,y:50,faction:'sideA',commandId:'cf',facing:90},i1:{x:58,y:50,faction:'sideB',commandId:'ci',facing:270}},commanderPlacements:{cf:{x:50,y:50,faction:'sideA'},ci:{x:90,y:80,faction:'sideB'}},zones:[]}}},decisions:{}};}
 
 test('Core commander model records no shooting, nearest-visible charge restriction, escape/capture and VP values',async()=>{
   assert.equal(CORE_RULESET.command.cannotBeShot,true);
@@ -26,9 +26,9 @@ test('Core commander model records no shooting, nearest-visible charge restricti
 });
 
 test('linear Defensive terrain applies only when the attack crosses the manned feature',()=>{
-  const target={id:'t',name:'Defender',faction:'French',x:10,y:10,facing:0,baseMm:50,armor:4,traits:[],destroyed:false,inactive:false};
-  const left={id:'a',name:'Attacker west',faction:'Imperial',x:7,y:10,facing:90,baseMm:50,armor:5,traits:[],destroyed:false,inactive:false};
-  const right={id:'b',name:'Attacker east',faction:'Imperial',x:13,y:10,facing:270,baseMm:50,armor:5,traits:[],destroyed:false,inactive:false};
+  const target={id:'t',name:'Defender',faction:'sideA',x:10,y:10,facing:0,baseMm:50,armor:4,traits:[],destroyed:false,inactive:false};
+  const left={id:'a',name:'Attacker west',faction:'sideB',x:7,y:10,facing:90,baseMm:50,armor:5,traits:[],destroyed:false,inactive:false};
+  const right={id:'b',name:'Attacker east',faction:'sideB',x:13,y:10,facing:270,baseMm:50,armor:5,traits:[],destroyed:false,inactive:false};
   const ctx={units:[target,left,right],terrain:[{id:'wall',name:'Wall',cls:'Masonry Wall',effects:new Set(['Defensive']),parts:[{closed:false,points:[{x:9,y:7},{x:9,y:13}]}]}]};
   const across=__conformance.defenseState(target,ctx,left),openSide=__conformance.defenseState(target,ctx,right);
   assert.equal(across.defensive,true);assert.equal(across.effectiveArmor,6);assert.equal(across.defensiveSource,'Linear Defensive Terrain');
@@ -36,7 +36,7 @@ test('linear Defensive terrain applies only when the attack crosses the manned f
 });
 
 test('Dangerous terrain is checked from the actual traversed path',()=>{
-  const u={id:'u',name:'Unit',faction:'French',x:0,y:0,baseMm:50,traits:[],destroyed:false};
+  const u={id:'u',name:'Unit',faction:'sideA',x:0,y:0,baseMm:50,traits:[],destroyed:false};
   const events=[];const ctx={terrain:[{id:'stakes',name:'Stakes',effects:new Set(['Dangerous']),parts:[{closed:false,points:[{x:1,y:-2},{x:1,y:2}]}]}],rng:{d6:()=>1},event:(type,actor,payload)=>events.push({type,payload})};
   const survived=__conformance.applyDangerTestForPath(u,{x:0,y:0},{x:2,y:0},ctx,'test move');
   assert.equal(survived,false);assert.equal(u.destroyed,true);assert.ok(events.some(e=>e.type==='danger_test'));assert.ok(events.some(e=>e.type==='unit_destroyed'));

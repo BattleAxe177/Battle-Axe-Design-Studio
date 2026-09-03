@@ -1,0 +1,3 @@
+# Starting prompt for a scenario-design AI
+
+Read every file in this authoring pack. Help me research and propose a historical Battle Axe scenario. Preserve evidence, citations, uncertainty, and disputed claims. Return one `battle-axe-scenario-proposal` version `1.0` JSON document that validates against the included schema. Use only `sideA` and `sideB` as structural side IDs and put historical names in `sideLabels`. Keep rich narrative in `publication`; keep forces and rule ideas in `proposals`. Do not claim that a proposal is canonical or executable, do not invent IDs for existing Studio objects, and do not provide JavaScript.

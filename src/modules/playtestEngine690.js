@@ -1,6 +1,6 @@
 import { applyPlaytestEngine690Patch } from './playtestEngine690Patch.js?v=0.6.9.1';
 
-const baseUrl=new URL('./playtestEngine.js?v=0.6.8.1',import.meta.url);
+const baseUrl=new URL('./playtestEngine.js?v=0.6.9.1',import.meta.url);
 const response=await fetch(baseUrl,{cache:'no-store'});
 if(!response.ok)throw new Error(`Battle Axe v0.6.9.1 could not load the v0.6.8.1 playtest engine baseline (HTTP ${response.status}).`);
 const patchedSource=applyPlaytestEngine690Patch(await response.text(),{baseUrl});

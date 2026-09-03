@@ -16,7 +16,7 @@ function baseScenario(){
   return {
     metadata:{title:'Hierarchy fixture'},
     ruleset:{core:'battle-axe-core',supplement:'american-civil-war',supplementVersion:'0.1'},
-    commands:{French:[],Imperial:[]},
+    commands:{sideA:[],sideB:[]},
     deployment:{placements:{},commanderPlacements:{},zones:[]},
     suggestions:[],
     structuredRules:{turnOneInitiative:''}
@@ -29,19 +29,19 @@ function change(target_type,action,target_id,target_side,proposed_value={}){
 
 test('command tree supports drag/drop semantics: reparent, reject cycles, and promote children on safe delete',()=>{
   const s=baseScenario();
-  s.commands.French=[
+  s.commands.sideA=[
     {id:'army',name:'Army',commandType:'Army',units:[]},
     {id:'div',name:'Division',commandType:'Division',units:[]},
     {id:'brig',name:'Brigade',commandType:'Brigade',units:[{id:'u1'}]}
   ];
-  reparentCommand(s,'French','div','army');
-  reparentCommand(s,'French','brig','div');
-  assert.equal(s.commands.French.find(c=>c.id==='brig').parentCommandId,'div');
+  reparentCommand(s,'sideA','div','army');
+  reparentCommand(s,'sideA','brig','div');
+  assert.equal(s.commands.sideA.find(c=>c.id==='brig').parentCommandId,'div');
   assert.equal(wouldCreateCommandCycle(s,'army','brig'),true);
-  assert.throws(()=>reparentCommand(s,'French','army','brig'),/descendants|cycle|cannot/i);
-  const removed=removeCommand(s,'French','div',{mode:'promote'});
+  assert.throws(()=>reparentCommand(s,'sideA','army','brig'),/descendants|cycle|cannot/i);
+  const removed=removeCommand(s,'sideA','div',{mode:'promote'});
   assert.deepEqual(removed.removedCommandIds,['div']);
-  assert.equal(s.commands.French.find(c=>c.id==='brig').parentCommandId,'army');
+  assert.equal(s.commands.sideA.find(c=>c.id==='brig').parentCommandId,'army');
   assert.deepEqual(validateCommandHierarchy(s),[]);
 });
 
@@ -54,17 +54,17 @@ test('external AI Bridge applies hierarchical commands and unit assignment as on
     change('unit','add','regt','Side A',{unitId:'regt',name:'3rd Pennsylvania Reserves',profile:'Infantry',command_id:'brig'})
   ]};
   const out=applyAiChangesetToScenario(s,changeset);
-  assert.equal(out.commands.French.find(c=>c.id==='div').parentCommandId,'army');
-  assert.equal(out.commands.French.find(c=>c.id==='brig').parentCommandId,'div');
-  assert.equal(out.commands.French.find(c=>c.id==='brig').commandType,'Brigade');
-  assert.equal(out.commands.French.find(c=>c.id==='brig').units[0].id,'regt');
+  assert.equal(out.commands.sideA.find(c=>c.id==='div').parentCommandId,'army');
+  assert.equal(out.commands.sideA.find(c=>c.id==='brig').parentCommandId,'div');
+  assert.equal(out.commands.sideA.find(c=>c.id==='brig').commandType,'Brigade');
+  assert.equal(out.commands.sideA.find(c=>c.id==='brig').units[0].id,'regt');
   assert.deepEqual(validateCommandHierarchy(out),[]);
-  assert.equal(s.commands.French.length,0,'Apply All must leave the input scenario untouched and commit only the validated clone');
+  assert.equal(s.commands.sideA.length,0,'Apply All must leave the input scenario untouched and commit only the validated clone');
 });
 
 test('external AI Bridge rejects a circular hierarchy atomically',()=>{
   const s=baseScenario();
-  s.commands.French=[
+  s.commands.sideA=[
     {id:'a',name:'A',commandType:'Division',parentCommandId:null,units:[]},
     {id:'b',name:'B',commandType:'Brigade',parentCommandId:'a',units:[]}
   ];
@@ -108,12 +108,12 @@ test('v0.6.8.0 authoring UI exposes hierarchy drag/drop, delete, undo/redo, visu
   assert.doesNotMatch(html,/explicit Accept \/ Reject review/i);
 });
 
-test('schema 1.1 migrates legacy echelon into commandType while preserving parent command IDs',()=>{
-  assert.equal(PROJECT_SCHEMA_VERSION,'1.1.0');
-  const migrated=migrateScenario({commands:{French:[
+test('schema 1.2 migrates legacy echelon into commandType while preserving parent command IDs',()=>{
+  assert.equal(PROJECT_SCHEMA_VERSION,'1.2.0');
+  const migrated=migrateScenario({commands:{sideA:[
     {id:'div',name:'Division',echelon:'Division',units:[]},
     {id:'brig',name:'Brigade',echelon:'Brigade',parentCommandId:'div',units:[]}
-  ],Imperial:[]},deployment:{placements:{},commanderPlacements:{},zones:[]}});
-  assert.equal(migrated.commands.French.find(c=>c.id==='brig').commandType,'Brigade');
-  assert.equal(migrated.commands.French.find(c=>c.id==='brig').parentCommandId,'div');
+  ],sideB:[]},deployment:{placements:{},commanderPlacements:{},zones:[]}});
+  assert.equal(migrated.commands.sideA.find(c=>c.id==='brig').commandType,'Brigade');
+  assert.equal(migrated.commands.sideA.find(c=>c.id==='brig').parentCommandId,'div');
 });

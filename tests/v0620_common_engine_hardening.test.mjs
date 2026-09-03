@@ -15,7 +15,7 @@ const root=path.resolve(here,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const fixture=name=>JSON.parse(fs.readFileSync(path.join(here,'fixtures',name),'utf8'));
 
-function unit(overrides={}){return{id:'u',kind:'unit',name:'Unit',profile:'Infantry',faction:'French',commandId:'c',x:5,y:5,facing:0,baseMm:50,baseWidthMm:50,baseDepthMm:50,baseShape:'rect',move:2,combat:2,armor:5,points:1,traits:[],damage:0,destroyed:false,inactive:false,...overrides};}
+function unit(overrides={}){return{id:'u',kind:'unit',name:'Unit',profile:'Infantry',faction:'sideA',commandId:'c',x:5,y:5,facing:0,baseMm:50,baseWidthMm:50,baseDepthMm:50,baseShape:'rect',move:2,combat:2,armor:5,points:1,traits:[],damage:0,destroyed:false,inactive:false,...overrides};}
 function ctx(units,commanders=[]){const s=createBlankScenario();s.ruleset={...s.ruleset,supplement:'american-civil-war'};return{rules:getEffectiveRuleset(s),units,commanders,terrain:[],width:20,height:20,scale:1,tacticalPlan:{commands:{}},commandRelease:{},turn:2,rng:{d6:()=>4,d3:()=>2},event:()=>{}};}
 
 test('authoritative footprint geometry treats edge touch as legal and polygon penetration as illegal for 50 mm bases',()=>{
@@ -32,7 +32,7 @@ test('authoritative footprint geometry treats edge touch as legal and polygon pe
 });
 
 test('shared charge geometry can carry a 50 x 25 mm rectangular regiment without penetrating at first contact',()=>{
-  const charger=unit({id:'rect-a',x:5,y:8,facing:0,baseWidthMm:50,baseDepthMm:25}),target=unit({id:'rect-b',faction:'Imperial',commandId:'enemy',x:5,y:5.1,facing:180,baseWidthMm:50,baseDepthMm:25}),c=ctx([charger,target]);
+  const charger=unit({id:'rect-a',x:5,y:8,facing:0,baseWidthMm:50,baseDepthMm:25}),target=unit({id:'rect-b',faction:'sideB',commandId:'enemy',x:5,y:5.1,facing:180,baseWidthMm:50,baseDepthMm:25}),c=ctx([charger,target]);
   const legal=__conformance.canCharge(charger,target,c);assert.equal(legal.ok,true);
   const contact={...charger,x:legal.contactCenter.x,y:legal.contactCenter.y,facing:legal.facing};
   assert.equal(footprintsPenetrate(contact,target),false,'first contact may touch but may not penetrate');
@@ -66,16 +66,16 @@ test('reserve release latches at command level for all subordinate units',()=>{
 });
 
 test('screen orders create distinct frontage destinations rather than a single shared point',()=>{
-  const a=unit({id:'a',commandId:'brig',x:4,y:8,role:'skirmisher'}),b=unit({id:'b',commandId:'brig',x:5,y:8,role:'skirmisher'}),line=unit({id:'line',commandId:'brig',x:5,y:10}),enemy=unit({id:'e',faction:'Imperial',commandId:'enemy',x:5,y:2});
+  const a=unit({id:'a',commandId:'brig',x:4,y:8,role:'skirmisher'}),b=unit({id:'b',commandId:'brig',x:5,y:8,role:'skirmisher'}),line=unit({id:'line',commandId:'brig',x:5,y:10}),enemy=unit({id:'e',faction:'sideB',commandId:'enemy',x:5,y:2});
   const c=ctx([a,b,line,enemy]);
   const ta=__conformance.screenFrontageTarget(a,c,enemy,{skirmishersOnly:true}),tb=__conformance.screenFrontageTarget(b,c,enemy,{skirmishersOnly:true});
   assert.notDeepEqual(ta,tb);assert.notEqual(ta.x,tb.x);
 });
 
 test('offensive activation order assigns waves and moves a friendly lane blocker ahead of the blocked regiment',()=>{
-  const rear=unit({id:'rear',commandId:'brig',x:5,y:10,facing:0}),front=unit({id:'front',commandId:'brig',x:5,y:7,facing:0}),enemy=unit({id:'enemy',faction:'Imperial',commandId:'enemy',x:5,y:1});
+  const rear=unit({id:'rear',commandId:'brig',x:5,y:10,facing:0}),front=unit({id:'front',commandId:'brig',x:5,y:7,facing:0}),enemy=unit({id:'enemy',faction:'sideB',commandId:'enemy',x:5,y:1});
   const c=ctx([rear,front,enemy]);c.tacticalPlan.commands.brig={commandId:'brig',order:'Advance',modifiers:{}};
-  const ordered=__conformance.activationOrderForSide('French',c);
+  const ordered=__conformance.activationOrderForSide('sideA',c);
   assert.equal(ordered[0].id,'front');assert.equal(front.maneuverWave,1);assert.match(front.maneuverRole,/first wave/);
   assert.ok(rear.maneuverWave>=1);
 });
@@ -83,7 +83,7 @@ test('offensive activation order assigns waves and moves a friendly lane blocker
 test('legacy scenario-only JSON is migrated before validation with defaults and unknown scenario fields preserved',()=>{
   const old=fixture('legacy_alpha_rosters.json'),m=migrateImportedProject(old);
   assert.equal(m.state.project.scenario.metadata.title,'Legacy Alpha Scenario');
-  assert.equal(m.state.project.scenario.commands.French[0].units[0].id,'f1');
+  assert.equal(m.state.project.scenario.commands.sideA[0].units[0].id,'f1');
   assert.equal(m.state.project.scenario.legacyMysteryField.preserve,true);
   assert.ok(m.migration.steps.some(x=>/validated migrated project/.test(x)));
   assert.ok(m.migration.warnings.length>0);

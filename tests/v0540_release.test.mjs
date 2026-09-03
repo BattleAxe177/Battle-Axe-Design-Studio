@@ -46,7 +46,7 @@ test('stale playtest run is cleared from the current-scenario preview',async()=>
 
 test('force builder exposes visual suggested composition without auto-populating proposals',async()=>{
   const html=await read('index.html'),builder=await read('src/modules/scenarioBuilder.js');
-  assert.match(html,/id="suggestedForcePlan"/);assert.match(html,/Suggested force composition/);
+  assert.match(html,/id="suggestedForcePlan"/);assert.match(html,/Proposed force composition/);
   assert.doesNotMatch(html,/id="addProposedForces"/);
   assert.match(builder,/data-find-profile/);assert.match(builder,/forcePlanGroups/);
 });

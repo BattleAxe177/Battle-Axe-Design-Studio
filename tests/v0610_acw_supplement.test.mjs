@@ -8,13 +8,13 @@ import {buildRuntimeFromStudio,runPlaytest,__conformance} from '../src/modules/p
 function acwScenario(){
   const s=createBlankScenario();
   s.ruleset={core:'battle-axe-core',supplement:'american-civil-war',supplementVersion:'1'};
-  s.sideLabels={French:'Union',Imperial:'Confederate'};
-  s.sideAliases={Union:'French',union:'French',Confederate:'Imperial',confederate:'Imperial'};
+  s.sideLabels={sideA:'Union',sideB:'Confederate'};
+  s.sideAliases={Union:'sideA',union:'sideA',Confederate:'sideB',confederate:'sideB'};
   return s;
 }
 
 function engineUnit(overrides={}){
-  return {id:'u',name:'Unit',profile:'Infantry',faction:'French',commandId:'c',x:2,y:5,facing:90,baseMm:25,move:2,combat:2,armor:5,points:1,traits:['Muskets'],damage:0,destroyed:false,inactive:false,...overrides};
+  return {id:'u',name:'Unit',profile:'Infantry',faction:'sideA',commandId:'c',x:2,y:5,facing:90,baseMm:25,move:2,combat:2,armor:5,points:1,traits:['Muskets'],damage:0,destroyed:false,inactive:false,...overrides};
 }
 
 function ctxFor(units,commanders=[]){
@@ -34,21 +34,21 @@ test('ACW supplement is registered in selector architecture with canonical four-
 
 test('ACW command competency uses 5+ and highest rating within one inch',()=>{
   assert.equal(ACW.commandRules.testThreshold,5);assert.equal(ACW.commandRules.influenceRangeInches,1);
-  const u=engineUnit(),near={id:'cmd1',kind:'commander',name:'Brigadier',faction:'French',commandId:'c',x:2.5,y:5,commandRating:2,destroyed:false},far={id:'cmd2',kind:'commander',name:'Distant',faction:'French',commandId:'x',x:5.5,y:5,commandRating:3,destroyed:false};
+  const u=engineUnit(),near={id:'cmd1',kind:'commander',name:'Brigadier',faction:'sideA',commandId:'c',x:2.5,y:5,commandRating:2,destroyed:false},far={id:'cmd2',kind:'commander',name:'Distant',faction:'sideA',commandId:'x',x:5.5,y:5,commandRating:3,destroyed:false};
   const cb=__conformance.commandBonus(u,ctxFor([u],[near,far]));
   assert.equal(cb.bonus,2);assert.equal(cb.commander.id,'cmd1');
 });
 
 test('ACW enfilade adds two shooting dice to musket fire',()=>{
-  const a=engineUnit({id:'a',faction:'French',x:2,y:5,facing:90});
-  const t=engineUnit({id:'t',faction:'Imperial',x:6,y:5,facing:0,traits:['Muskets']});
+  const a=engineUnit({id:'a',faction:'sideA',x:2,y:5,facing:90});
+  const t=engineUnit({id:'t',faction:'sideB',x:6,y:5,facing:0,traits:['Muskets']});
   const legal=__conformance.canShoot(a,t,ctxFor([a,t]));
   assert.equal(legal.ok,true);assert.equal(legal.baseDice,3);assert.equal(legal.enfiladeBonus,2);assert.equal(legal.dice,5);
 });
 
 test('Rebel Yell adds one combat value only to charging Confederate Infantry',()=>{
-  const conf=engineUnit({id:'csa',faction:'Imperial',profile:'Infantry',chargedThisPhase:true});
-  const union=engineUnit({id:'usa',faction:'French',profile:'Infantry',chargedThisPhase:true});
+  const conf=engineUnit({id:'csa',faction:'sideB',profile:'Infantry',chargedThisPhase:true});
+  const union=engineUnit({id:'usa',faction:'sideA',profile:'Infantry',chargedThisPhase:true});
   const ctx=ctxFor([conf,union]);
   assert.equal(__conformance.effectiveCombatValue(conf,ctx),3);
   assert.equal(__conformance.effectiveCombatValue(union,ctx),2);
@@ -56,7 +56,7 @@ test('Rebel Yell adds one combat value only to charging Confederate Infantry',()
 
 test('ACW cavalry enters the runtime mounted and the module defines dismounted move/fire behavior',()=>{
   const s=acwScenario();
-  s.commands={French:[{id:'c',name:'Cavalry Brigade',commander:'Buford',commandRating:3,units:[{id:'cv',name:'1st Cavalry',profile:'Cavalry',traits:['Cavalry']}]}],Imperial:[]};
+  s.commands={sideA:[{id:'c',name:'Cavalry Brigade',commander:'Buford',commandRating:3,units:[{id:'cv',name:'1st Cavalry',profile:'Cavalry',traits:['Cavalry']}]}],sideB:[]};
   s.deployment={placements:{cv:{x:50,y:50,facing:0}},commanderPlacements:{c:{x:48,y:50}},zones:[]};
   const state={project:{playSpace:{width:20,height:20,units:'inches'},features:[],scenario:s},decisions:{}};
   const runtime=buildRuntimeFromStudio(state,{measurementScale:1});
@@ -67,7 +67,7 @@ test('ACW cavalry enters the runtime mounted and the module defines dismounted m
 
 test('blank ACW command rating is generated from the period table at playtest setup',()=>{
   const s=acwScenario();
-  s.commands={French:[{id:'c',name:'Infantry Brigade',commander:'Generic Brigadier',commandRating:null,units:[{id:'i',name:'Regiment',profile:'Infantry',traits:['Muskets']}]}],Imperial:[]};
+  s.commands={sideA:[{id:'c',name:'Infantry Brigade',commander:'Generic Brigadier',commandRating:null,units:[{id:'i',name:'Regiment',profile:'Infantry',traits:['Muskets']}]}],sideB:[]};
   s.deployment={placements:{i:{x:50,y:50,facing:0}},commanderPlacements:{c:{x:50,y:35}},zones:[]};
   const state={project:{playSpace:{width:20,height:20,units:'inches'},features:[],scenario:s},decisions:{}};
   const pre=buildRuntimeFromStudio(state,{measurementScale:1});assert.equal(pre.commanders[0].commandRating,null);

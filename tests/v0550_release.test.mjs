@@ -59,5 +59,5 @@ test('suggested forces are a compact read-only force sketch rather than a second
   assert.match(builder,/force-sketch-command/);assert.match(builder,/force-sketch-profile/);assert.match(builder,/<ul>/);
   assert.doesNotMatch(builder,/data-create-plan-command/);
   assert.match(css,/\.force-plan\{display:grid;grid-template-columns:1fr 1fr/);assert.match(css,/\.force-sketch-commands/);
-  assert.match(html,/compact command-tree sketch/i);
+  assert.match(html,/reference-only force and command ideas/i);
 });

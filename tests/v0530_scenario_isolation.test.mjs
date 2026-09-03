@@ -12,19 +12,19 @@ function memoryStorage(initial={}){const m=new Map(Object.entries(initial));retu
 
 test('force model has exactly two working sides and no Garrison/Other roster column',async()=>{
   const s=createBlankScenario(),html=await read('index.html');
-  assert.deepEqual(Object.keys(s.commands),['French','Imperial']);
-  assert.match(html,/id="rosterFrenchLabel">Side A/);
-  assert.match(html,/id="rosterImperialLabel">Side B/);
+  assert.deepEqual(Object.keys(s.commands),['sideA','sideB']);
+  assert.match(html,/id="rostersideALabel">Side A/);
+  assert.match(html,/id="rostersideBLabel">Side B/);
   assert.doesNotMatch(html,/rosterGarrison|Garrison \/ Other/);
 });
 
 test('arbitrary historical armies map to two distinct sides without test-battle assumptions',()=>{
   const s=createBlankScenario();
   registerEvidenceSides(s,[{faction:'French'},{faction:'Spanish'}],[]);
-  assert.equal(sideForFaction(s,'French'),'French');
-  assert.equal(sideForFaction(s,'Spanish'),'Imperial');
-  assert.equal(sideLabel(s,'French'),'French');
-  assert.equal(sideLabel(s,'Imperial'),'Spanish');
+  assert.equal(sideForFaction(s,'French'),'sideA');
+  assert.equal(sideForFaction(s,'Spanish'),'sideB');
+  assert.equal(sideLabel(s,'sideA'),'French');
+  assert.equal(sideLabel(s,'sideB'),'Spanish');
   const other=createBlankScenario();
   registerEvidenceSides(other,[{faction:'Venetian'},{faction:'Milanese'}],[]);
   assert.notEqual(sideForFaction(other,'Venetian'),sideForFaction(other,'Milanese'));
@@ -52,10 +52,10 @@ test('project persistence includes active map, compiled geometry and battlefield
 
 test('legacy third-side data is migrated into two-side model and explicitly flagged for review',()=>{
   const base=createInitialState();
-  base.project.scenario.commands={French:[],Imperial:[],Garrison:[{id:'g1',name:'Town defenders',commander:'',units:[]}]};
+  base.project.scenario.commands={sideA:[],sideB:[],Garrison:[{id:'g1',name:'Town defenders',commander:'',units:[]}]};
   const storage=memoryStorage({[STORAGE_KEY]:JSON.stringify(base)}),loaded=loadState(storage).state.project.scenario;
-  assert.deepEqual(Object.keys(loaded.commands),['French','Imperial']);
-  assert.equal(loaded.commands.Imperial[0].forceRole,'garrison');
+  assert.deepEqual(Object.keys(loaded.commands),['sideA','sideB']);
+  assert.equal(loaded.commands.sideB[0].forceRole,'garrison');
   assert.ok(loaded.unresolved.some(x=>/Legacy Garrison \/ Other/i.test(x)));
 });
 

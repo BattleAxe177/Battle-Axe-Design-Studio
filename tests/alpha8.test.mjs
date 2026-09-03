@@ -30,6 +30,6 @@ test('playtest engine records Defensive terrain armor and defender-first behavio
 });
 
 test('scenario configuration fingerprint exists for stale-playtest detection', async()=>{
-  const mod=await import(pathToFileURL(new URL('src/modules/playtestEngine.js',root).pathname).href+'?a8');
+  const mod=await import(new URL('src/modules/playtestEngine.js',root).href+'?a8');
   assert.equal(typeof mod.scenarioConfigFingerprint,'function');
 });

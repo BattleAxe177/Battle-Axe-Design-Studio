@@ -15,7 +15,7 @@ test('initial facing comes from deployment with a neutral legacy fallback',()=>{
   assert.match(engine,/facingSource='deployment'/);
   assert.match(engine,/legacy deployment default/);
   assert.doesNotMatch(engine,/centroid=\{x:enemies\.reduce/);
-  assert.doesNotMatch(engine,/faction==='French'\?0:180/);
+  assert.doesNotMatch(engine,/faction==='sideA'\?0:180/);
 });
 test('commanders seek non-overlapping endpoints',()=>{
   assert.match(engine,/nearestCommanderClearEndpoint/);

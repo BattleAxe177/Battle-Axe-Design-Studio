@@ -8,6 +8,7 @@
     "core.test.mjs",
     "new_scenario_reset.test.mjs",
     "playtest.test.mjs",
+    "playtest_los_spatial.test.mjs",
     "playtest_responsiveness.test.mjs",
     "rules_architecture_phase25.test.mjs",
     "runtime.test.mjs",
@@ -39,6 +40,7 @@
     "v0680_authoring_bridge_ui.test.mjs",
     "v0681_map_label_polygon_hotfix.test.mjs",
     "v0690_scenario_ai_tactical.test.mjs",
-    "v0691_deploy_hotfix.test.mjs"
+    "v0691_deploy_hotfix.test.mjs",
+    "v0691_human_authoring_contract.test.mjs"
   ]
 }

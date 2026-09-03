@@ -6,7 +6,7 @@ import { buildAutoTacticalPlan, interpretOrderText, runPlaytest, scenarioConfigF
 
 const read=async p=>fs.readFile(new URL(p,import.meta.url),'utf8');
 
-function defensiveState(){return{project:{playSpace:{width:48,height:48,units:'inches'},features:[{id:'works',name:'Prepared Works',cls:'Fortification',box:[72,40,18,20]}],scenario:{metadata:{title:'Generic prepared-position test',gameLength:1},tabletop:{unitBaseMm:50,commanderBaseMm:25,measurementMultiplier:2},suggestions:[],sourceCommands:[],sourceForces:[],unresolved:[],victoryText:'',historicalSituation:'',commands:{French:[{id:'cf',name:'Attackers',commander:'',units:[{id:'f',name:'Attacking Pike',profile:'Pikemen',traits:['Pikes']}]}],Imperial:[{id:'ci',name:'Defenders',commander:'',units:[{id:'i',name:'Defending Shot',profile:'Arquebusiers',traits:['Arquebus']}]}]},deployment:{placements:{f:{x:20,y:50,faction:'French',commandId:'cf',facing:90},i:{x:80,y:50,faction:'Imperial',commandId:'ci',facing:270}},commanderPlacements:{},zones:[]}}},decisions:{works:{status:'approved',cls:'Fortification',effects:['Defensive']}}};}
+function defensiveState(){return{project:{playSpace:{width:48,height:48,units:'inches'},features:[{id:'works',name:'Prepared Works',cls:'Fortification',box:[72,40,18,20]}],scenario:{metadata:{title:'Generic prepared-position test',gameLength:1},tabletop:{unitBaseMm:50,commanderBaseMm:25,measurementMultiplier:2},suggestions:[],sourceCommands:[],sourceForces:[],unresolved:[],victoryText:'',historicalSituation:'',commands:{sideA:[{id:'cf',name:'Attackers',commander:'',units:[{id:'f',name:'Attacking Pike',profile:'Pikemen',traits:['Pikes']}]}],sideB:[{id:'ci',name:'Defenders',commander:'',units:[{id:'i',name:'Defending Shot',profile:'Arquebusiers',traits:['Arquebus']}]}]},deployment:{placements:{f:{x:20,y:50,faction:'sideA',commandId:'cf',facing:90},i:{x:80,y:50,faction:'sideB',commandId:'ci',facing:270}},commanderPlacements:{},zones:[]}}},decisions:{works:{status:'approved',cls:'Fortification',effects:['Defensive']}}};}
 
 test('hierarchy parser preserves commander-in-chief and subordinate command relationships',()=>{
   const text=`# Battle of Test\n## Spanish Army\nCommander-in-Chief: Gonzalo Fernández de Córdoba\n### Córdoba's Reserve\nCommander: Gonzalo Fernández de Córdoba\n- Spanish men-at-arms\n### Zamudio's German Centre\nCommander: Zamudio\n- Approximately 2,500 German Landsknechts\n## French Army\nCommander-in-Chief: Louis d'Armagnac, Duke of Nemours\n### Rearguard\nCommander: Yves d'Alègre\n- French gendarmes`;
@@ -25,14 +25,14 @@ test('free-text tactical intent becomes bounded structured modifiers',()=>{
 
 test('zero-input Auto plan recognizes a prepared defense and holds it',()=>{
   const s=defensiveState(),plan=buildAutoTacticalPlan(s,{measurementScale:2});
-  assert.equal(plan.armies.Imperial.autoPosture,'Defensive');assert.equal(plan.armies.French.autoPosture,'Offensive');assert.equal(plan.commands.ci.autoOrder,'Hold');
+  assert.equal(plan.armies.sideB.autoPosture,'Defensive');assert.equal(plan.armies.sideA.autoPosture,'Offensive');assert.equal(plan.commands.ci.autoOrder,'Hold');
   const r=runPlaytest(s,{seed:1,turns:1,measurementScale:2});
   const firstDefenderChoice=r.events.find(e=>e.type==='ai_action_choice'&&e.actor==='i');assert.equal(firstDefenderChoice.payload.action,'hold');assert.ok(r.events.some(e=>e.type==='ai_hold'&&e.actor==='i'));
   assert.equal(r.events.some(e=>e.type==='move'&&e.actor==='i'),false);
 });
 
 test('playtest orders are workspace preferences and do not change scenario fingerprint',()=>{
-  const s=defensiveState(),a=scenarioConfigFingerprint(s);s.playtestWorkspace={armyOrders:{Imperial:{posture:'Defensive',text:'hold position'}},commandOrders:{ci:{order:'Hold',text:'do not pursue'}},cueLevel:'detailed'};const b=scenarioConfigFingerprint(s);assert.equal(a,b);
+  const s=defensiveState(),a=scenarioConfigFingerprint(s);s.playtestWorkspace={armyOrders:{sideB:{posture:'Defensive',text:'hold position'}},commandOrders:{ci:{order:'Hold',text:'do not pursue'}},cueLevel:'detailed'};const b=scenarioConfigFingerprint(s);assert.equal(a,b);
 });
 
 test('decision scoring does not consume the rules RNG merely to break AI ties',async()=>{

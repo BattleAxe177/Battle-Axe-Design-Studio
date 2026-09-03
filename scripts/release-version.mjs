@@ -9,6 +9,6 @@ export function injectReleaseVersion(html,value){
   let out=String(html??'');
   out=out.replace(/(<span id="runtimeVersion">)v\d+\.\d+\.\d+\.\d+(<\/span>)/,`$1v${version}$2`);
   out=out.replace(/Battle Axe v\d+\.\d+\.\d+\.\d+/g,`Battle Axe v${version}`);
-  out=out.replace(/(src="\.\/src\/main\.js\?v=)\d+\.\d+\.\d+\.\d+("\s*>)/,`$1${version}$2`);
+  out=out.replace(/(\.\/src\/main\.js\?v=)\d+\.\d+\.\d+\.\d+/g,`$1${version}`);
   return out;
 }

@@ -1,4 +1,4 @@
-import { highlightFeature, clearOverlay } from './mapView.js?v=0.6.8.1';
+import { highlightFeature, clearOverlay } from './mapView.js?v=0.6.9.1';
 
 export const RULES = {
   Difficult: 'Move Value is halved for units moving in Difficult terrain.',

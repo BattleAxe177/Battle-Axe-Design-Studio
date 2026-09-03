@@ -1,4 +1,4 @@
-import { loadState, normalizeImportedState, migrateImportedProject, mergeImportedScenarioWithCurrentBattlefield, savePreImportBackup, saveState } from '../app/state.js?v=0.6.8.1';
+import { loadState, normalizeImportedState, migrateImportedProject, mergeImportedScenarioWithCurrentBattlefield, savePreImportBackup, saveState } from '../app/state.js?v=0.6.9.1';
 
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const currentState=()=>loadState().state;

@@ -18,7 +18,7 @@ const inch=mm=>mm/25.4;
 function acwScenario(){
   const s=createBlankScenario();
   s.ruleset={core:'battle-axe-core',supplement:'american-civil-war',supplementVersion:'1'};
-  s.sideLabels={French:'Union',Imperial:'Confederate'};
+  s.sideLabels={sideA:'Union',sideB:'Confederate'};
   s.tabletop={...s.tabletop,preset:'acw-regiment',unitBaseMm:50,unitBaseWidthMm:50,unitBaseDepthMm:25,commanderBaseMm:25,measurementMultiplier:1};
   return s;
 }
@@ -26,11 +26,11 @@ function acwScenario(){
 function runtimeState({override=false}={}){
   const s=acwScenario();
   s.commands={
-    French:[{id:'u-brig',name:'Union Brigade',commander:'Union Brigadier',commandRating:2,units:[
+    sideA:[{id:'u-brig',name:'Union Brigade',commander:'Union Brigadier',commandRating:2,units:[
       {id:'u1',name:'1st Regiment',profile:'Infantry',...(override?{baseWidthMm:40,baseDepthMm:20}:{})},
       {id:'u2',name:'2nd Regiment',profile:'Infantry'}
     ]}],
-    Imperial:[{id:'c-brig',name:'Confederate Brigade',commander:'Confederate Brigadier',commandRating:2,units:[{id:'c1',name:'CS Regiment',profile:'Infantry'}]}]
+    sideB:[{id:'c-brig',name:'Confederate Brigade',commander:'Confederate Brigadier',commandRating:2,units:[{id:'c1',name:'CS Regiment',profile:'Infantry'}]}]
   };
   s.deployment={placements:{u1:{x:25,y:70,facing:0},u2:{x:35,y:70,facing:0},c1:{x:30,y:20,facing:180}},commanderPlacements:{'u-brig':{x:20,y:70,facing:0},'c-brig':{x:25,y:20,facing:180}},zones:[]};
   return {project:{playSpace:{width:20,height:20,units:'inches',origin:'northwest'},features:[],scenario:s},decisions:{}};
@@ -99,8 +99,8 @@ test('ACW plugin exposes the published four-unit library and a non-RAW 50x25 Stu
 
 test('ACW command influence uses physical edge gap, not center distance',()=>{
   const s=acwScenario(),rules=getEffectiveRuleset(s);
-  const unit={id:'u',kind:'unit',name:'Regiment',profile:'Infantry',faction:'French',commandId:'brig',x:5,y:5,facing:0,baseWidthMm:50,baseDepthMm:25,baseShape:'rect',traits:['Muskets']};
-  const commander={id:'cmd',kind:'commander',name:'Brigadier',faction:'French',commandId:'brig',x:7.2,y:5,facing:0,baseMm:25,baseWidthMm:25,baseDepthMm:25,baseShape:'circle',commandRating:2,destroyed:false};
+  const unit={id:'u',kind:'unit',name:'Regiment',profile:'Infantry',faction:'sideA',commandId:'brig',x:5,y:5,facing:0,baseWidthMm:50,baseDepthMm:25,baseShape:'rect',traits:['Muskets']};
+  const commander={id:'cmd',kind:'commander',name:'Brigadier',faction:'sideA',commandId:'brig',x:7.2,y:5,facing:0,baseMm:25,baseWidthMm:25,baseDepthMm:25,baseShape:'circle',commandRating:2,destroyed:false};
   const centerDistance=Math.hypot(unit.x-commander.x,unit.y-commander.y);
   const edgeGap=footprintGapDistance(unit,commander);
   assert.ok(centerDistance>1,'setup must be outside one inch by centers');
@@ -113,9 +113,9 @@ test('ACW command influence uses physical edge gap, not center distance',()=>{
 
 test('ACW brigade-line AI assigns separate frontage slots and successive-wave depth using real base dimensions',()=>{
   const s=acwScenario(),rules=getEffectiveRuleset(s);
-  const common={kind:'unit',profile:'Infantry',faction:'French',commandId:'brig',facing:0,baseWidthMm:50,baseDepthMm:25,baseShape:'rect',traits:['Muskets'],damage:0,destroyed:false,inactive:false,role:'infantry'};
+  const common={kind:'unit',profile:'Infantry',faction:'sideA',commandId:'brig',facing:0,baseWidthMm:50,baseDepthMm:25,baseShape:'rect',traits:['Muskets'],damage:0,destroyed:false,inactive:false,role:'infantry'};
   const a={...common,id:'a',name:'A',x:4,y:12,maneuverWave:1},b={...common,id:'b',name:'B',x:6,y:12,maneuverWave:1},reserve={...common,id:'r',name:'R',x:5,y:14,maneuverWave:2};
-  const enemy={...common,id:'e',name:'Enemy',faction:'Imperial',commandId:'enemy',x:5,y:3,facing:180};
+  const enemy={...common,id:'e',name:'Enemy',faction:'sideB',commandId:'enemy',x:5,y:3,facing:180};
   const ctx={rules,sideLabels:s.sideLabels,units:[a,b,reserve,enemy],commanders:[],terrain:[],width:20,height:20,scale:1,tacticalPlan:{commands:{}},commandRelease:{}};
   const ta=__conformance.brigadeFormationTarget(a,ctx,enemy),tb=__conformance.brigadeFormationTarget(b,ctx,enemy),tr=__conformance.brigadeFormationTarget(reserve,ctx,enemy);
   assert.notEqual(ta.x,tb.x,'front-line regiments need distinct lateral slots');

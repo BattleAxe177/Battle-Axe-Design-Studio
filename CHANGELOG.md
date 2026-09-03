@@ -1,3 +1,29 @@
+# Unreleased — Human-first Scenario Authoring Foundation
+
+- Separates canonical scenario state, proposal/reference state, and publication narrative in schema 1.2.0.
+- Replaces structural French/Imperial side keys with neutral `sideA`/`sideB` IDs across authoring, deployment, deterministic playtest, tactical exchange, replay, results, and Publisher; legacy projects migrate transparently while retaining historical display labels.
+- Adds the validated `battle-axe-scenario-proposal` 1.0 contract. Proposal import preserves unknown extensions and routes forces, rule opportunities, terrain, deployment, victory, sources, and unresolved items without silently changing the canonical scenario.
+- Makes arbitrary narrative intake evidence-only. Explicitly structured source headings remain available for deterministic extraction.
+- Makes scenario rules human-authored canonical records. Imported rule opportunities require **Create Rule**; readable rule text is distinct from engine automation, and text changes mark non-tabletop automation stale for review.
+- Adds record-level controls for proposed commands and units without auto-populating the force roster.
+- Makes proposed-force actions idempotent and visibly marks applied records instead of duplicating canonical commands or units.
+- Adds separately editable publication narrative, retains imported narrative only into blank fields, and makes Publisher use concise copy for the Scenario Sheet and full historical/battlefield narrative for the Design Dossier while retaining legacy canonical text fallbacks.
+- Adds the downloadable `Battle_Axe_AI_Authoring_Pack.zip` to Source Intake and the Scenario Design AI bridge, containing the authoring guide, proposal schema/template, starting prompt, response contract, and tactical/playtest reference.
+- Adds `AGENTS.md` contract-maintenance rules and regression coverage for neutral exports, legacy migration, proposal-only import, narrative routing, and documentation/schema drift.
+- Adds bounded playtest-worker startup and execution watchdogs with a deterministic main-thread fallback so a failed worker cannot leave a run indefinitely on `Running…`.
+- Verification: 252/252 automated tests, static build/deployment checks, legacy Glendale migration and deterministic browser playtest, human-first authoring workflow, authoring-pack download, AI bridge rendering, Scenario Library loading, and rebuilt Publisher narrative output.
+
+# Unreleased — Canonical TacticalIntent follow-up
+
+- Adds one validated TacticalIntent 1.0 structure shared by free-text plans, Auto Plan, External AI imports, and deterministic execution.
+- Parses action/target/security/condition semantics before legacy keyword preferences, so “attack the southern flank of the Union line” remains an offensive geographic-flank order rather than flank security.
+- Adds structured `ANY`/`ALL` reserve conditions with executable turn, destroyed-unit, named-terrain, line-state, and vulnerability predicates; command release remains permanently latched.
+- Compiles “a Union artillery unit is destroyed, or by Turn 3, whichever happens first” as an `ANY` predicate tree rather than a ranged-fire preference.
+- Makes External AI rich tactical fields executable directly after ID/schema validation instead of round-tripping them through free text.
+- Labels ACW pre-contact tests explicitly as **Charge Test** and **Receive Charge Test** in engine events and the battle log.
+- Aligns source/runtime/cache/export version markers with `VERSION` and fixes the release manifest's Windows path handling.
+- Verification is included in the current 252-test Human-first Scenario Authoring Foundation pass above.
+
 # v0.6.8.1 — Deployment Map Label & Polygon UX Hotfix
 
 - Compact historical unit labels now sit outside unit bases in Deployment Editor and replay, while full names remain in tooltips/rosters.

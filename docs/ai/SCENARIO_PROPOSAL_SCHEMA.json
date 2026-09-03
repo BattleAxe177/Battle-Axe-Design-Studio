@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://battleaxe177.github.io/Battle-Axe-Design-Studio/contracts/scenario-proposal-1.0.schema.json",
+  "title": "Battle Axe Scenario Proposal 1.0",
+  "type": "object",
+  "required": ["format", "version", "proposals"],
+  "properties": {
+    "format": {"const": "battle-axe-scenario-proposal"},
+    "version": {"const": "1.0"},
+    "scenarioRevision": {"type": "string"},
+    "metadata": {"type": "object"},
+    "sideLabels": {"type": "object", "properties": {"sideA": {"type": "string"}, "sideB": {"type": "string"}}, "additionalProperties": false},
+    "publication": {"type": "object"},
+    "proposals": {
+      "type": "object",
+      "properties": {
+        "forces": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
+        "ruleOpportunities": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
+        "terrain": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
+        "deployment": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
+        "victory": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
+        "unresolved": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
+        "sources": {"type": "array", "items": {"$ref": "#/$defs/proposal"}}
+      },
+      "additionalProperties": false
+    },
+    "notes": {"type": "string"},
+    "extensions": {"type": "object"}
+  },
+  "$defs": {"proposal": {"type": "object", "properties": {"id": {"type": "string"}, "side": {"enum": ["sideA", "sideB"]}, "title": {"type": "string"}, "text": {"type": "string"}, "evidence": {"type": "string"}, "confidence": {"type": "number", "minimum": 0, "maximum": 100}}, "additionalProperties": true}}
+}

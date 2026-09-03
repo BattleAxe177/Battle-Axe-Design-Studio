@@ -1,0 +1,11 @@
+{
+  "format": "battle-axe-scenario-proposal",
+  "version": "1.0",
+  "scenarioRevision": "current-local",
+  "metadata": {"title": "", "date": "", "location": ""},
+  "sideLabels": {"sideA": "Side A", "sideB": "Side B"},
+  "publication": {"historical": {"conciseSummary": "", "narrative": ""}, "battlefield": {"conciseSummary": "", "narrative": ""}, "forceHistoryNotes": "", "sourceDiscussion": "", "designRationale": "", "designerNotes": ""},
+  "proposals": {"forces": [], "ruleOpportunities": [], "terrain": [], "deployment": [], "victory": [], "unresolved": [], "sources": []},
+  "notes": "",
+  "extensions": {}
+}
