@@ -1,4 +1,5 @@
 import { readFile, access } from 'node:fs/promises';
+import { migrateImportedProject } from '../dist/src/app/state.js';
 const files=['dist/index.html','dist/src/main.js','dist/src/modules/battlefieldDetector.js','dist/src/modules/deploymentEditor.js','dist/src/modules/playtestEngine.js','dist/src/modules/playtestCenter.js','dist/src/modules/aiBridge.js','dist/projects/pavia/battlefield.svg','dist/scenarios/index.json','dist/.nojekyll'];
 for(const f of files) await access(new URL(`../${f}`,import.meta.url));
 const detector=await readFile(new URL('../dist/src/modules/battlefieldDetector.js',import.meta.url),'utf8');
@@ -12,6 +13,13 @@ if(!version||!html.includes(`id="runtimeVersion">v${version}</span>`))throw new 
 if(!html.includes(`./src/main.js?v=${version}`))throw new Error(`UI check failed: deployed main-module cache key does not match VERSION (${version})`);
 const scenarios=JSON.parse(await readFile(new URL('../dist/scenarios/index.json',import.meta.url),'utf8'));
 if(!Array.isArray(scenarios.scenarios))throw new Error('Scenario Library check failed: scenarios/index.json must expose a scenarios array');
+for(const entry of scenarios.scenarios){
+  if(!entry?.id||!entry?.path)throw new Error('Scenario Library check failed: every catalog entry requires an id and path');
+  const relative=String(entry.path).replace(/^\.\//,'');
+  const data=JSON.parse(await readFile(new URL(`../dist/${relative}`,import.meta.url),'utf8'));
+  const {state}=migrateImportedProject(data);
+  if(!state?.project?.scenario?.commands?.sideA||!state?.project?.scenario?.commands?.sideB)throw new Error(`Scenario Library check failed: ${entry.id} did not migrate to canonical sideA/sideB`);
+}
 const engine=await readFile(new URL('../dist/src/modules/playtestEngine.js',import.meta.url),'utf8');
 for(const token of ['runPlaytest','runBatch','commandTest','Artillery','surprise','garrisonTurn']) if(!engine.includes(token)) throw new Error(`Playtest adapter check failed: missing ${token}`);
 console.log('Static deployment check passed.');

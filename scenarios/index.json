@@ -1,6 +1,43 @@
 {
   "format": "battle-axe-scenario-library",
   "version": "1.0",
-  "updated": "2026-08-30",
-  "scenarios": []
+  "updated": "2026-09-04",
+  "scenarios": [
+    {
+      "id": "glendale-1862",
+      "title": "Battle of Glendale / Frayser’s Farm",
+      "date": "30 June 1862",
+      "location": "",
+      "period": "American Civil War",
+      "supplement": "american-civil-war",
+      "status": "Development",
+      "tableSize": "24 × 24 inches",
+      "description": "Development Battle Axe scenario under active development.",
+      "path": "./scenarios/acw/glendale-1862.json"
+    },
+    {
+      "id": "cerignola-1503",
+      "title": "Battle of Cerignola",
+      "date": "28 April 1503",
+      "location": "Cerignola, Kingdom of Naple",
+      "period": "Italian Wars",
+      "supplement": "italian-wars",
+      "status": "Development",
+      "tableSize": "24 × 12 inches",
+      "description": "Development Battle Axe scenario under active development.",
+      "path": "./scenarios/italian-wars/cerignola-1503.json"
+    },
+    {
+      "id": "pavia-1525",
+      "title": "Battle of Pavia",
+      "date": "24 February 1525",
+      "location": "Mirabello Park, outside Pavia, Duchy of Milan",
+      "period": "Italian Wars",
+      "supplement": "italian-wars",
+      "status": "Development",
+      "tableSize": "48 × 48 inches",
+      "description": "Development Battle Axe scenario under active development.",
+      "path": "./scenarios/italian-wars/pavia-1525.json"
+    }
+  ]
 }

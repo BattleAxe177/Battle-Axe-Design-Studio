@@ -6,10 +6,19 @@ Use this file to continue from the current local working tree. Read `AGENTS.md` 
 
 - Repository: `C:\Users\scott\Desktop\Battle Axe Design Studio\Battle-Axe-Design-Studio`
 - Branch: `main`
-- Clean pushed baseline: `4122e23` (`Add human-first scenario authoring and reliable playtests`)
-- Working tree: intentionally dirty with the focused post-release stabilization batch described below.
+- Clean pushed baseline: `084a0fb` (`Stabilize scenario review and tactical playtests`)
+- Working tree: intentionally dirty with the Scenario Library population batch described below.
 - Do not commit or push without the user's explicit approval.
 - Local verification build: serve `dist/` on a fresh localhost port after rebuilding.
+
+## Scenario Library batch in progress on 2026-09-04
+
+- Added complete Development projects for Glendale, Cerignola, and Pavia under stable `scenarios/` paths.
+- Glendale was normalized from schema 1.1.0 to 1.2.0 through the standard Studio migration/export path; its migrated state is identical before and after normalization.
+- Cerignola and Pavia are byte-for-byte copies of the supplied schema 1.2.0 projects.
+- Added a release-owned compatibility suite covering catalog resolution, migration, canonical sides, hierarchy/reference integrity, battlefield/terrain, deployment/facing, reserves, rules, victory text, and tactical workspace preservation.
+- The deployment check now parses and migrates every scenario from the built `dist/` catalog.
+- Current project-content warnings are intentionally preserved: Cerignola and Pavia use generic `Side A` / `Side B` display labels; Cerignola records `Kingdom of Naple`; Glendale describes seven scenario rules in its victory/instructions prose but has no canonical `scenarioRules` records.
 
 ## Stabilization batch implemented on 2026-09-04
 
@@ -43,7 +52,7 @@ Use this file to continue from the current local working tree. Read `AGENTS.md` 
 
 ## Verification
 
-- Release manifest: 260/260 tests pass across 42 current test files.
+- Release manifest: 263/263 tests pass across 43 current test files.
 - Production build: pass (`node scripts/build.mjs`).
 - Static deployment check: pass (`node scripts/check.mjs`).
 - Live Cerignola project import verified in a fresh built preview:
@@ -71,4 +80,4 @@ The following items were intentionally documented, not fixed, in this focused ba
 
 ## Recommended next action
 
-Review the dirty diff, manually smoke-test any desired long Glendale run, then commit and push this stabilization batch only after explicit user approval. Do not hard-code Cerignola, Glendale, Pavia, or another named scenario into common logic.
+Review the dirty Scenario Library batch, then commit and push only after explicit user approval. The temporary `_incoming_scenarios` copies remain outside the repository and may be deleted after approval if they are no longer wanted. Do not hard-code Cerignola, Glendale, Pavia, or another named scenario into common logic.
