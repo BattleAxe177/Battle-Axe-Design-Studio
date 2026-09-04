@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { createBlankScenario } from '../src/data/scenarioData.js';
 import { createProjectExportPayload, createInitialState, migrateScenario } from '../src/app/state.js';
-import { classifyScenarioIntake, createScenarioProposalTemplate, importScenarioProposal, validateScenarioProposal } from '../src/modules/scenarioProposal.js';
+import { classifyScenarioIntake, createScenarioProposalTemplate, importScenarioProposal, proposalReviewDefaults, validateScenarioProposal } from '../src/modules/scenarioProposal.js';
 
 test('canonical scenario and export use only neutral structural side IDs',()=>{
   const s=createBlankScenario();assert.deepEqual(Object.keys(s.commands),['sideA','sideB']);assert.equal('French' in s.commands,false);assert.equal('Imperial' in s.commands,false);
@@ -20,12 +20,14 @@ test('proposal import validates sides and changes proposal state only',()=>{
   const good=createScenarioProposalTemplate();good.proposals.forces=[{id:'force-1',side:'sideA',name:'Proposed brigade'}];good.proposals.ruleOpportunities=[{id:'rule-1',title:'Possible fog',text:'Consider limited visibility.'}];const s=createBlankScenario(),before=structuredClone({commands:s.commands,scenarioRules:s.scenarioRules});importScenarioProposal(s,good);assert.deepEqual({commands:s.commands,scenarioRules:s.scenarioRules},before);assert.equal(s.proposals.forces.length,1);assert.equal(s.proposals.ruleOpportunities.length,1);
 });
 
-test('proposal import retains publication narrative without overwriting designer prose',()=>{
+test('proposal import preserves narrative as review material without changing canonical prose',()=>{
   const proposal=createScenarioProposalTemplate();proposal.publication.historical.narrative='Imported historical narrative';proposal.publication.battlefield.narrative='Imported battlefield narrative';proposal.publication.sourceDiscussion='Imported source discussion';
   const scenario=createBlankScenario();scenario.publication.historical.narrative='Designer historical narrative';importScenarioProposal(scenario,proposal);
   assert.equal(scenario.publication.historical.narrative,'Designer historical narrative');
-  assert.equal(scenario.publication.battlefield.narrative,'Imported battlefield narrative');
-  assert.equal(scenario.publication.sourceDiscussion,'Imported source discussion');
+  assert.equal(scenario.publication.battlefield.narrative,'');
+  assert.equal(scenario.publication.sourceDiscussion,'');
+  assert.equal(proposalReviewDefaults(scenario).publication.battlefield.narrative,'Imported battlefield narrative');
+  assert.equal(proposalReviewDefaults(scenario).publication.sourceDiscussion,'Imported source discussion');
 });
 
 test('arbitrary narrative is evidence-only while rigid headings route to structured extraction',()=>{
@@ -42,7 +44,7 @@ test('scenario intake names its source before routing every intake branch',async
   const source=await fs.readFile(new URL('../src/modules/scenarioBuilder.js',import.meta.url),'utf8');
   assert.match(source,/const sourceName=name,route=classifyScenarioIntake\(text\)/);
   assert.match(source,/importScenarioProposal\(scenario\(\),route\.proposal,\{sourceName\}\)/);
-  assert.match(source,/x\.status==='applied'\?'<button class="secondary compact" disabled>Applied<\/button>'/);
+  assert.match(source,/if\(done\)return `<div class="extraction-row">/);
   assert.match(source,/proposalId:x\.id/);
 });
 

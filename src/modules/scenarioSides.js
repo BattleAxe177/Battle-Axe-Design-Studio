@@ -1,6 +1,11 @@
 export const SIDE_KEYS=['sideA','sideB'];
 export const LEGACY_SIDE_MAP={French:'sideA',Imperial:'sideB'};
 const GENERIC_LABELS={sideA:'Side A',sideB:'Side B'};
+const DEFAULT_COLORS={sideA:'#2376BD',sideB:'#A93A32'};
+const DEFAULT_PALETTES={
+  sideA:['#164A7A','#2376BD','#49A0D8','#285A8F','#196F82','#5A57B5','#2E87A7'],
+  sideB:['#7E2727','#A93A32','#D45A4D','#8B405D','#B96A32','#C64468','#6D3947']
+};
 
 export function canonicalSideId(value){
   const raw=String(value||'').trim();
@@ -29,6 +34,26 @@ function ensureAliasShell(scenario){
 }
 
 export function sideLabel(scenario,side){const id=canonicalSideId(side)||side;return scenario?.sides?.[id]?.label||scenario?.sideLabels?.[id]||GENERIC_LABELS[id]||side;}
+
+export const getSideDisplayName=sideLabel;
+
+export function setSideDisplayName(scenario,side,value){
+  ensureAliasShell(scenario);const id=canonicalSideId(side);if(!id)return null;
+  const previous=sideLabel(scenario,id),label=String(value||'').trim()||GENERIC_LABELS[id];
+  scenario.sideLabels[id]=label;scenario.sides[id].label=label;
+  if(previous&&previous!==GENERIC_LABELS[id]){scenario.sideAliases[previous]=id;scenario.sideAliases[previous.toLowerCase()]=id;}
+  scenario.sideAliases[label]=id;scenario.sideAliases[label.toLowerCase()]=id;return label;
+}
+
+export function sideColor(scenario,side){const id=canonicalSideId(side);return scenario?.sides?.[id]?.color||DEFAULT_COLORS[id]||'#4d6380';}
+
+function shade(hex,amount){const value=String(hex||'').match(/^#([0-9a-f]{6})$/i);if(!value)return hex||'#4d6380';const n=parseInt(value[1],16),mix=x=>Math.max(0,Math.min(255,x+amount));return`#${[n>>16,(n>>8)&255,n&255].map(x=>mix(x).toString(16).padStart(2,'0')).join('')}`;}
+
+export function sideCommandColor(scenario,side,index=0){
+  const id=canonicalSideId(side),base=sideColor(scenario,id),i=Math.max(0,Number(index)||0);
+  if(id&&base.toLowerCase()===DEFAULT_COLORS[id].toLowerCase())return DEFAULT_PALETTES[id][i%DEFAULT_PALETTES[id].length];
+  return shade(base,[-24,0,28,-12,18,-36,38][i%7]);
+}
 
 export function sideForFaction(scenario,faction,{assign=false}={}){
   ensureAliasShell(scenario);const raw=String(faction||'').trim(),lower=raw.toLowerCase();

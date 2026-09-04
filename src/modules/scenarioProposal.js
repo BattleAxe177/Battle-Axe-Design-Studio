@@ -7,16 +7,18 @@ const arrays=['forces','ruleOpportunities','terrain','deployment','victory','unr
 const object=x=>x&&typeof x==='object'&&!Array.isArray(x);
 const text=x=>String(x??'').trim();
 const id=(prefix,n)=>`${prefix}-${n+1}`;
-const fillBlank=(current,incoming)=>text(current)?current:incoming;
+const unresolvedValue=value=>/^(?:unresolved|unknown|not known|not determined|tbd|to be determined|n\/a|-)$/i.test(text(value));
 
-function retainPublicationNarrative(scenario,publication){
-  if(!object(publication))return;
-  scenario.publication||=createScenarioProposalTemplate().publication;
-  for(const section of ['historical','battlefield']){
-    scenario.publication[section]||={};
-    for(const [key,value] of Object.entries(publication[section]||{}))scenario.publication[section][key]=fillBlank(scenario.publication[section][key],value);
-  }
-  for(const key of ['forceHistoryNotes','sourceDiscussion','designRationale','designerNotes'])scenario.publication[key]=fillBlank(scenario.publication[key],publication[key]);
+function safeMetadata(metadata={}){
+  const gameLength=Number(metadata.gameLength),table=metadata.tableSize,tableText=object(table)&&Number(table.width)>0&&Number(table.height)>0?`${table.width} × ${table.height}${table.units?` ${table.units}`:''}`:text(table);
+  return{
+    title:unresolvedValue(metadata.title)?'':text(metadata.title),
+    date:unresolvedValue(metadata.date)?'':text(metadata.date),
+    location:unresolvedValue(metadata.location)?'':text(metadata.location),
+    status:unresolvedValue(metadata.status)?'':text(metadata.status),
+    gameLength:Number.isFinite(gameLength)&&gameLength>0?String(Math.round(gameLength)):'',
+    tableSize:unresolvedValue(tableText)?'':tableText
+  };
 }
 
 export function createScenarioProposalTemplate(){return{format:SCENARIO_PROPOSAL_FORMAT,version:SCENARIO_PROPOSAL_VERSION,scenarioRevision:'current-local',metadata:{title:'',date:'',location:''},sideLabels:{sideA:'Side A',sideB:'Side B'},publication:{historical:{conciseSummary:'',narrative:''},battlefield:{conciseSummary:'',narrative:''},forceHistoryNotes:'',sourceDiscussion:'',designRationale:'',designerNotes:''},proposals:{forces:[],ruleOpportunities:[],terrain:[],deployment:[],victory:[],unresolved:[],sources:[]},notes:'',extensions:{}};}
@@ -54,10 +56,19 @@ export function normalizeScenarioProposal(input){
 export function importScenarioProposal(scenario,input,{sourceName='Scenario Proposal'}={}){
   const {proposal,warnings}=normalizeScenarioProposal(input);
   scenario.proposals||=createScenarioProposalTemplate().proposals;scenario.publication||=createScenarioProposalTemplate().publication;
-  retainPublicationNarrative(scenario,proposal.publication);
+  // Imported narrative is proposal material. The review form may prefill from it, but
+  // canonical/publication state changes only when the designer saves reviewed fields.
   for(const key of arrays){scenario.proposals[key]||=[];for(const row of proposal.proposals[key]){const tagged={...row,sourceName,proposalVersion:proposal.version};const found=scenario.proposals[key].findIndex(x=>x.id===tagged.id);if(found>=0)scenario.proposals[key][found]=tagged;else scenario.proposals[key].push(tagged);}}
   scenario.proposalImports||=[];scenario.proposalImports.push({sourceName,format:proposal.format,version:proposal.version,scenarioRevision:proposal.scenarioRevision,importedAt:new Date().toISOString(),metadata:proposal.metadata,sideLabels:proposal.sideLabels,publication:proposal.publication,notes:proposal.notes,extensions:proposal.extensions});
+  scenario.proposalReview={sourceName,metadata:safeMetadata(proposal.metadata),sideLabels:structuredClone(proposal.sideLabels||{}),publication:structuredClone(proposal.publication||{}),notes:proposal.notes};
   return{proposal,warnings,counts:Object.fromEntries(arrays.map(k=>[k,proposal.proposals[k].length]))};
+}
+
+export function proposalReviewDefaults(scenario){
+  const imports=scenario?.proposalImports||[],latest=scenario?.proposalReview||imports[imports.length-1];
+  if(!latest)return null;
+  const labels={};for(const side of SIDE_KEYS){const value=text(latest.sideLabels?.[side]);labels[side]=/^side\s+[ab]$/i.test(value)?'':value;}
+  return{sourceName:latest.sourceName||'Imported proposal',metadata:safeMetadata(latest.metadata),sideLabels:labels,publication:structuredClone(latest.publication||{}),notes:text(latest.notes)};
 }
 
 export function parseScenarioProposalText(raw){

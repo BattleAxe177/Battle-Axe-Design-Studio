@@ -41,6 +41,7 @@
     "v0681_map_label_polygon_hotfix.test.mjs",
     "v0690_scenario_ai_tactical.test.mjs",
     "v0691_deploy_hotfix.test.mjs",
-    "v0691_human_authoring_contract.test.mjs"
+    "v0691_human_authoring_contract.test.mjs",
+    "v0691_live_stabilization.test.mjs"
   ]
 }

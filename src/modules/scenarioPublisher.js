@@ -1,6 +1,6 @@
 import { getEffectiveRuleset } from '../rules/ruleset.js?v=0.6.9.1';
 import { battlefieldImageUrl } from './battlefieldState.js?v=0.6.9.1';
-import { sideLabel } from './scenarioSides.js?v=0.6.9.1';
+import { sideLabel, sideCommandColor } from './scenarioSides.js?v=0.6.9.1';
 import { acceptedScenarioRules } from './scenarioProposal.js?v=0.6.9.1';
 import { footprintPercentFromSpec } from './footprintGeometry.js?v=0.6.9.1';
 
@@ -46,10 +46,7 @@ function conciseText(text,maxWords=110){const words=authoritativeText(text).repl
 function historicalPublication(s,concise=false){const p=s.publication?.historical||{},value=concise?(p.conciseSummary||p.narrative):(p.narrative||p.conciseSummary);return value||s.historicalSituation||'';}
 function battlefieldBrief(state){const authored=state.project.scenario?.publication?.battlefield||{},narrative=authored.conciseSummary||authored.narrative;if(narrative)return narrative;const rows=[];for(const f of state.project.features||[]){const d=state.decisions?.[f.id];if(d?.status!=='approved')continue;const effects=d.effects||f.terrainOverride?.effects||[];if(!effects.length)continue;const key=`${d.cls||f.cls||f.name}|${effects.join(',')}`;if(rows.some(x=>x.key===key))continue;rows.push({key,name:d.cls||f.cls||f.name,effects});}return rows.length?rows.slice(0,6).map(x=>`${x.name}: ${x.effects.join(', ')}.`).join(' '):'No game-relevant terrain effects are currently approved.';}
 function deploymentBrief(s){const note=conciseText(s.deploymentNotes,75);if(note)return note;const cs=commands(s),parts=cs.map(c=>{const n=(c.units||[]).filter(u=>s.deployment?.placements?.[u.id]).length;return n?`${c.name}${c.commander?` (${c.commander})`:''}: ${n} unit${n===1?'':'s'} deployed.`:'';}).filter(Boolean);return parts.join(' ')||'Use the deployment map for starting positions.';}
-function shade(side,i){
-  const palettes={sideA:['#164A7A','#2376BD','#49A0D8','#285A8F','#196F82','#5A57B5','#2E87A7'],sideB:['#7E2727','#A93A32','#D45A4D','#8B405D','#B96A32','#C64468','#6D3947']};
-  const a=palettes[side]||['#4d6380'];return `background-color:${a[i%a.length]};-webkit-print-color-adjust:exact;print-color-adjust:exact`;
-}
+function shade(scenario,side,i){return `background-color:${sideCommandColor(scenario,side,i)};-webkit-print-color-adjust:exact;print-color-adjust:exact`;}
 function currentMapHtml(state,cls='map',alt='Battlefield map'){
   const url=battlefieldImageUrl(state.project);
   return url?`<img class="${cls}" src="${esc(url)}" alt="${esc(alt)}">`:`<div class="map-missing">No battlefield map generated for the current scenario.</div>`;
@@ -60,10 +57,10 @@ function deploymentMapHtml(state){
     for(const u of c.units||[]){
       const p=s.deployment?.placements?.[u.id];if(!p)continue;
       const profile=profiles.get(u.profile)||{},resolved=resolvedUnitFootprint(s,profiles,u),entity={kind:'unit',baseMm:resolved.baseMm,baseWidthMm:resolved.width,baseDepthMm:resolved.depth,baseShape:'rect'},fp=footprintPercentFromSpec(entity,state.project.playSpace||{},{}),facing=Number(p.facing||0);
-      items.push(`<div class="dep-piece" style="left:${Number(p.x)}%;top:${Number(p.y)}%;width:${fp.width}%;height:${fp.height}%;transform:translate(-50%,-50%) rotate(${facing}deg);${shade(c.side,c.commandIndex)}"><span style="transform:rotate(${-facing}deg)">${esc(u.name)}</span></div>`);
+      items.push(`<div class="dep-piece" style="left:${Number(p.x)}%;top:${Number(p.y)}%;width:${fp.width}%;height:${fp.height}%;transform:translate(-50%,-50%) rotate(${facing}deg);${shade(s,c.side,c.commandIndex)}"><span style="transform:rotate(${-facing}deg)">${esc(u.name)}</span></div>`);
     }
     const cp=s.deployment?.commanderPlacements?.[c.id];
-    if(cp&&c.commander){const mm=Number(tt.commanderBaseMm||25),fp=footprintPercentFromSpec({kind:'commander',baseMm:mm,baseShape:'circle'},state.project.playSpace||{},{});items.push(`<div class="dep-cmd" style="left:${Number(cp.x)}%;top:${Number(cp.y)}%;width:${fp.width}%;height:${fp.height}%;${shade(c.side,c.commandIndex)}">★</div>`);}
+    if(cp&&c.commander){const mm=Number(tt.commanderBaseMm||25),fp=footprintPercentFromSpec({kind:'commander',baseMm:mm,baseShape:'circle'},state.project.playSpace||{},{});items.push(`<div class="dep-cmd" style="left:${Number(cp.x)}%;top:${Number(cp.y)}%;width:${fp.width}%;height:${fp.height}%;${shade(s,c.side,c.commandIndex)}">★</div>`);}
   }
   const width=Number(state.project.playSpace?.width)||1,height=Number(state.project.playSpace?.height)||1;
   return `<div class="deployment-map" style="aspect-ratio:${width}/${height}">${currentMapHtml(state,'deployment-base','Deployment map')}${items.join('')}</div>`;

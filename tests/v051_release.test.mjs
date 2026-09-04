@@ -25,7 +25,8 @@ test('publisher deployment labels use counter-style white-on-side-color treatmen
 });
 
 test('command palettes use visibly separated shades within side families',async()=>{
-  const dep=await read('src/modules/deploymentEditor.js');
-  assert.ok(dep.includes("'#164A7A','#2376BD','#49A0D8'"));
-  assert.ok(dep.includes("'#7E2727','#A93A32','#D45A4D'"));
+  const dep=await read('src/modules/deploymentEditor.js'),sides=await read('src/modules/scenarioSides.js');
+  assert.ok(dep.includes('sideCommandColor'));
+  assert.ok(sides.includes("'#164A7A','#2376BD','#49A0D8'"));
+  assert.ok(sides.includes("'#7E2727','#A93A32','#D45A4D'"));
 });
