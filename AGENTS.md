@@ -9,5 +9,6 @@ Read `BATTLE_AXE_CODEX_HANDOFF.md` before architectural changes. Keep this file,
 - Battle Axe adjudicates. Never execute AI-provided code; validate data, IDs, schema versions, revisions, capabilities, and predicates.
 - Preserve source evidence, uncertainty, and unknown extension fields. Do not silently rewrite printed rules or disputed history.
 - Prefer one downloadable authoring ZIP and validate that its documents match the live import contract.
+- Treat the Scenario Authoring Guide, Scenario Design bridge, Tactical Playtest bridge, proposal schema/template, structured rule-automation schema, TacticalIntent examples, and downloadable ZIP as one versioned external-AI contract. Any externally visible schema or identifier change must audit and update all affected documents, prompts, examples, build assets, and regression tests.
 
 The full product, rules, geometry, tactical-AI, testing, and release instructions remain in `BATTLE_AXE_CODEX_HANDOFF.md` and the repository documentation.

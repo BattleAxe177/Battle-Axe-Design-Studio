@@ -5,7 +5,7 @@
   "metadata": {"title": "", "date": "", "location": ""},
   "sideLabels": {"sideA": "Side A", "sideB": "Side B"},
   "publication": {"historical": {"conciseSummary": "", "narrative": ""}, "battlefield": {"conciseSummary": "", "narrative": ""}, "forceHistoryNotes": "", "sourceDiscussion": "", "designRationale": "", "designerNotes": ""},
-  "proposals": {"forces": [], "ruleOpportunities": [], "terrain": [], "deployment": [], "victory": [], "unresolved": [], "sources": []},
+  "proposals": {"forces": [], "ruleOpportunities": [{"id": "rule-opportunity-example", "title": "Example design issue", "historicalCondition": "What the evidence says happened.", "whyItMatters": "Why normal Battle Axe rules may not fully express it.", "suggestedMechanic": "A possible human-readable scenario rule; the designer must explicitly create and save it.", "normalRulesAlternative": "How the designer could handle it using normal rules.", "confidence": 50, "sourceReferences": [], "notes": "Delete this example row when authoring a real proposal."}], "terrain": [], "deployment": [], "victory": [], "unresolved": [], "sources": []},
   "notes": "",
   "extensions": {}
 }

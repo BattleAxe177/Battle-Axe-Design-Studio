@@ -15,7 +15,7 @@
       "type": "object",
       "properties": {
         "forces": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
-        "ruleOpportunities": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
+        "ruleOpportunities": {"type": "array", "items": {"$ref": "#/$defs/ruleOpportunity"}},
         "terrain": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
         "deployment": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
         "victory": {"type": "array", "items": {"$ref": "#/$defs/proposal"}},
@@ -27,5 +27,8 @@
     "notes": {"type": "string"},
     "extensions": {"type": "object"}
   },
-  "$defs": {"proposal": {"type": "object", "properties": {"id": {"type": "string"}, "side": {"enum": ["sideA", "sideB"]}, "title": {"type": "string"}, "text": {"type": "string"}, "evidence": {"type": "string"}, "confidence": {"type": "number", "minimum": 0, "maximum": 100}}, "additionalProperties": true}}
+  "$defs": {
+    "proposal": {"type": "object", "properties": {"id": {"type": "string"}, "side": {"enum": ["sideA", "sideB"]}, "title": {"type": "string"}, "text": {"type": "string"}, "evidence": {"type": "string"}, "confidence": {"type": "number", "minimum": 0, "maximum": 100}}, "additionalProperties": true},
+    "ruleOpportunity": {"type": "object", "required": ["title"], "properties": {"id": {"type": "string"}, "title": {"type": "string"}, "historicalCondition": {"type": "string"}, "whyItMatters": {"type": "string"}, "suggestedMechanic": {"type": "string"}, "normalRulesAlternative": {"type": "string"}, "confidence": {"type": "number", "minimum": 0, "maximum": 100}, "sourceReferences": {"type": "array", "items": {"type": "string"}}, "notes": {"type": "string"}}, "additionalProperties": true}
+  }
 }

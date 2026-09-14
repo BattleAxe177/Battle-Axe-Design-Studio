@@ -29,7 +29,7 @@ test('turn transition keeps the initial order and compiles its release',()=>{
 test('negative while clause is retained as NOT and releases on named terrain crossing',()=>{
   const context={ownSide:'sideA',sideLabels:{sideA:'Union',sideB:'Confederate'},terrain:[{id:'willis-road',name:'Willis Church Road'}]};
   const intent=compileTacticalIntent('Hold while no enemy unit has crossed Willis Church Road, then Assault.',context);
-  assert.equal(intent.status,'understood');assert.equal(intent.order,'Hold');assert.equal(intent.guardCondition.op,'NOT');assert.equal(intent.releaseCondition.type,'terrain_occupied');assert.deepEqual(intent.releaseCondition.terrainIds,['willis-road']);assert.equal(intent.releaseCondition.side,'sideB');assert.equal(intent.postReleaseOrder,'Assault');assert.deepEqual(validateTacticalIntent(intent,context),[]);
+  assert.equal(intent.status,'understood');assert.equal(intent.order,'Hold');assert.equal(intent.guardCondition.op,'NOT');assert.equal(intent.releaseCondition.type,'terrain_crossed');assert.deepEqual(intent.releaseCondition.terrainIds,['willis-road']);assert.equal(intent.releaseCondition.side,'sideB');assert.equal(intent.postReleaseOrder,'Assault');assert.deepEqual(validateTacticalIntent(intent,context),[]);
 });
 
 test('unsupported meaningful condition fails closed',()=>{

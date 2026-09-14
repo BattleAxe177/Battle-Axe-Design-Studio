@@ -16,7 +16,7 @@ await copyFile(path.join(root,'index.html'), path.join(dist,'index.html'));
 await cp(path.join(root,'src'), path.join(dist,'src'), {recursive:true});
 await cp(path.join(root,'public'), dist, {recursive:true});
 await cp(path.join(root,'scenarios'), path.join(dist,'scenarios'), {recursive:true});
-const authoringNames=['BATTLE_AXE_SCENARIO_AUTHORING_GUIDE.md','SCENARIO_PROPOSAL_SCHEMA.json','SCENARIO_PROPOSAL_TEMPLATE.json','STARTING_PROMPT.md','SCENARIO_DESIGN_RESPONSE_CONTRACT.md','TACTICAL_PLAYTEST_REFERENCE.md'];
+const authoringNames=['BATTLE_AXE_SCENARIO_AUTHORING_GUIDE.md','SCENARIO_PROPOSAL_SCHEMA.json','SCENARIO_PROPOSAL_TEMPLATE.json','RULE_AUTOMATION_SCHEMA.json','STARTING_PROMPT.md','SCENARIO_DESIGN_RESPONSE_CONTRACT.md','TACTICAL_PLAYTEST_REFERENCE.md'];
 const authoringFiles=await Promise.all(authoringNames.map(async name=>({name,data:await readFile(path.join(root,'docs','ai',name))})));
 await writeFile(path.join(dist,'Battle_Axe_AI_Authoring_Pack.zip'),storedZip(authoringFiles));
 await writeFile(path.join(dist,'.nojekyll'),'');

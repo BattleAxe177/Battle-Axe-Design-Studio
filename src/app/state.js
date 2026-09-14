@@ -32,7 +32,7 @@ export function migrateScenario(saved){
   s.structuredRules={...blank.structuredRules,...(saved?.structuredRules||{})};
   s.publication={...blank.publication,...(saved?.publication||{}),historical:{...blank.publication.historical,...(saved?.publication?.historical||{})},battlefield:{...blank.publication.battlefield,...(saved?.publication?.battlefield||{})}};
   s.proposals={...blank.proposals,...(saved?.proposals||{})};for(const key of Object.keys(blank.proposals))s.proposals[key]=Array.isArray(saved?.proposals?.[key])?[...saved.proposals[key]]:[];
-  s.scenarioRules=Array.isArray(saved?.scenarioRules)?[...saved.scenarioRules]:(saved?.suggestions||[]).filter(x=>x.status==='accepted').map(x=>({id:x.id,title:x.title||'Scenario rule',text:x.proposal||'',engineStatus:x.engineStatus||'tabletop',engineText:x.engineText||'',overrides:x.overrides||'',status:'active',provenance:x.provenance||'legacy',evidence:x.evidence||''}));
+  s.scenarioRules=Array.isArray(saved?.scenarioRules)?saved.scenarioRules.map(x=>{const implementation=x.implementation&&typeof x.implementation==='object'?structuredClone(x.implementation):null;return{...x,implementation,engineStatus:x.engineStatus==='automated'&&!implementation?'needs-validation':(x.engineStatus||'tabletop'),automationStale:!!x.automationStale||(x.engineStatus==='automated'&&!implementation)};}):(saved?.suggestions||[]).filter(x=>x.status==='accepted').map(x=>({id:x.id,title:x.title||'Scenario rule',text:x.proposal||'',engineStatus:'tabletop',engineText:'',implementation:null,overrides:x.overrides||'',status:'active',provenance:x.provenance||'legacy',evidence:x.evidence||''}));
   const legacyBase=Number(saved?.tabletop?.unitBaseMm||blank.tabletop.unitBaseMm||50);
   s.tabletop={...blank.tabletop,...(saved?.tabletop||{})};
   s.tabletop.unitBaseWidthMm=Number(saved?.tabletop?.unitBaseWidthMm||legacyBase);
@@ -50,6 +50,7 @@ export function migrateScenario(saved){
   registerEvidenceSides(s,s.sourceForces||[],s.sourceCommands||[]);
   ensureTwoSideModel(s);
   normalizeCommandHierarchy(s);
+  for(const commands of Object.values(s.commands||{}))for(const command of commands||[]){if(!command.commanderStatus)command.commanderStatus=command.commander?'assigned':'none';if(!command.commanderRole)command.commanderRole='subcommander';}
   s.deployment={...blank.deployment,...(saved?.deployment||{}),placements:{...(saved?.deployment?.placements||{})},commanderPlacements:{...(saved?.deployment?.commanderPlacements||{})},zones:[...(saved?.deployment?.zones||[])]};
   return s;
 }

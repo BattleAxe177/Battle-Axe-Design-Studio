@@ -1,6 +1,6 @@
 import { readFile, access } from 'node:fs/promises';
 import { migrateImportedProject } from '../dist/src/app/state.js';
-const files=['dist/index.html','dist/src/main.js','dist/src/modules/battlefieldDetector.js','dist/src/modules/deploymentEditor.js','dist/src/modules/playtestEngine.js','dist/src/modules/playtestCenter.js','dist/src/modules/aiBridge.js','dist/projects/pavia/battlefield.svg','dist/scenarios/index.json','dist/.nojekyll'];
+const files=['dist/index.html','dist/src/main.js','dist/src/modules/battlefieldDetector.js','dist/src/modules/deploymentEditor.js','dist/src/modules/playtestEngine.js','dist/src/modules/playtestCenter.js','dist/src/modules/aiBridge.js','dist/src/modules/scenarioRuleAutomation.js','dist/projects/pavia/battlefield.svg','dist/scenarios/index.json','dist/Battle_Axe_AI_Authoring_Pack.zip','dist/.nojekyll'];
 for(const f of files) await access(new URL(`../${f}`,import.meta.url));
 const detector=await readFile(new URL('../dist/src/modules/battlefieldDetector.js',import.meta.url),'utf8');
 for(const token of ['#69D9E5','#F2AA84','syntheticOpening','rasterClassifiers','meaningfulInside','getCTM','rasterWall','rasterWood']) if(!detector.includes(token)) throw new Error(`Detector check failed: missing ${token}`);
@@ -8,9 +8,11 @@ const css=await readFile(new URL('../dist/src/styles/app.css',import.meta.url),'
 for(const token of ['.map-panel{position:sticky','.deployment-layout','.deployment-zone-poly','.playtest-main','.ai-bridge']) if(!css.includes(token)) throw new Error(`CSS check failed: missing ${token}`);
 const html=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
 const version=(await readFile(new URL('../VERSION',import.meta.url),'utf8')).trim().match(/^\d+\.\d+\.\d+\.\d+/)?.[0];
-for(const token of ['ruleEditorDialog','deploymentMapFrame','addPolygonZone','playReplayFrame','runBatchPlaytest','aiBridgeDialog','data-add-command="sideA"','data-add-command="sideB"','addMissingFeature','scenarioChecklist']) if(!html.includes(token)) throw new Error(`UI check failed: missing ${token}`);
+for(const token of ['ruleEditorDialog','commandEditorDialog','manualFeatureDialog','reserveTurnDialog','deploymentZoneDialog','deploymentMapFrame','addPolygonZone','playReplayFrame','runBatchPlaytest','aiBridgeDialog','data-add-command="sideA"','data-add-command="sideB"','addMissingFeature','scenarioChecklist']) if(!html.includes(token)) throw new Error(`UI check failed: missing ${token}`);
 if(!version||!html.includes(`id="runtimeVersion">v${version}</span>`))throw new Error(`UI check failed: deployed runtime version does not match VERSION (${version||'invalid'})`);
 if(!html.includes(`./src/main.js?v=${version}`))throw new Error(`UI check failed: deployed main-module cache key does not match VERSION (${version})`);
+const authoringPack=await readFile(new URL('../dist/Battle_Axe_AI_Authoring_Pack.zip',import.meta.url));
+for(const token of ['SCENARIO_PROPOSAL_SCHEMA.json','SCENARIO_PROPOSAL_TEMPLATE.json','RULE_AUTOMATION_SCHEMA.json','TACTICAL_PLAYTEST_REFERENCE.md'])if(!authoringPack.includes(Buffer.from(token)))throw new Error(`AI authoring pack check failed: missing ${token}`);
 const scenarios=JSON.parse(await readFile(new URL('../dist/scenarios/index.json',import.meta.url),'utf8'));
 if(!Array.isArray(scenarios.scenarios))throw new Error('Scenario Library check failed: scenarios/index.json must expose a scenarios array');
 for(const entry of scenarios.scenarios){

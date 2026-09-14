@@ -1,6 +1,7 @@
 export const ITALIAN_WARS_SUPPLEMENT = Object.freeze({
   id:'italian-wars',name:'Italian Wars',version:'1',source:'Battle Axe Italian Wars Supplement',description:'Period module layered on top of the Battle Axe core rules.',
   capabilities:{swissMutualRestriction:true,pikeShotTransit:true,campBaggageAssets:true,italianWarsTraits:true,shockCavalryCounterCharge:true},
+  commandAuthority:{mode:'army-and-local',armyCommanderRole:'army-commander',subcommanderRole:'subcommander',armyRangeInches:4,subcommandRangeInches:3,stackBenefits:false},
   armyAssetPolicy:{campMax:1,baggageMax:1,mutuallyExclusive:true,source:'Italian Wars supplement — Camp / Baggage rule'},
   profileMatchers:[
     ['Swiss Pikemen',/swiss\s+(?:pike|pikemen|infantry)|swiss main|swiss vanguard|swiss rear/i],['Arquebusiers',/arquebus/i],['Landsknechts',/landsknecht/i],['Gendarmes',/gendar/i],['Stradiots',/stradiot/i],['Cannon',/artillery|cannon|guns?\b/i],['Heavy Cavalry',/heavy cavalry|men-at-arms|men at arms/i],['Light Cavalry',/light cavalry/i],['Crossbowmen',/crossbow/i],['Archers',/\barchers?\b/i],['Pikemen',/\bpike(?:men)?\b/i]

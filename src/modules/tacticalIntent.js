@@ -6,7 +6,7 @@ export const ARMY_POSTURES=Object.freeze(['Auto','Offensive','Balanced','Defensi
 const ORDER_SET=new Set(TACTICAL_ORDERS);
 const REGION_SET=new Set(['left','right','nearest','front','rear','center','north','south','east','west']);
 const CONDITION_OPS=new Set(['ANY','ALL','NOT']);
-const PREDICATE_TYPES=new Set(['turn_reached','unit_destroyed','terrain_occupied','line_breached','line_abandoned','enemy_vulnerable','command_event','proximity']);
+const PREDICATE_TYPES=new Set(['turn_reached','unit_destroyed','terrain_reached','terrain_occupied','terrain_entered','terrain_crossed','line_breached','line_abandoned','enemy_vulnerable','command_event','proximity']);
 const norm=s=>String(s||'').toLowerCase().replace(/[’']/g,"'").replace(/[^a-z0-9]+/g,' ').trim();
 
 function commandAliases(c){return[c?.name,c?.commander,c?.commanderName,c?.historicalCommander,c?.scenarioCommanderOverride].map(norm).filter(x=>x.length>=3);}
@@ -62,11 +62,14 @@ function unitDestroyedPredicate(text,context){
   return{type:'unit_destroyed',side,role,commandId:command?.id||null,quantity:1};
 }
 function terrainPredicate(text,context){
+  if(/\b(?:beyond|past)\b/i.test(text))return null;
   if(!/\b(reach|reaches|reached|cross|crosses|crossed|enter|enters|entered|occupy|occupies|occupied|capture|captures|captured)\b/i.test(text))return null;
   const terrain=resolveTerrain(text,context);if(!terrain.length)return null;
+  const exact=terrain.filter(x=>norm(x.name)===norm(terrain[0].name));if(exact.length!==1)return null;
   const side=resolveSide(text,context)?.side||(/\b(enemy|opposing)\b/i.test(text)?opposite(context.ownSide):null);
   const command=resolveCommands(text,context).find(c=>c.id!==context.commandId)||null;
-  return{type:'terrain_occupied',terrainIds:terrain.filter(x=>norm(x.name)===norm(terrain[0].name)).map(x=>x.id),terrainName:terrain[0].name,side:command?.side||side||opposite(context.ownSide),commandId:command?.id||null};
+  const type=/\bcross(?:es|ed)?\b/i.test(text)?'terrain_crossed':/\benter(?:s|ed)?\b/i.test(text)?'terrain_entered':/\boccup(?:y|ies|ied)|captur(?:e|es|ed)\b/i.test(text)?'terrain_occupied':'terrain_reached';
+  return{type,terrainIds:[exact[0].id],terrainName:exact[0].name,side:command?.side||side||opposite(context.ownSide),commandId:command?.id||null};
 }
 function simplePredicate(text,context){
   return turnPredicate(text)||unitDestroyedPredicate(text,context)||terrainPredicate(text,context)||
@@ -92,7 +95,10 @@ function humanCondition(c,context){
   if(!c)return'';if(c.op==='NOT')return`not (${humanCondition(c.conditions[0],context)})`;if(c.op)return`${c.op==='ANY'?'any':'all'} of: ${c.conditions.map(x=>humanCondition(x,context)).join(c.op==='ANY'?' OR ':' AND ')}`;
   if(c.type==='turn_reached')return`Turn ${c.turn} is reached`;
   if(c.type==='unit_destroyed'){const label=context.sideLabels?.[c.side]||c.side||'matching',role=c.role||'unit';return`${label} ${role} is destroyed`;}
-  if(c.type==='terrain_occupied')return`${context.sideLabels?.[c.side]||c.side||'matching force'} reaches ${c.terrainName||c.terrainIds?.[0]}`;
+  if(c.type==='terrain_reached')return`${context.sideLabels?.[c.side]||c.side||'matching force'} reaches ${c.terrainName||c.terrainIds?.[0]}`;
+  if(c.type==='terrain_occupied')return`${context.sideLabels?.[c.side]||c.side||'matching force'} occupies ${c.terrainName||c.terrainIds?.[0]}`;
+  if(c.type==='terrain_entered')return`${context.sideLabels?.[c.side]||c.side||'matching force'} has entered ${c.terrainName||c.terrainIds?.[0]}`;
+  if(c.type==='terrain_crossed')return`${context.sideLabels?.[c.side]||c.side||'matching force'} has ever crossed ${c.terrainName||c.terrainIds?.[0]}`;
   return c.type.replaceAll('_',' ');
 }
 
@@ -106,18 +112,20 @@ export function compileTacticalIntent(text,context={}){
   if(raw&&!order&&!releaseCondition&&!region)unresolved.push('no executable military intent was recognized');
   const target=region?{...region,commandId:targetCommand?.id||null,side:targetCommand?.side||sideReference?.side||(security?context.ownSide:opposite(context.ownSide))}:targetCommand?{kind:'command',commandId:targetCommand.id,side:targetCommand.side||sideReference?.side||null}:sideReference?{kind:'side',side:sideReference.side}:terrain.length===1?{kind:'terrain',terrainIds:[terrain[0].id],terrainName:terrain[0].name}:null;
   const intent={version:TACTICAL_INTENT_VERSION,source:'free-text',scope:context.scope||'command',commandId:context.commandId||null,side:context.ownSide||null,raw,order,mission:security?'flank-security':region?.purpose==='offensive'?'offensive-maneuver':null,target,guardCondition,releaseCondition,postReleaseOrder:postReleaseOrder(t),formationIntent:null,replanTriggers:[],warnings,unresolved,status:!raw?'empty':unresolved.length?'blocked':warnings.length?'understood-with-warning':'understood'};
-  const meaning=[];if(order)meaning.push(`Action: ${order}.`);if(target?.frame==='geographic')meaning.push(`${security?'Security':'Spatial target'}: geographic ${target.region} ${target.area}.`);else if(target?.frame==='formation-relative')meaning.push(`${security?'Security':'Spatial target'}: ${target.region} ${target.area} of the target formation, derived from its current facing.`);if(targetCommand)meaning.push(`Target formation: ${targetCommand.name}.`);else if(sideReference)meaning.push(`Side reference: ${sideReference.label}.`);if(guardCondition)meaning.push(`Maintain the initial order while ${humanCondition(guardCondition,context)}.`);if(releaseCondition)meaning.push(`Release when ${humanCondition(releaseCondition,context)}.`);if(intent.postReleaseOrder)meaning.push(`After release: ${intent.postReleaseOrder}.`);
-  const legacyRelease=releaseCondition?.type==='terrain_occupied'?`${context.sideLabels?.[releaseCondition.side]||releaseCondition.side} reaches ${releaseCondition.terrainName}`:null;
+  const meaning=[];if(order)meaning.push(`Initial order: ${order}.`);if(target?.frame==='geographic')meaning.push(`${security?'Security':'Spatial target'}: geographic ${target.region} ${target.area}.`);else if(target?.frame==='formation-relative')meaning.push(`${security?'Security':'Spatial target'}: ${target.region} ${target.area} of the target formation, derived from its current facing.`);if(targetCommand)meaning.push(`Target formation: ${targetCommand.name}.`);else if(sideReference)meaning.push(`Side reference: ${sideReference.label}.`);if(guardCondition)meaning.push(`Maintain the initial order while ${humanCondition(guardCondition,context)}.`);if(releaseCondition)meaning.push(`Release when ${humanCondition(releaseCondition,context)}.`);if(intent.postReleaseOrder)meaning.push(`After release: ${intent.postReleaseOrder}.`);if(releaseCondition&&order)meaning.push(`Otherwise: remain ${order}.`);
+  const relationVerb={terrain_reached:'reaches',terrain_occupied:'occupies',terrain_entered:'has entered',terrain_crossed:'has crossed'}[releaseCondition?.type],legacyRelease=relationVerb?`${context.sideLabels?.[releaseCondition.side]||releaseCondition.side} ${relationVerb} ${releaseCondition.terrainName}`:null;
   return{...intent,meaning,execution:[...(order?[{field:'order',value:order}]:[]),...(target?[{field:'target',value:target}]:[]),...(legacyRelease?[{field:'releaseTrigger',value:legacyRelease}]:[]),...(releaseCondition?[{field:'releaseCondition',value:releaseCondition}]:[]),...(intent.postReleaseOrder?[{field:'postReleaseOrder',value:intent.postReleaseOrder}]:[])],resolved:{commands,side:sideReference,terrain}};
 }
 
-export function validateConditionTree(condition,{knownCommandIds=null,knownTerrainIds=null,path='releaseCondition'}={}){
+export function validateConditionTree(condition,{knownCommandIds=null,knownTerrainIds=null,knownUnitIds=null,knownZoneIds=null,path='releaseCondition'}={}){
   const errors=[];if(!condition||typeof condition!=='object')return[`${path} must be an object.`];
-  if(condition.op){if(!CONDITION_OPS.has(condition.op))errors.push(`${path}.op is unsupported.`);if(!Array.isArray(condition.conditions)||(condition.op==='NOT'?condition.conditions.length!==1:condition.conditions.length<2))errors.push(`${path}.conditions has invalid arity.`);else condition.conditions.forEach((c,i)=>errors.push(...validateConditionTree(c,{knownCommandIds,knownTerrainIds,path:`${path}.conditions[${i}]`})));return errors;}
+  if(condition.op){if(!CONDITION_OPS.has(condition.op))errors.push(`${path}.op is unsupported.`);if(!Array.isArray(condition.conditions)||(condition.op==='NOT'?condition.conditions.length!==1:condition.conditions.length<2))errors.push(`${path}.conditions has invalid arity.`);else condition.conditions.forEach((c,i)=>errors.push(...validateConditionTree(c,{knownCommandIds,knownTerrainIds,knownUnitIds,knownZoneIds,path:`${path}.conditions[${i}]`})));return errors;}
   if(!PREDICATE_TYPES.has(condition.type))errors.push(`${path}.type “${condition.type}” is unsupported.`);
   if(condition.type==='turn_reached'&&!(Number(condition.turn)>=1))errors.push(`${path}.turn must be at least 1.`);
   if(condition.commandId&&knownCommandIds&&!knownCommandIds.has(condition.commandId))errors.push(`${path}.commandId “${condition.commandId}” is unknown.`);
-  if(condition.type==='terrain_occupied'){if(!Array.isArray(condition.terrainIds)||!condition.terrainIds.length)errors.push(`${path}.terrainIds must contain at least one ID.`);else if(knownTerrainIds)for(const id of condition.terrainIds)if(!knownTerrainIds.has(id))errors.push(`${path}.terrainIds contains unknown ID “${id}”.`);}
+  if(condition.unitId&&knownUnitIds&&!knownUnitIds.has(condition.unitId))errors.push(`${path}.unitId “${condition.unitId}” is unknown.`);
+  if(condition.zoneId&&knownZoneIds&&!knownZoneIds.has(condition.zoneId))errors.push(`${path}.zoneId “${condition.zoneId}” is unknown.`);
+  if(condition.type?.startsWith('terrain_')){if(!Array.isArray(condition.terrainIds)||!condition.terrainIds.length)errors.push(`${path}.terrainIds must contain at least one ID.`);else if(knownTerrainIds)for(const id of condition.terrainIds)if(!knownTerrainIds.has(id))errors.push(`${path}.terrainIds contains unknown ID “${id}”.`);}
   return errors;
 }
 
@@ -125,13 +133,15 @@ export function validateTacticalIntent(intent,context={}){
   const errors=[];if(!intent||typeof intent!=='object')return['TacticalIntent must be an object.'];
   if(intent.version!==TACTICAL_INTENT_VERSION)errors.push(`Unsupported TacticalIntent version “${intent.version}”.`);
   if(intent.order&&!ORDER_SET.has(intent.order))errors.push(`Unsupported TacticalIntent order “${intent.order}”.`);
-  const knownCommandIds=context.knownCommandIds||new Set((context.commands||[]).map(c=>c.id)),knownTerrainIds=context.knownTerrainIds||new Set((context.terrain||[]).map(f=>f.id));
+  const knownCommandIds=context.knownCommandIds||new Set((context.commands||[]).map(c=>c.id)),knownTerrainIds=context.knownTerrainIds||new Set((context.terrain||[]).map(f=>f.id)),knownUnitIds=context.knownUnitIds||new Set((context.units||[]).map(u=>u.id)),knownZoneIds=context.knownZoneIds||new Set((context.zones||[]).map(z=>z.id));
+  if(intent.side&&!['sideA','sideB'].includes(intent.side))errors.push(`Unknown TacticalIntent side “${intent.side}”.`);
   if(intent.commandId&&knownCommandIds.size&&!knownCommandIds.has(intent.commandId))errors.push(`Unknown TacticalIntent commandId “${intent.commandId}”.`);
   if(intent.target?.commandId&&knownCommandIds.size&&!knownCommandIds.has(intent.target.commandId))errors.push(`Unknown target commandId “${intent.target.commandId}”.`);
+  if(intent.target?.terrainIds&&knownTerrainIds.size)for(const id of intent.target.terrainIds)if(!knownTerrainIds.has(id))errors.push(`Unknown target terrain ID “${id}”.`);
   if(intent.target?.region&&!REGION_SET.has(intent.target.region))errors.push(`Unsupported target region “${intent.target.region}”.`);
   if(intent.target?.frame&&!['formation-relative','geographic'].includes(intent.target.frame))errors.push(`Unsupported target frame “${intent.target.frame}”.`);
-  if(intent.releaseCondition)errors.push(...validateConditionTree(intent.releaseCondition,{knownCommandIds,knownTerrainIds}));
-  if(intent.guardCondition)errors.push(...validateConditionTree(intent.guardCondition,{knownCommandIds,knownTerrainIds,path:'guardCondition'}));
+  if(intent.releaseCondition)errors.push(...validateConditionTree(intent.releaseCondition,{knownCommandIds,knownTerrainIds,knownUnitIds,knownZoneIds}));
+  if(intent.guardCondition)errors.push(...validateConditionTree(intent.guardCondition,{knownCommandIds,knownTerrainIds,knownUnitIds,knownZoneIds,path:'guardCondition'}));
   return errors;
 }
 

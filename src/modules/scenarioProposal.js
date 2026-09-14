@@ -34,7 +34,7 @@ export function validateScenarioProposal(input){
     if(!object(row))errors.push(`proposals.forces[${i}] must be an object.`);
     else if(row.side&&!SIDE_KEYS.includes(row.side))errors.push(`proposals.forces[${i}].side must be sideA or sideB.`);
   }
-  for(const [i,row] of (input.proposals?.ruleOpportunities||[]).entries())if(!object(row)||!text(row.text||row.proposal))errors.push(`proposals.ruleOpportunities[${i}] needs text.`);
+  for(const [i,row] of (input.proposals?.ruleOpportunities||[]).entries())if(!object(row)||!text(row.title||row.text||row.proposal||row.historicalCondition))errors.push(`proposals.ruleOpportunities[${i}] needs a title or historical condition.`);
   const known=new Set(['format','version','scenarioRevision','metadata','sideLabels','publication','proposals','notes','extensions']);
   const unknown=Object.keys(input).filter(k=>!known.has(k));if(unknown.length)warnings.push(`Unrecognized top-level fields preserved in extensions: ${unknown.join(', ')}.`);
   return{valid:!errors.length,errors,warnings};
@@ -48,6 +48,16 @@ export function normalizeScenarioProposal(input){
   out.sideLabels={...out.sideLabels,...(object(input.sideLabels)?input.sideLabels:{})};
   out.publication={...out.publication,...(object(input.publication)?structuredClone(input.publication):{}),historical:{...out.publication.historical,...(input.publication?.historical||{})},battlefield:{...out.publication.battlefield,...(input.publication?.battlefield||{})}};
   for(const key of arrays)out.proposals[key]=(input.proposals?.[key]||[]).map((row,n)=>object(row)?{id:row.id||id(key,n),status:row.status||'proposed',...structuredClone(row)}:{id:id(key,n),status:'proposed',text:String(row)});
+  out.proposals.ruleOpportunities=out.proposals.ruleOpportunities.map(row=>({
+    ...row,
+    title:text(row.title)||'Rule opportunity',
+    historicalCondition:text(row.historicalCondition||row.evidence),
+    whyItMatters:text(row.whyItMatters),
+    suggestedMechanic:text(row.suggestedMechanic||row.suggestedBattleAxeMechanic||row.proposal||row.text),
+    normalRulesAlternative:text(row.normalRulesAlternative),
+    sourceReferences:Array.isArray(row.sourceReferences)?row.sourceReferences.map(text).filter(Boolean):[],
+    notes:text(row.notes)
+  }));
   out.notes=text(input.notes);out.extensions={...(object(input.extensions)?structuredClone(input.extensions):{})};
   for(const [key,value] of Object.entries(input))if(!['format','version','scenarioRevision','metadata','sideLabels','publication','proposals','notes','extensions'].includes(key))out.extensions[key]=structuredClone(value);
   return{proposal:out,warnings:check.warnings};
@@ -86,6 +96,6 @@ export function classifyScenarioIntake(raw){
 }
 
 export function acceptedScenarioRules(scenario){
-  if(Array.isArray(scenario?.scenarioRules)&&scenario.scenarioRules.length)return scenario.scenarioRules.filter(x=>x.status!=='removed');
+  if(Array.isArray(scenario?.scenarioRules)&&scenario.scenarioRules.length)return scenario.scenarioRules.filter(x=>!['removed','draft'].includes(x.status));
   return(scenario?.suggestions||[]).filter(x=>x.status==='accepted').map(x=>({id:x.id,title:x.title,text:x.proposal,engineStatus:x.engineStatus||'tabletop',engineText:x.engineText||'',overrides:x.overrides||'',provenance:x.provenance||'legacy'}));
 }

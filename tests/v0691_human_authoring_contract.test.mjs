@@ -4,6 +4,12 @@ import fs from 'node:fs/promises';
 import { createBlankScenario } from '../src/data/scenarioData.js';
 import { createProjectExportPayload, createInitialState, migrateScenario } from '../src/app/state.js';
 import { classifyScenarioIntake, createScenarioProposalTemplate, importScenarioProposal, proposalReviewDefaults, validateScenarioProposal } from '../src/modules/scenarioProposal.js';
+import { applySetupRuleImplementations, renderRuleEngineInterpretation, validateRuleImplementation } from '../src/modules/scenarioRuleAutomation.js';
+import { __conformance } from '../src/modules/playtestEngine.js';
+import { getEffectiveRuleset } from '../src/rules/ruleset.js';
+import { validateTacticalResponse } from '../src/modules/externalAiExchange.js';
+import { tacticalRequestContext690 } from '../src/modules/tacticalPlanner690.js';
+import { compileTacticalIntent } from '../src/modules/tacticalIntent.js';
 
 test('canonical scenario and export use only neutral structural side IDs',()=>{
   const s=createBlankScenario();assert.deepEqual(Object.keys(s.commands),['sideA','sideB']);assert.equal('French' in s.commands,false);assert.equal('Imperial' in s.commands,false);
@@ -60,4 +66,41 @@ test('Publisher includes the retained battlefield narrative before the map',asyn
   const source=await fs.readFile(new URL('../src/modules/scenarioPublisher.js',import.meta.url),'utf8');
   assert.match(source,/battlefieldNarrative=authoritativeText\(s\.publication\?\.battlefield\?\.narrative/);
   assert.match(source,/battlefieldNarrative\?battlefieldNarrative\.split/);
+});
+
+test('one structured Rule Opportunity remains one noncanonical opportunity',()=>{
+  const proposal=createScenarioProposalTemplate();proposal.proposals.ruleOpportunities=[{id:'fog',title:'Morning fog',historicalCondition:'Fog covered the field.',whyItMatters:'Visibility may be reduced.',suggestedMechanic:'Limit visibility during Turn 1.',normalRulesAlternative:'Use normal LOS.',confidence:70,sourceReferences:['Source A'],notes:'Review duration.'}];
+  const scenario=createBlankScenario();importScenarioProposal(scenario,proposal);assert.equal(scenario.proposals.ruleOpportunities.length,1);assert.equal(scenario.scenarioRules.length,0);assert.equal(scenario.proposals.ruleOpportunities[0].suggestedMechanic,'Limit visibility during Turn 1.');
+});
+
+test('prose alone cannot become automated and valid structure generates interpretation',()=>{
+  assert.ok(validateRuleImplementation(null,{}).length);
+  const implementation={version:'1.0',timing:'setup',affectedSideId:'sideA',condition:null,actions:[{type:'set-turn-one-initiative',sideId:'sideA'}],persistence:'once'};
+  assert.deepEqual(validateRuleImplementation(implementation,{}),[]);assert.match(renderRuleEngineInterpretation(implementation,{}),/Action: Set Turn 1 initiative to sideA/);assert.equal(applySetupRuleImplementations({},[{implementation}]).turnOneInitiative,'sideA');
+  assert.ok(validateRuleImplementation({...implementation,actions:[{type:'execute-javascript',code:'x'}]},{}).length);
+});
+
+test('commanderless commands survive migration and export as intentional canonical commands',()=>{
+  const s=migrateScenario({commands:{sideA:[{id:'body',name:'Commanderless body',commander:'',commanderStatus:'none',units:[]}],sideB:[]}});assert.equal(s.commands.sideA[0].commander,'');assert.equal(s.commands.sideA[0].commanderStatus,'none');const state=createInitialState();state.project.scenario=s;const payload=createProjectExportPayload(state,{studioVersion:'test'});assert.equal(payload.project.scenario.commands.sideA[0].commanderStatus,'none');
+});
+
+test('Italian Wars Army Commander authority is side-wide but ranged, Subcommander authority is local, and ACW remains hierarchical',()=>{
+  const italian=createBlankScenario(),army={id:'army',kind:'commander',faction:'sideA',commandId:'body-a',commanderRole:'army-commander',destroyed:false,inactive:false},sub={id:'sub',kind:'commander',faction:'sideA',commandId:'body-a',commanderRole:'subcommander',destroyed:false,inactive:false},other={id:'u',faction:'sideA',commandId:'body-b'};italian.ruleset.supplement='italian-wars';const iw={rules:getEffectiveRuleset(italian),commandParentById:new Map([['body-a',null],['body-b',null]])};assert.equal(__conformance.commanderHasAuthority(army,other,iw),true);assert.equal(__conformance.commanderHasAuthority(sub,other,iw),false);
+  const acw=createBlankScenario();acw.ruleset.supplement='american-civil-war';const acwCtx={rules:getEffectiveRuleset(acw),commandParentById:new Map([['corps',null],['brigade','corps'],['sibling',null]])},corps={...army,commandId:'corps',commanderRole:'subcommander'};assert.equal(__conformance.commanderHasAuthority(corps,{...other,commandId:'brigade'},acwCtx),true);assert.equal(__conformance.commanderHasAuthority(corps,{...other,commandId:'sibling'},acwCtx),false);
+});
+
+test('terrain crossing history requires a strict boundary transition and latches by actor and feature',()=>{
+  const feature={id:'line',name:'Named line',parts:[{closed:false,points:[{x:5,y:0},{x:5,y:10}]}]},actor={id:'u',name:'Unit',faction:'sideB',commandId:'enemy'},ctx={terrain:[feature],terrainCrossings:{},turn:2,commandParentById:new Map()};assert.equal(__conformance.recordTerrainTransitions(actor,{from:{x:2,y:4},to:{x:4.9,y:4}},ctx).length,0);assert.equal(__conformance.recordTerrainTransitions(actor,{from:{x:4,y:4},to:{x:6,y:4}},ctx)[0].relation,'crossed');assert.equal(__conformance.recordTerrainTransitions(actor,{from:{x:6,y:4},to:{x:4,y:4}},ctx).length,0,'historical crossing stays latched');
+});
+
+test('tactical response requires exact version, revision, side IDs, and command IDs',()=>{
+  const state=createInitialState();state.project.scenario.commands.sideA=[{id:'a',name:'A',commander:'',units:[]}];const revision=tacticalRequestContext690(state).configuration,base={format:'battle-axe-ai-response',version:'1.0',response_type:'tactical-plan',scenario_revision:revision,tactical_plan:{armies:{sideA:{posture:'Defensive'}},commands:{a:{order:'Reserve',tactical_intent:{version:'1.0',scope:'command',commandId:'a',side:'sideA',order:'Reserve',releaseCondition:{type:'turn_reached',turn:2},postReleaseOrder:'Assault',warnings:[],unresolved:[],status:'understood'}}}},warnings:[],unresolved_questions:[]};assert.equal(validateTacticalResponse(structuredClone(base),state).plan.commands.a.tacticalIntent.postReleaseOrder,'Assault');assert.throws(()=>validateTacticalResponse({...structuredClone(base),version:'2.0'},state),/version/);assert.throws(()=>validateTacticalResponse({...structuredClone(base),scenario_revision:'stale'},state),/fresh package/);const bad=structuredClone(base);bad.tactical_plan.commands.unknown=bad.tactical_plan.commands.a;delete bad.tactical_plan.commands.a;assert.throws(()=>validateTacticalResponse(bad,state),/Unknown command ID/);
+});
+
+test('native authoring editors and downloadable versioned contract are wired into the product',async()=>{
+  const [html,builder,features,deployment,external,build,agents]=await Promise.all(['../index.html','../src/modules/scenarioBuilder.js','../src/modules/featureReview.js','../src/modules/deploymentEditor.js','../src/modules/externalAiExchange.js','../scripts/build.mjs','../AGENTS.md'].map(p=>fs.readFile(new URL(p,import.meta.url),'utf8')));assert.match(html,/id="commandEditorDialog"/);assert.match(html,/id="manualFeatureDialog"/);assert.match(html,/id="reserveTurnDialog"/);assert.match(html,/id="deploymentZoneDialog"/);assert.match(external,/Paste AI response JSON \(fallback\)/);assert.doesNotMatch(builder,/\bprompt\s*\(/);assert.doesNotMatch(features,/\bprompt\s*\(/);assert.doesNotMatch(deployment,/\bprompt\s*\(/);assert.match(build,/RULE_AUTOMATION_SCHEMA\.json/);assert.match(agents,/one versioned external-AI contract/i);
+});
+
+test('tactical review renders structured values and the explicit otherwise branch',async()=>{
+  const release=await fs.readFile(new URL('../src/modules/release690.js',import.meta.url),'utf8'),intent=compileTacticalIntent('hold until turn 4, then assault',{scope:'command',commandId:'reserve',ownSide:'sideA',sides:[{id:'sideA',label:'Blue'},{id:'sideB',label:'Red'}]});assert.match(release,/JSON\.stringify\(value\)/);assert.ok(intent.meaning.includes('Otherwise: remain Hold.'));
 });
